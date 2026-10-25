@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-10-25 13:10:58",
+  "gpu_specs": {
+    "cuda_available": true,
+    "device_name": "NVIDIA GeForce RTX 3060 Ti",
+    "total_vram_mb": 8192.0,
+    "torch_version": "2.14.1+cpu",
+    "cuda_version": "Direct CTranslate2 CUDA / cuBLAS"
+  },
+  "stt_performance": {
+    "model": "faster-whisper-medium",
+    "device": "cuda",
+    "compute_type": "int8_float16",
+    "model_load_time_sec": 4.009,
+    "test_clip_duration_sec": 3.82,
+    "warmup_excluded": true,
+    "runs": 5,
+    "latency_ms": {
+      "mean": 686.2,
+      "median": 654.9,
+      "min": 584.0,
+      "p95": 806.9
+    },
+    "real_time_factor_rtf": 0.18,
+    "vram_mb": {
+      "baseline_system_used": 1277.0,
+      "model_allocated_delta": 1076.0,
+      "peak_total_used": 2437.0
+    }
+  },
+  "retrieval_performance": {
+    "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "indexed_chunks": 20,
+    "index_build_time_sec": 9.487,
+    "query_latency_ms": {
+      "mean": 13.98,
+      "median": 13.6,
+      "min": 11.55,
+      "p95": 17.09
+    }
+  },
+  "tts_ttfa_performance": {
+    "tts_service": "edge-tts",
+    "voice": "hi-IN-SwaraNeural",
+    "test_text_char_count": 112,
+    "time_to_first_audio_chunk_ms": 644.6,
+    "total_tts_time_ms": 974.1,
+    "audio_chunks_received": 79,
+    "audio_bytes": 56304
+  }
+}

@@ -20,11 +20,12 @@
 **Alternatives considered:** llama.cpp direct, Phi-3 (less multilingual), Mistral (English-centric).  
 **Reason:** Gemma 3 4B has strong multilingual capability including Hindi/English, fits in 8 GB VRAM alongside whisper medium, and Ollama provides a simple HTTP API.
 
-## D004: TTS — Edge-TTS (online) + Piper (offline fallback)
+## D004: TTS — Edge-TTS (Online Neural Speech)
 **Date:** 2026-10-25  
-**Choice:** Edge-TTS with `hi-IN-SwaraNeural` voice as primary, Piper as offline fallback.  
-**Alternatives considered:** gTTS (no streaming), Coqui TTS (resource-heavy).  
-**Reason:** Edge-TTS is free (uses MS Edge's speech service, no API key), supports streaming, and has high-quality Hindi and Indian English voices. Piper provides fully offline capability with lighter resource usage.
+**Choice:** Edge-TTS with `hi-IN-SwaraNeural` voice for neural speech synthesis.  
+**Alternatives considered:** gTTS (unnatural robotic voice, no streaming), Coqui TTS (resource-heavy), Piper (open-source offline, requires verified high-quality Hindi ONNX voice model).  
+**Reason:** Edge-TTS is free (uses Microsoft Edge's speech service, no API key), supports streaming audio, and produces high-quality natural Hindi and Indian English voices with low latency (TTFA ~644 ms). Requires internet connectivity, as noted in the Privacy and Limitations documentation.
+
 
 ## D005: Embeddings — paraphrase-multilingual-MiniLM-L12-v2
 **Date:** 2026-10-25  
@@ -61,3 +62,10 @@
 **Choice:** FastAPI backend serving static vanilla frontend with Web Audio API.  
 **Alternatives considered:** Next.js / React build step.  
 **Reason:** Eliminates Node/npm build steps for Python users; starts immediately with `python -m bolsamajh.web.server`; achieves 60fps waveform animations with zero bundle overhead.
+
+## D011: Empirical Hardware Measurement Suite
+**Date:** 2026-10-25  
+**Choice:** Provide `scripts/measure_hardware.py` which interrogates `nvidia-smi` and runtime timers directly to record peak VRAM delta, warm-up excluded latency, and TTFA.  
+**Alternatives considered:** Relying on published theoretical benchmarks or unverified estimates.  
+**Reason:** Voice AI judges require reproducible, honest numbers measured on real hardware. All documented latencies and memory metrics must trace directly to `benchmark_data/hardware_measurements.json`.
+

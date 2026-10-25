@@ -2,11 +2,30 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🚀 Milestone 7 Complete — Submission Ready
+## Current Status: 🔍 Tier 0 Complete — Truth & Reproducibility Audit Passed
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Tier 0 — Truth, Reproducibility & Performance Profile
+- [x] Conducted exhaustive audit across `README.md`, `PROGRESS.md`, `DECISIONS.md`, and `submission/*.md`.
+- [x] Removed or corrected all unsupported claims:
+  - Latency claims updated to measured numbers (`hardware_measurements.json`).
+  - Removed unmeasured `base` row from README benchmark table.
+  - Removed claims of Piper offline fallback (Edge-TTS documented as online neural TTS).
+  - Clarified AI4Bharat status (standalone prototype adapter, not yet integrated into primary pipeline).
+  - Corrected `Escape` key description (stops TTS audio playback).
+  - Replaced "flawless" code-switching claims with empirical observations.
+  - Replaced privacy blanket claims with an explicit data boundary matrix (Edge-TTS sends text to Microsoft; Gemini sends prompts to Google; STT and vector search remain strictly local).
+  - Fixed `bolna.dev` -> `bolna.ai`.
+- [x] Added `scripts/measure_hardware.py`:
+  - Peak GPU VRAM measured via `nvidia-smi` (1,076 MB model delta, 2,437 MB peak total on RTX 3060 Ti).
+  - STT inference latency measured with warm-up exclusion (mean 686.2 ms, min 584.0 ms, p95 806.9 ms on a 3.82s test clip, RTF 0.180x).
+  - Document retrieval latency measured across 20 chunks (mean 13.98 ms).
+  - Time-To-First-Audio (TTFA) measured on streaming Edge-TTS (644.6 ms).
+  - Results saved to `benchmark_data/hardware_measurements.json`.
+- [x] Added explicit Limitations and Privacy sections to `README.md`.
 
 #### Milestone 0 — Scaffolding & Environment Setup
 - [x] Initialized Git repository, `.gitignore`, MIT `LICENSE`.
@@ -17,7 +36,7 @@
 #### Milestone 1 — Push-to-Talk Dictation in Any App
 - [x] Implemented `MicRecorder` with `sounddevice` for low-latency 16kHz PCM capture.
 - [x] Created `FasterWhisperSTT` adapter using CTranslate2 with INT8-FP16 mixed precision on RTX 3060 Ti GPU.
-- [x] Built `text_cleanup.py`: filler stripping (*matlab*, *umm*, *toh*, *you know*), number formatting (₹, dates, phone numbers), script control (Roman, Devanagari, Natural).
+- [x] Built `text_cleanup.py`: filler stripping, currency and date formatting, script control framework.
 - [x] Built universal clipboard paste simulation (`utils/clipboard.py`) for in-place text typing into any application.
 - [x] Built lightweight floating Tkinter HUD with states (`listening`, `processing`, `done`, `error`).
 - [x] Wired global hotkey `Ctrl+Shift+Space` for push-to-talk.
@@ -26,23 +45,22 @@
 - [x] Multi-format document parser (`documents/loader.py`): PDF (`PyMuPDF`), Word (`python-docx`), Webpages (`trafilatura`), plain text & Markdown.
 - [x] Sentence-aware chunker (`documents/chunker.py`) with metadata tracking (page numbers, section titles, source path).
 - [x] Local multilingual vector retrieval (`documents/retriever.py`): `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` + FAISS inner product index.
-- [x] Benchmarked retrieval: cosine similarity search completes in <35ms.
+- [x] Benchmarked retrieval: cosine similarity search completes in ~14 ms.
 
 #### Milestone 3 — Talk-to-Document Voice Q&A with Citations
 - [x] Abstract LLM adapter interface (`llm/base.py`) with streaming support.
 - [x] Local Ollama adapter (`llm/ollama_adapter.py`) with `gemma3:4b`.
-- [x] Google AI Studio free tier adapter (`llm/google_ai.py`) with `gemini-2.0-flash` (15 RPM free).
+- [x] Google AI Studio free tier adapter (`llm/google_ai.py`).
 - [x] Edge-TTS adapter (`tts/edge_tts_adapter.py`) supporting Hindi (`hi-IN-SwaraNeural`), English, and Gujarati neural voices with zero API spend.
 - [x] Grounded prompt engineering: enforces page citations, strict context-only answers, and professional disclaimer.
-- [x] Audio playback and instant voice interruption via `Escape` key (`tts.stop()`).
+- [x] Audio playback and voice interruption via `Escape` key (`tts.stop()`).
 - [x] Hotkeys wired: `Ctrl+Shift+D` (load document dialog), `Ctrl+Shift+A` (voice ask).
 
 #### Milestone 4 — 100-Sentence Hinglish Benchmark Suite
-- [x] Curated 100 realistic Hinglish sentences (`benchmark/sentences.py`) across 5 domains (everyday, technical, numbers, names, code-switching).
-- [x] Built interactive CLI recording tool (`benchmark/record_tool.py`) with audio persistence and metadata checkpointing.
-- [x] Built synthetic dataset generator for immediate reproducible baselines using neural TTS.
+- [x] Curated 100 realistic Hinglish sentences (`benchmark/sentences.py`) across 5 domains.
+- [x] Built interactive CLI recording tool (`benchmark/record_tool.py`) with metadata checkpointing.
+- [x] Built synthetic dataset generator for reproducible baselines using neural TTS.
 - [x] Built automated benchmark evaluator (`benchmark/evaluate.py`) calculating WER, CER, RTF, latency, and per-category breakdowns.
-- [x] Added AI4Bharat IndicWhisper adapter (`stt/ai4bharat.py`).
 
 #### Milestone 5 — In-App Voice Commands on Selection
 - [x] Implemented `VoiceCommandsPipeline` (`pipeline/commands.py`): user highlights text in any desktop app, presses `Ctrl+Shift+C`, speaks instruction.
@@ -57,20 +75,17 @@
   - Browser microphone streaming via MediaRecorder API
   - Interactive source citation cards and audio response playback
 
-#### Milestone 7 — README, Submission & Polish
-- [x] Comprehensive developer documentation in `README.md`.
-- [x] 90-second demo script with visual shot list (`submission/demo_script.md`).
-- [x] Official buildathon application form answers (`submission/application_answers.md`).
-- [x] Decision log (`DECISIONS.md`) and Progress tracker (`PROGRESS.md`).
-
 ---
 
-### 📊 Measured System Metrics
+### 📊 Empirically Verified Metrics (`benchmark_data/hardware_measurements.json`)
 
 | Metric | Measured Value | Target | Status |
 | :--- | :--- | :--- | :--- |
-| **Dictation Latency** | **380 – 480 ms** | < 1000 ms | 🟢 Exceeded |
-| **Real-Time Factor (RTF)** | **~0.15x – 0.20x** | < 0.50x | 🟢 Exceeded |
-| **GPU VRAM Usage** | **~1.6 GB (Whisper medium)** | < 4.0 GB | 🟢 Exceeded |
-| **Document Retrieval** | **< 35 ms** | < 100 ms | 🟢 Exceeded |
-| **Cloud API Spend** | **$0.00 (Zero spend)** | $0.00 | 🟢 100% Free |
+| **STT Latency (single sentence, warm)** | **686.2 ms (min: 584.0 ms, p95: 806.9 ms)** | < 1000 ms | 🟢 Verified |
+| **Synthetic Stress Set Mean Latency** | **1,288 ms (across 100 clips)** | < 2000 ms | 🟢 Verified |
+| **Real-Time Factor (RTF)** | **0.180x (single) / 0.234x (batch)** | < 0.50x | 🟢 Verified |
+| **GPU VRAM Model Allocation** | **1,076 MB (faster-whisper medium)** | < 4,000 MB | 🟢 Verified |
+| **Peak Total VRAM Used** | **2,437 MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
+| **Document Retrieval Latency** | **13.98 ms across 20 chunks** | < 50 ms | 🟢 Verified |
+| **Time-To-First-Audio (TTFA)** | **644.6 ms (Edge-TTS)** | < 1500 ms | 🟢 Verified |
+| **Cloud API Spend** | **$0.00 (Zero spend rule)** | $0.00 | 🟢 100% Free |
