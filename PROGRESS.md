@@ -2,11 +2,53 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Tier 2 Complete — Core Product Correctness, Long-Context RAG, LLM Fallback, Streaming TTS & Voice Barge-In
+## Current Status: 🎯 All Tiers Complete (Tiers 0–5) — Fully Audited, Tested & Validated for Submission
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Tier 5 — Quality, CI/CD & Submission Readiness
+- [x] **Complete Test Suite:** 23/23 unit tests passing in `pytest tests/` covering text cleanup, transliteration, DocumentRetriever, LLM fallback, clipboard sentinel logic, and web server endpoints with SSRF protection.
+- [x] **GitHub Actions Workflow (`.github/workflows/ci.yml`):** Multi-OS (Ubuntu + Windows) and multi-version (Python 3.11, 3.12) CPU test runner.
+- [x] **Pinned & Split Dependencies:** Clean separation into `requirements.txt` (CPU / platform independent) and `requirements-gpu.txt` (NVIDIA CUDA 12 runtime wheels).
+- [x] **README Rewrite (`README.md`):** Step-by-step setup instructions for Ollama, GPU vs CPU execution, model download notes (~1.5 GB cached locally), and automated results tables.
+- [x] **Restructured Submission Answers (`submission/application_answers.md`):** Mapped to actual Buildathon application form fields, first commit date `2026-10-25`, aligned with JSON metrics.
+- [x] **Demo Script Polish (`submission/demo_script.md`):** Updated with conflict-free `Alt+Shift+...` hotkeys and streaming TTFA.
+
+#### Tier 4 — Sponsor Alignment (Bolna Voice Gateway)
+- [x] **OpenAI-Compatible STT & TTS Endpoints (`bolsamajh/web/server.py`):**
+  - `POST /v1/audio/transcriptions` (Hinglish speech-to-text with auto-resampling).
+  - `POST /v1/audio/speech` (Natural Indian TTS supporting Swara/Neerja/Dhwani).
+- [x] **Bolna Integration Guide (`docs/bolna_integration.md`):** Complete walkthrough showing how Bolna agents can configure `base_url="http://localhost:8000/v1"` to use BolSamajh as a local speech provider.
+
+#### Tier 3 — Desktop & Web Robustness
+- [x] **Single-Threaded Tkinter Safety (`bolsamajh/overlay/hud.py`, `bolsamajh/main.py`):**
+  - Eliminated secondary `tk.Tk()` root on background thread by routing document file dialogs directly through `OverlayHUD.prompt_open_file()`.
+  - Added Windows `WS_EX_NOACTIVATE (0x08000000)` window style so floating HUD never steals focus from active applications.
+  - Auto-hides error states after 3,000 ms.
+  - Background model preloading thread displays "BolSamajh Ready ✓" only after STT and LLM models are loaded.
+- [x] **Dynamic CUDA Discovery & CPU Fallback (`bolsamajh/utils/cuda_setup.py`):**
+  - Removed all hardcoded ChatRTX paths.
+  - Dynamically registers `site-packages/nvidia/*/bin` wheels (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`, `nvidia-cuda-nvrtc-cu12`) via `os.add_dll_directory` and `PATH`.
+  - Added `auto_detect_device()`: automatically selects `cuda:int8_float16` if GPU is detected, falling back to `cpu:int8` with lightweight swift model on CPU machines.
+- [x] **Hotkeys & Selection Conflict Hardening (`bolsamajh/config.py`, `bolsamajh/utils/clipboard.py`, `bolsamajh/pipeline/commands.py`):**
+  - Migrated default hotkeys to low-conflict `Alt+Shift+...` bindings (`Alt+Shift+Space`, `Alt+Shift+D`, `Alt+Shift+A`, `Alt+Shift+C`) to avoid collisions with VS Code and Chrome. Made configurable via `.env`.
+  - In voice command flow, microphone recording starts **immediately** without waiting for selection copy, eliminating opening syllable clipping. Selection is captured in parallel.
+  - Implemented unique UUID clipboard sentinel so highlighting text that matches existing clipboard content is recognized as a valid selection.
+  - Temporarily releases physical Shift modifier prior to sending Ctrl+C to prevent Chrome DevTools activation.
+- [x] **Web Server Robustness (`bolsamajh/web/server.py`):**
+  - Built PyAV `AudioResampler` converting arbitrary 48 kHz/44.1 kHz browser audio to 16 kHz mono PCM.
+  - Offloaded STT, document chunking/indexing, and URL fetching via `asyncio.to_thread`.
+  - Restricted CORS to localhost without credentials.
+  - Added SSRF protection blocking loopback and private/internal IP address ranges on `/api/documents/url`.
+  - Enforced 25 MB upload limit.
+  - Preserved real document filename in `doc.title`.
+  - Mapped language to Gujarati voice (`gu-IN-DhwaniNeural`).
+  - Unified with desktop app's grounded QA system prompt.
+  - Added Server-Sent Events (SSE) streaming endpoint (`/api/qa/stream`).
+  - Added dynamic hardware status endpoint (`/api/status`) and removed hardcoded "RTX 3060 Ti" frontend label.
+  - Automated cleanup of expired temporary audio cache files.
 
 #### Tier 2 — Core Product Correctness & Robust Voice Pipelines
 - [x] **Dictation Output & Hallucination Prevention (`bolsamajh/stt/faster_whisper_stt.py`):**

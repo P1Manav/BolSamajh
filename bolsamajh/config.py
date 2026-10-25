@@ -13,12 +13,13 @@ MODELS_DIR.mkdir(exist_ok=True)
 
 @dataclass
 class HotkeyConfig:
-    """Global hotkey bindings."""
-    dictation: str = "ctrl+shift+space"       # Push-to-talk dictation
-    doc_load: str = "ctrl+shift+d"            # Load document
-    doc_ask: str = "ctrl+shift+a"             # Ask question about document
-    command: str = "ctrl+shift+c"             # Voice command on selection
-    stop: str = "escape"                      # Stop TTS / cancel
+    """Global hotkey bindings with low-conflict defaults."""
+    dictation: str = "alt+shift+space"        # Push-to-talk dictation (avoids VS Code Ctrl+Shift+Space)
+    doc_load: str = "alt+shift+d"             # Load document (avoids VS Code Ctrl+Shift+D debug)
+    doc_ask: str = "alt+shift+a"              # Ask question about document (avoids Chrome Ctrl+Shift+A)
+    command: str = "alt+shift+c"              # Voice command on selection (avoids Chrome Ctrl+Shift+C inspect)
+    stop: str = "escape"                      # Stop TTS / cancel recording
+    suppress: bool = False                    # Whether keyboard hook suppresses key propagation
 
 
 @dataclass
@@ -88,14 +89,36 @@ class AppConfig:
 
 
 def load_config() -> AppConfig:
-    """Load configuration with environment variable overrides."""
+    """Load configuration with environment variable overrides and device auto-detection."""
     config = AppConfig()
 
-    # Override from env vars where useful
+    # Hotkey overrides
+    if os.getenv("BOLSAMAJH_HOTKEY_DICTATION"):
+        config.hotkeys.dictation = os.getenv("BOLSAMAJH_HOTKEY_DICTATION")
+    if os.getenv("BOLSAMAJH_HOTKEY_DOC_LOAD"):
+        config.hotkeys.doc_load = os.getenv("BOLSAMAJH_HOTKEY_DOC_LOAD")
+    if os.getenv("BOLSAMAJH_HOTKEY_DOC_ASK"):
+        config.hotkeys.doc_ask = os.getenv("BOLSAMAJH_HOTKEY_DOC_ASK")
+    if os.getenv("BOLSAMAJH_HOTKEY_COMMAND"):
+        config.hotkeys.command = os.getenv("BOLSAMAJH_HOTKEY_COMMAND")
+    if os.getenv("BOLSAMAJH_HOTKEY_STOP"):
+        config.hotkeys.stop = os.getenv("BOLSAMAJH_HOTKEY_STOP")
+
+    # Engine overrides
     if os.getenv("BOLSAMAJH_STT_ENGINE"):
         config.stt.engine = os.getenv("BOLSAMAJH_STT_ENGINE")
     if os.getenv("BOLSAMAJH_STT_DEVICE"):
         config.stt.device = os.getenv("BOLSAMAJH_STT_DEVICE")
+    else:
+        # Auto-detect optimal device and compute type
+        try:
+            from bolsamajh.utils.cuda_setup import auto_detect_device
+            dev, comp, model = auto_detect_device()
+            config.stt.device = dev
+            config.stt.compute_type = comp
+        except Exception:
+            pass
+
     if os.getenv("BOLSAMAJH_LLM_ENGINE"):
         config.llm.engine = os.getenv("BOLSAMAJH_LLM_ENGINE")
     if os.getenv("BOLSAMAJH_SCRIPT"):

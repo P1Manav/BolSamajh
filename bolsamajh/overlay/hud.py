@@ -74,10 +74,58 @@ class OverlayHUD:
         )
         self._label.pack(fill=tk.BOTH, expand=True)
 
+        # Apply Windows no-activate extended style so HUD never steals focus from active apps
+        import sys
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                self._root.update_idletasks()
+                hwnd = self._root.winfo_id()
+                GWL_EXSTYLE = -20
+                WS_EX_NOACTIVATE = 0x08000000
+                user32 = ctypes.windll.user32
+                style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_NOACTIVATE)
+            except Exception as e:
+                log.debug("Could not set WS_EX_NOACTIVATE style: %s", e)
+
         # Start hidden
         self._root.withdraw()
         self._ready.set()
         self._root.mainloop()
+
+    def prompt_open_file(self) -> str | None:
+        """Open a file dialog routed safely through the HUD's Tk main thread."""
+        if not self._root:
+            return None
+
+        from tkinter import filedialog
+
+        result = [None]
+        event = threading.Event()
+
+        def _ask():
+            try:
+                file_path = filedialog.askopenfilename(
+                    parent=self._root,
+                    title="BolSamajh — Load Document",
+                    filetypes=[
+                        ("Supported Documents", "*.pdf;*.docx;*.doc;*.txt;*.md"),
+                        ("PDF Files", "*.pdf"),
+                        ("Word Documents", "*.docx;*.doc"),
+                        ("Text/Markdown", "*.txt;*.md"),
+                        ("All Files", "*.*"),
+                    ],
+                )
+                result[0] = file_path if file_path else None
+            except Exception as e:
+                log.error("File dialog error: %s", e)
+            finally:
+                event.set()
+
+        self._root.after(0, _ask)
+        event.wait()
+        return result[0]
 
     def set_state(self, state: HUDState, extra: str = "") -> None:
         """Update the HUD state (thread-safe)."""
@@ -101,9 +149,11 @@ class OverlayHUD:
                     self._root.deiconify()
                     self._root.lift()
 
-                # Auto-hide after "done"
+                # Auto-hide after "done" or "error"
                 if state == "done":
                     self._root.after(_DONE_TIMEOUT, lambda: self.set_state("idle"))
+                elif state == "error":
+                    self._root.after(3000, lambda: self.set_state("idle"))
             except tk.TclError:
                 pass  # Widget destroyed
 

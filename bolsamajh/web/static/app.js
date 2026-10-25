@@ -36,11 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/status')
     .then(r => r.json())
     .then(data => {
+      const statusEl = document.getElementById('sttStatusText');
+      if (statusEl && data.device) {
+        statusEl.textContent = `${data.device} • ${data.stt} • ${data.tts}`;
+      }
       if (data.document_loaded) {
         setDocLoaded(data.document_title, 'Indexed in memory');
       }
     })
-    .catch(() => {});
+    .catch(() => {
+      const statusEl = document.getElementById('sttStatusText');
+      if (statusEl) statusEl.textContent = 'Server connecting...';
+    });
 
   // 2. Document Upload Handlers
   browseBtn.addEventListener('click', () => fileInput.click());

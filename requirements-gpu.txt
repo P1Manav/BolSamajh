@@ -1,0 +1,9 @@
+# BolSamajh — GPU Acceleration Dependencies (CUDA 12 runtime wheels)
+# Install: pip install -r requirements-gpu.txt
+
+-r requirements.txt
+
+# NVIDIA CUDA runtime wheels for CTranslate2 GPU acceleration without system CUDA toolkit
+nvidia-cublas-cu12>=12.4.0
+nvidia-cudnn-cu12>=9.0.0
+nvidia-cuda-nvrtc-cu12>=12.4.0

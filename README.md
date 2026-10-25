@@ -14,28 +14,30 @@ BolSamajh is an open-source, local-first voice AI companion built specifically f
 
 ## ⚡ Key Capabilities
 
-### 1. 🎤 Push-to-Talk Dictation Anywhere (`Ctrl+Shift+Space`)
-Hold `Ctrl+Shift+Space` in **any** Windows application (Notepad, VS Code, Slack, WhatsApp Web, Word, Chrome). Speak fluid Hinglish, Hindi, Gujarati, or English.
-- **Intelligent Text Cleanup:** Strips disfluencies (*umm*, *uhh*, *hmm*, *ahh*) without deleting valid colloquial words.
+### 1. 🎤 Push-to-Talk Dictation Anywhere (`Alt+Shift+Space`)
+Hold `Alt+Shift+Space` in **any** Windows application (Notepad, VS Code, Slack, WhatsApp Web, Word, Chrome). Speak fluid Hinglish, Hindi, Gujarati, or English.
+- **Intelligent Text Cleanup:** Strips disfluencies (*umm*, *uhh*, *hmm*, *ahh*) without deleting valid colloquial words (`like`, `actually`, `matlab`, `accha`).
 - **Format Standardization:** Normalizes Indian currency (₹), percentages, dates, and phone numbers.
+- **Script Flexibility:** Choose Natural (as spoken), clean Roman Latin, or Devanagari from the system tray menu.
 - **Measured Latency:** ~580–800 ms per-sentence inference on an RTX 3060 Ti GPU (Real-Time Factor 0.18x, running 5.5× faster than real-time).
 
-### 2. 📄 Talk-to-Document Intelligence (`Ctrl+Shift+D` to load, `Ctrl+Shift+A` to ask)
-Load any PDF, Word document (`.docx`), text/markdown file, or web URL. Hold `Ctrl+Shift+A` and ask voice questions in conversational Hinglish.
-- **Multilingual RAG:** Powered by local `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` and a FAISS vector index (measured ~14 ms retrieval latency across chunks).
-- **Strict Grounding with Page Citations:** The model answers *only* from document context and cites exact page/section numbers (e.g., *"Page 4 ke according..."*).
-- **Spoken Audio with Interruption:** Answers are converted to natural speech via neural TTS (`hi-IN-SwaraNeural`). Press `Escape` to interrupt audio playback immediately.
+### 2. 📄 Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask)
+Load any PDF (including scanned PDFs with local OCR fallback), Word document (`.docx`), text/markdown file, or web URL. Hold `Alt+Shift+A` and ask voice questions in conversational Hinglish.
+- **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured 21.38 ms retrieval latency, 100% Hit@3 on Google XQuAD Hindi).
+- **Strict Grounding with Document Citations:** Answers only from verified source passages; cites exact page numbers for PDFs (*"Page 4 ke according..."*) and section headings for web/docx.
+- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with sub-800ms Time-To-First-Audio (TTFA). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
+- **Multi-Turn Memory:** Supports conversational follow-ups (*"ruko, yeh dobara samjhao"*).
 
-### 3. ⚡ In-App Voice Commands on Selection (`Ctrl+Shift+C`)
-Highlight text in any application and hold `Ctrl+Shift+C` to speak commands:
+### 3. ⚡ In-App Voice Commands on Selection (`Alt+Shift+C`)
+Highlight text in any application and hold `Alt+Shift+C` to speak commands:
 - *"Make this email formal and professional"*
 - *"Summarize in 2 bullet points"*
 - *"Translate this paragraph to natural Hindi"*
 - *"Fix grammar and spelling mistakes"*
 - The LLM transforms the text **directly in-place**, replacing your selection via simulated clipboard operations without leaving your active window.
 
-### 4. 🌐 Browser Web-Call Mode
-Launch the built-in FastAPI web server for an interactive, dark-themed experience with live audio waveform visualizers, document drag-and-drop, and real-time voice chat.
+### 4. 🌐 Browser Web-Call & Bolna Voice Gateway
+Launch the built-in FastAPI web server for an interactive browser web-call mode, or point any Bolna voice agent directly to BolSamajh's OpenAI-compatible endpoints (`/v1/audio/transcriptions` and `/v1/audio/speech`).
 
 ---
 
@@ -46,32 +48,33 @@ graph TD
     subgraph User Interface
         Tray["System Tray (pystray)"]
         Hotkeys["Global Hotkeys (keyboard / pynput)"]
-        HUD["Overlay HUD (Tkinter Floating)"]
+        HUD["Overlay HUD (Tkinter No-Activate)"]
         WebUI["Web-Call UI (FastAPI + HTML5)"]
+        BolnaAgent["Bolna Agent (OpenAI Audio Protocol)"]
     end
 
     subgraph Core Orchestration
         Main["BolSamajh Orchestrator"]
         DictPipe["Dictation Pipeline"]
-        DocPipe["Doc Q&A Pipeline"]
+        DocPipe["Doc Q&A Pipeline (VAD Barge-In)"]
         CmdPipe["Voice Commands Pipeline"]
     end
 
     subgraph Engines & Adapters
         STT["STT: faster-whisper (medium, INT8/FP16 CUDA)"]
-        LLM["LLM: Ollama (gemma3:4b local) / Gemini 2.5 Flash Free"]
-        TTS["TTS: Edge-TTS (SwaraNeural online speech)"]
-        RAG["RAG: Multilingual MiniLM + FAISS"]
+        LLM["LLM: Ollama (gemma3:4b local) / Gemini 1.5 Flash Free Fallback"]
+        TTS["TTS: Edge-TTS (Swara/Neerja/Dhwani) / Piper (Offline ONNX)"]
+        RAG["RAG: multilingual-e5-base (512 ctx) + FAISS"]
     end
 
     subgraph Target Applications
         Apps["Any App (VS Code, Notepad, Slack, Chrome)"]
     end
 
-    Hotkeys -->|Ctrl+Shift+Space| DictPipe
-    Hotkeys -->|Ctrl+Shift+D| DocPipe
-    Hotkeys -->|Ctrl+Shift+A| DocPipe
-    Hotkeys -->|Ctrl+Shift+C| CmdPipe
+    Hotkeys -->|Alt+Shift+Space| DictPipe
+    Hotkeys -->|Alt+Shift+D| DocPipe
+    Hotkeys -->|Alt+Shift+A| DocPipe
+    Hotkeys -->|Alt+Shift+C| CmdPipe
 
     DictPipe --> STT
     DictPipe -->|Insert Text| Apps
@@ -92,18 +95,22 @@ graph TD
     WebUI --> RAG
     WebUI --> LLM
     WebUI --> TTS
+
+    BolnaAgent -->|/v1/audio/transcriptions| STT
+    BolnaAgent -->|/v1/audio/speech| TTS
 ```
 
 ---
 
-## 🚀 Quick Start in ≤ 5 Commands
+## 🚀 Quick Start & Installation
 
 ### Prerequisites
-- Windows 10/11 x64
-- Python 3.10+ (tested on Python 3.12)
-- NVIDIA GPU with 6+ GB VRAM recommended (CPU execution supported as fallback)
+- **Operating System:** Windows 10/11 x64 (or Linux/macOS for Web API)
+- **Python:** 3.10+ (tested on Python 3.12)
+- **Local LLM Engine:** [Ollama](https://ollama.com) installed and running locally
+- **Hardware:** NVIDIA GPU with 6+ GB VRAM recommended (RTX 3060 Ti tested; CPU execution supported with int8 fallback)
 
-### 1. Clone & Set Up Virtual Environment
+### Step 1: Clone Repository & Virtual Environment
 ```powershell
 git clone https://github.com/P1Manav/BolSamajh.git
 cd BolSamajh
@@ -111,22 +118,36 @@ python -m venv venv
 .\venv\Scripts\activate
 ```
 
-### 2. Install Dependencies
+### Step 2: Install Dependencies
 ```powershell
+# For NVIDIA GPU acceleration (CUDA 12 runtime wheels):
+pip install -r requirements-gpu.txt
+
+# Or for CPU-only execution:
 pip install -r requirements.txt
 ```
 
-### 3. Run BolSamajh Desktop App
+### Step 3: Set Up Local LLM (Ollama)
+```powershell
+# In a separate terminal, pull and start Gemma 3 4B:
+ollama run gemma3:4b
+```
+*(Optional: If Ollama is not installed, BolSamajh automatically falls back to Google AI Studio Gemini free-tier if `GOOGLE_AI_API_KEY` is set in your `.env`).*
+
+### Step 4: Run BolSamajh Desktop App
 ```powershell
 python -m bolsamajh
 ```
-*A floating HUD will show "BolSamajh Ready ✓" and an icon will appear in your system tray.*
+*A sleek overlay HUD appears in bottom-center and preloads models. When ready, the HUD shows "BolSamajh Ready ✓" and docks in the system tray.*
 
-### 4. (Optional) Launch Browser Web-Call Mode
+### Step 5: (Optional) Run Web-Call Mode & Bolna Gateway
 ```powershell
-python -m uvicorn bolsamajh.web.server:app --port 8000 --reload
+python -m uvicorn bolsamajh.web.server:app --port 8000
 ```
-*Open `http://localhost:8000` in your browser.*
+- Open `http://localhost:8000` for browser voice chat.
+- See [docs/bolna_integration.md](docs/bolna_integration.md) to integrate with Bolna agents.
+
+> **Note on First-Run Downloads:** On first startup, Hugging Face and CTranslate2 models (~1.5 GB for whisper medium, ~400 MB for multilingual-e5-base) are downloaded and cached locally in `~/.cache/huggingface/hub`. All subsequent runs load 100% locally from disk.
 
 ---
 
@@ -166,16 +187,31 @@ python -m uvicorn bolsamajh.web.server:app --port 8000 --reload
 | **Vector Retrieval Latency** | Cosine similarity across 20 chunks | **13.98 ms** | < 50 ms | Passed |
 | **TTS Time-to-First-Audio (TTFA)** | First audio packet delivered | **644.6 ms** | < 800 ms | Passed |
 
+### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)
+
+> Grounded evaluation on the public Google XQuAD Hindi validation split (CC-BY-SA-4.0). Measures whether exact source passages are retrieved for Hindi/Hinglish questions.
+
+| Metric | Measured Value | Target / Notes |
+| :--- | :---: | :--- |
+| **Embedding Model** | `intfloat/multilingual-e5-base` | 512 token context, passage/query prefixes |
+| **Hit@1** | **93.33%** | Target passage retrieved at rank 1 |
+| **Hit@3** | **100.0%** | Target passage retrieved in top 3 |
+| **Hit@5** | **100.0%** | Target passage retrieved in top 5 |
+| **Mean Retrieval Latency** | **21.38 ms** | Sub-25ms local FAISS search |
+| **Empirical Refusal Threshold** | **0.81** | Calibrated: relevant mean (0.809) vs irrelevant max (0.756) |
+
 <!-- BENCHMARK_TABLE_END -->
 ## ⌨️ Global Hotkeys Reference
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| `Ctrl+Shift+Space` | **Dictate** | Hold down, speak in Hinglish, release to insert text at cursor |
-| `Ctrl+Shift+D` | **Load Document** | Opens file dialog (PDF, DOCX, TXT, MD) and indexes for RAG |
-| `Ctrl+Shift+A` | **Ask Document** | Hold down, ask voice question about loaded document, release to listen |
-| `Ctrl+Shift+C` | **Voice Command** | Select text, hold down, speak instruction to transform selection in-place |
-| `Escape` | **Stop Audio** | Immediately halts active TTS speech playback |
+| `Alt+Shift+Space` | **Dictate** | Hold down, speak in Hinglish, release to insert text at cursor (avoids VS Code conflict) |
+| `Alt+Shift+D` | **Load Document** | Opens file dialog (PDF, DOCX, TXT, MD) and indexes for RAG (avoids VS Code conflict) |
+| `Alt+Shift+A` | **Ask Document** | Hold down, ask voice question about loaded document, release to listen |
+| `Alt+Shift+C` | **Voice Command** | Select text, hold down, speak instruction to transform selection in-place |
+| `Escape` | **Cancel / Stop** | Immediately cancels active recording and halts any ongoing TTS speech playback |
+
+> **Custom Hotkeys:** All keybindings can be customized by setting environment variables (`BOLSAMAJH_HOTKEY_DICTATION`, `BOLSAMAJH_HOTKEY_DOC_LOAD`, etc.) in your `.env` file.
 
 ---
 
@@ -185,22 +221,23 @@ We provide complete transparency regarding where data is processed:
 
 | Component | Execution Location | External Data Transfer | Notes |
 | :--- | :--- | :--- | :--- |
-| **Audio Capture** | Local (in-memory) | None | Audio frames are recorded into RAM and discarded after transcription. |
-| **STT (Whisper)** | Local (RTX GPU / CPU) | None | Weights run on-device via CTranslate2. No audio leaves your machine. |
-| **RAG Embeddings** | Local (Sentence-Transformers) | None | Text chunk embeddings and FAISS index remain entirely local. |
-| **Local LLM (Ollama)** | Local (localhost:11434) | None | Gemma 3 4B runs locally when Ollama is running. |
-| **Gemini Fallback** | Cloud (Google AI Studio) | Prompt text sent to Google | Free-tier requests are transmitted via HTTPS. Per Google terms, free-tier inputs may be reviewed to improve products. |
+| **Audio Capture & VAD** | Local (in-memory) | None | Audio frames are recorded into RAM and discarded after transcription. Silero VAD runs on-device. |
+| **STT (faster-whisper)** | Local (RTX GPU / CPU) | None | Model weights run on-device via CTranslate2. No voice audio ever leaves your computer. |
+| **RAG Embeddings & Vector Index** | Local (`multilingual-e5-base`) | None | Text chunk embeddings and FAISS index remain entirely on local disk and RAM. |
+| **Local LLM (Ollama)** | Local (`localhost:11434`) | None | Gemma 3 4B runs locally when Ollama is active. Zero external transmission. |
+| **Cloud LLM Fallback (Gemini)** | Cloud (Google AI Studio) | Prompt text sent to Google | Transmitted via HTTPS with `x-goog-api-key` header (never in URL). Suppressed httpx logging prevents key leaks. |
 | **Neural TTS (Edge-TTS)**| Cloud (Microsoft Speech API) | Answer text sent to Microsoft | Synthesizes speech using Microsoft Edge's Read Aloud service. Requires internet. |
+| **Offline TTS (Piper)** | Local (Piper ONNX) | None | 100% offline text-to-speech option using local ONNX Hindi models (`hi_IN-pratham-medium`). |
 
 ---
 
-## ⚠️ Known Limitations
+## ⚠️ Known Limitations & Honest Evidence
 
-1. **Hardware Dependence:** GPU acceleration requires an NVIDIA GPU with CUDA support. While CPU inference is functional, latency increases by 3–4×.
-2. **Numerical Digit Variations:** ASR output often alternates between words (*"पंद्रह"*) and numbers (*"15"*), which increases raw word error rates on numerical test sets.
-3. **Phonetic Spelling Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"*), which can impact literal string-matching metrics.
-4. **TTS Network Requirement:** Edge-TTS requires active internet access; an offline open-source TTS voice is planned for complete air-gapped environments.
-5. **VAD / Silence Boundaries:** Dictation relies on key-release timing; very short accidental taps without speech can produce background noise artifacts.
+1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus still exhibits 52.84% WER on Whisper medium due to diverse Indian regional accents and colloquial loanwords.
+2. **Numerical Digit Variations:** ASR output alternates between written Hindi words (*"पंद्रह"*) and ASCII digits (*"15"*), which increases raw word error rates on numerical test sets.
+3. **Phonetic Spelling Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"*), which is why BolSamajh uses canonical phonemic transliteration for fair scoring.
+4. **Hardware Requirements:** Real-time GPU execution (RTF ~0.18x) requires an NVIDIA GPU (RTX 3060 Ti tested). CPU execution is functional using int8 quantization, but latency increases to 1.5–2.5 seconds per sentence.
+5. **TTS Script Routing:** Edge-TTS Hindi voices require Devanagari text; Roman Hinglish must be transliterated before synthesis to avoid pronunciation artifacts.
 
 ---
 
@@ -208,4 +245,5 @@ We provide complete transparency regarding where data is processed:
 
 - **Builder:** Manav (Solo Builder, Ahmedabad)
 - **Built For:** [Bolna](https://bolna.ai) × [Symphony](https://symphony.is) Voice AI Buildathon (October 2026)
+- **Integration Guide:** [Bolna Voice Agent Setup](docs/bolna_integration.md)
 - **License:** [MIT License](LICENSE)

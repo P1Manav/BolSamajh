@@ -53,19 +53,28 @@ class VoiceCommandsPipeline:
         self.hud = hud
         self.recorder = MicRecorder()
         self._selected_text: str = ""
+        self._selection_event = threading.Event()
         self._processing = False
 
     def start_command(self) -> None:
-        """Start listening for command; capture highlighted text."""
+        """Start listening for command immediately; capture highlighted text in parallel."""
         if self.recorder.is_recording or self._processing:
             return
 
-        # Attempt to capture highlighted text at the start of command
-        self._selected_text = get_selected_text()
-        log.info("Voice command triggered. Selected text length: %d chars", len(self._selected_text))
-
+        # 1. Start audio recording IMMEDIATELY to prevent clipping opening syllables
         self.hud.set_state("listening", "Listening command…")
         self.recorder.start()
+
+        # 2. Capture highlighted text in parallel thread so recording is completely unblocked
+        self._selection_event.clear()
+
+        def _capture():
+            self._selected_text = get_selected_text()
+            log.info("Voice command captured selection (%d chars): %s",
+                     len(self._selected_text), self._selected_text[:40])
+            self._selection_event.set()
+
+        threading.Thread(target=_capture, daemon=True).start()
 
     def cancel(self) -> None:
         """Cancel command recording and reset HUD."""
@@ -100,6 +109,10 @@ class VoiceCommandsPipeline:
         t0 = time.time()
 
         try:
+            # Ensure selection capture thread has completed
+            self._selection_event.wait(timeout=1.0)
+            selected = self._selected_text
+
             # 1. Transcribe voice command
             result = self.stt.transcribe(wav_bytes)
             command_text = result.text.strip()

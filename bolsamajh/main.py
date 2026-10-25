@@ -54,26 +54,7 @@ def _create_tts(config: AppConfig):
         raise ValueError(f"Unknown TTS engine: {config.tts.engine}")
 
 
-def _prompt_document_path() -> str | None:
-    """Show a file dialog or URL prompt for document loading."""
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-
-    file_path = filedialog.askopenfilename(
-        title="BolSamajh — Load Document",
-        filetypes=[
-            ("Documents", "*.pdf;*.docx;*.doc"),
-            ("PDF Files", "*.pdf"),
-            ("Word Documents", "*.docx;*.doc"),
-            ("All Files", "*.*"),
-        ],
-    )
-    root.destroy()
-    return file_path if file_path else None
-
-
-def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, commands_pipeline) -> None:
+def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, commands_pipeline, hud) -> None:
     """Register global hotkeys using the keyboard library."""
     import keyboard
 
@@ -82,6 +63,7 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
     doc_ask_key = config.hotkeys.doc_ask
     command_key = config.hotkeys.command
     stop_key = config.hotkeys.stop
+    suppress = getattr(config.hotkeys, "suppress", False)
 
     # --- Dictation push-to-talk ---
     def _ptt_monitor():
@@ -97,19 +79,19 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
     keyboard.add_hotkey(
         dictation_key,
         dictation_pipeline.start_recording,
-        suppress=False,
+        suppress=suppress,
     )
     threading.Thread(target=_ptt_monitor, daemon=True).start()
 
-    # --- Document loading ---
+    # --- Document loading via HUD's Tk main thread ---
     def on_doc_load():
         def _load():
-            path = _prompt_document_path()
+            path = hud.prompt_open_file()
             if path:
                 doc_qa_pipeline.load_document(path)
         threading.Thread(target=_load, daemon=True).start()
 
-    keyboard.add_hotkey(doc_load_key, on_doc_load, suppress=False)
+    keyboard.add_hotkey(doc_load_key, on_doc_load, suppress=suppress)
 
     # --- Document Q&A push-to-talk ---
     def _qa_ptt_monitor():
@@ -125,7 +107,7 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
     keyboard.add_hotkey(
         doc_ask_key,
         doc_qa_pipeline.start_question,
-        suppress=False,
+        suppress=suppress,
     )
     threading.Thread(target=_qa_ptt_monitor, daemon=True).start()
 
@@ -143,7 +125,7 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
     keyboard.add_hotkey(
         command_key,
         commands_pipeline.start_command,
-        suppress=False,
+        suppress=suppress,
     )
     threading.Thread(target=_cmd_ptt_monitor, daemon=True).start()
 
@@ -198,20 +180,30 @@ def main() -> None:
     commands = VoiceCommandsPipeline(config, stt, llm, hud)
 
     # 4. Register hotkeys
-    _setup_hotkeys(config, dictation, doc_qa, commands)
+    _setup_hotkeys(config, dictation, doc_qa, commands, hud)
 
-    # 5. Show ready state
-    hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
+    # 5. Preload models in background thread and show Ready when completed
+    hud.set_state("processing", "Loading models…")
+
+    def _preload_models():
+        try:
+            log.info("Preloading STT model (%s)...", stt.name)
+            stt.load_model()
+            log.info("STT model preloaded successfully.")
+        except Exception as e:
+            log.warning("STT preload: %s", e)
+        hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
+
+    threading.Thread(target=_preload_models, daemon=True).start()
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    log.info("  Ready! Hotkeys active.")
-    log.info("  Hold Ctrl+Shift+Space to dictate")
-    log.info("  Ctrl+Shift+D to load a document")
-    log.info("  Hold Ctrl+Shift+A to ask about it")
-    log.info("  Hold Ctrl+Shift+C to run voice command on selection")
-    log.info("  Escape to stop/interrupt")
+    log.info("  Ready! Hotkeys active:")
+    log.info("  Hold %s to dictate", config.hotkeys.dictation)
+    log.info("  %s to load a document", config.hotkeys.doc_load)
+    log.info("  Hold %s to ask about it", config.hotkeys.doc_ask)
+    log.info("  Hold %s to run voice command on selection", config.hotkeys.command)
+    log.info("  %s to stop/interrupt", config.hotkeys.stop)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
 
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray

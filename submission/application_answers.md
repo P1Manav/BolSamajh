@@ -1,98 +1,69 @@
-# Bolna x Symphony Voice AI Buildathon — Official Submission Application
+# Bolna x Symphony Voice AI Buildathon — Official Application Form Answers
 
-> **Project Name:** BolSamajh  
-> **Tagline:** *"Bolo. Samjho."* — Speak to write and act in any app, talk to any document in your language.  
-> **Builder:** Manav (Solo Builder, Ahmedabad, India)  
-> **License:** MIT Open Source License  
-> **GitHub Repository:** https://github.com/P1Manav/BolSamajh  
-> **Codebase:** Fully functional desktop client + Web-Call mode + 100-sentence benchmark suite  
+> **Submission Deadline:** 31 October 2026, 11:59 PM IST  
+> **Repository:** https://github.com/P1Manav/BolSamajh  
+> **Builder:** Manav (Solo, Ahmedabad, India)  
+> **License:** MIT License (100% Open Source, Zero Cloud Spend)
 
 ---
 
-### 1. One-Line Pitch
-**BolSamajh** is an open-source, zero-cloud-spend Voice AI companion for the desktop that enables 500 million Hinglish and Indian-language speakers to dictate in any application, converse with complex documents via grounded voice RAG, and execute in-place voice editing.
+### 1. Project Name
+**BolSamajh**
 
----
+### 2. Tagline / One-Line Pitch
+**Bolo. Samjho.** — Open-source, local-first Voice AI for 500 million Hinglish speakers: dictation anywhere, talk-to-document with verifiable citations, and in-place voice editing.
 
-### 2. The Problem
-- **The Hinglish Void:** 500M+ Indians communicate daily via a fluid mix of Hindi grammar and English terminology (code-switching). Existing speech engines (Whisper defaults, standard phone dictation) force an unnatural binary choice: either pure English or formal Devanagari Hindi. They struggle on hybrid sentences like *"PR merge karke branch rebase kar lo"* or *"₹4,500 invoice amount pe 18% GST add karo"*.
-- **Walled-Garden Dictation:** Existing commercial AI dictation tools (e.g. Wispr Flow) are closed-source, require monthly subscriptions, send user audio to remote servers, and lack tuning for Indian accents and everyday code-switching.
-- **Document Literacy & Voice Accessibility:** Millions of professionals, students, and citizens deal with complex PDFs, legal notices, and technical documentation without a conversational voice interface that can explain nuance in their own spoken idiom with verifiable page citations.
+### 3. Since when have you been working on this project?
+**2026-10-25** (verified by initial repository commit `82d10c1`).
 
----
+### 4. What is the problem you are solving?
+Over 500 million people across India speak fluid Hindi-English code-switching ("Hinglish"), yet mainstream speech recognition engines force an unnatural binary choice between pure English and formal Devanagari Hindi. Commercial dictation apps (e.g. Wispr Flow) are closed-source, require costly monthly subscriptions, send voice data to foreign cloud servers, and fail on colloquial code-switching like *"PR merge karke branch rebase kar lo"* or *"invoice pe 18% GST add karo"*. Furthermore, non-technical users struggle to digest complex PDFs, insurance policies, and legal notices without a conversational voice assistant that explains nuance in their own tongue with verifiable page citations.
 
-### 3. The Solution & Features
-BolSamajh solves these problems natively through a lightweight desktop architecture with three primary capabilities:
+### 5. How does your solution solve it?
+BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud spend:
+1. **Push-to-Talk Dictation in Any App (`Alt+Shift+Space`):** Real-time Hinglish dictation inserted at the cursor across Notepad, VS Code, Slack, Word, and Chrome with automatic currency (₹) and disfluency normalization.
+2. **Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask):** Long-context multilingual RAG (`intfloat/multilingual-e5-base`, 512-token context) that answers voice questions with exact page/section citations and sentence-streaming speech.
+3. **In-Place Voice Editing (`Alt+Shift+C`):** Highlights text in any application, speaks instructions (*"make this email formal"*, *"translate to Hindi"*), and transforms text in-place.
+4. **Bolna Agent Voice Gateway:** Exposes OpenAI-compatible `/v1/audio/transcriptions` and `/v1/audio/speech` endpoints so any Bolna voice agent can use BolSamajh as a local speech provider.
+5. **Interactive Web-Call Mode:** Full-featured browser UI with live audio waveform visualizers, document drag-and-drop, and SSE streaming.
 
-1. **Push-to-Talk Dictation in Any App (`Ctrl+Shift+Space`):**
-   - Press and hold global hotkey in Notepad, VS Code, Slack, WhatsApp Web, Word, or Chrome.
-   - Speaks naturally in Hinglish, Hindi, Gujarati, or English.
-   - Text is transcribed via local `faster-whisper` on GPU with smart filler removal (strips *umm*, *uhh*, *hmm*, *ahh*) and currency/date formatting.
-   - Inserts text directly at cursor via clipboard simulation with **~580–800 ms per-sentence inference on RTX 3060 Ti** (RTF 0.180x).
+### 6. What technologies and models did you use?
+- **Speech-to-Text (STT):** `faster-whisper` (`medium`, `large-v3-turbo-ct2`, and `whisper-hinglish-swift-ct2` CTranslate2 INT8/FP16 models) running on NVIDIA CUDA 12 via pip wheels with automatic CPU int8 fallback.
+- **Phonetics & Script Normalization:** `aksharamukha` offline library for script transformation (Natural, Roman Latin with diacritic stripping, Devanagari) and canonical phonemic benchmark scoring.
+- **Document RAG:** `intfloat/multilingual-e5-base` (512 token context, passage/query prefixes), PyMuPDF with local OCR fallback for scanned PDFs, and FAISS vector index.
+- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-1.5-flash` free tier via `x-goog-api-key` header).
+- **Text-to-Speech (TTS):** Microsoft Edge-TTS (`hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX).
+- **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in; `Escape` key for immediate recording cancellation and audio stop.
+- **Desktop & Web:** Python 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.
 
-2. **Talk-to-Document Intelligence with Citations (`Ctrl+Shift+D` to load, `Ctrl+Shift+A` to ask):**
-   - Ingests PDFs, Word (.docx), text/markdown files, or live web URLs.
-   - Indexes text chunks using a local multilingual sentence-transformer embedding model (`paraphrase-multilingual-MiniLM-L12-v2`) and FAISS vector index (measured ~14 ms retrieval latency).
-   - User asks voice questions in their own tongue; the pipeline retrieves grounded context, generates concise answers, and speaks aloud via neural TTS.
-   - Enforces strict groundedness: answers cite exact page/section numbers and decline out-of-context hallucinations.
-   - Halts TTS playback immediately on `Escape`.
+### 7. What are your key measured metrics? (All backed by repository JSON files)
+All metrics originate from reproducible scripts in `benchmark_data/`:
+- **Inference Latency (`hardware_measurements.json`):** **686.2 ms mean** on a 3.82s sentence on NVIDIA RTX 3060 Ti (**0.180x Real-Time Factor**, running 5.5× faster than real-time).
+- **VRAM Overhead (`hardware_measurements.json`):** **1,076 MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
+- **Document Retrieval (`retrieval_benchmark.json`):** **93.33% Hit@1, 100.0% Hit@3, 100.0% Hit@5** on Google XQuAD Hindi validation split with **21.38 ms mean latency** and empirical refusal threshold of 0.76.
+- **Time-To-First-Audio (`hardware_measurements.json`):** **644.6 ms** via streaming neural speech.
+- **Real Speech Benchmark (`benchmark_results.json`):**
+  - Read Hindi (FLEURS `hi_in`): **24.15% WER** (large-v3-turbo), **27.39% WER** (medium).
+  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **52.84% WER** (medium).
+- **Synthetic Stress Benchmark (100 sentences with noise & 8kHz phone filter):**
+  - Rapid Code-switching: **12.48% WER** (`whisper-hinglish-swift`), **23.52% WER** (`large-v3-turbo`).
+  - Overall Synthetic Stress Set: **33.43% WER** (`whisper-hinglish-swift`).
 
-3. **In-App Voice Commands on Selection (`Ctrl+Shift+C`):**
-   - Select text in any window, speak instructions like *"make this email formal"*, *"translate to Hindi"*, *"summarize in 2 bullet points"*.
-   - The LLM transforms the selected text directly in-place without context-switching.
+### 8. How does BolSamajh align with the Bolna ecosystem?
+BolSamajh directly supports Bolna's vision of autonomous voice agents:
+- Exposes standard OpenAI-compatible endpoints:
+  - `POST /v1/audio/transcriptions` (Hinglish STT)
+  - `POST /v1/audio/speech` (Natural Indian TTS)
+- A Bolna agent deployed locally or via cloud tunnel can configure `base_url="http://localhost:8000/v1"` to gain free, unlimited, low-latency Hinglish transcription and Indian-language voice synthesis without per-minute cloud billing.
+- Complete documentation and tested curl examples are provided in [`docs/bolna_integration.md`](docs/bolna_integration.md).
 
-4. **Browser Web-Call Mode:**
-   - Standalone FastAPI web application featuring an interactive dark-themed UI, live audio waveform visualizer, document drag-and-drop, and spoken response player.
+### 9. What is your commercialization / startup roadmap?
+- **Target Market:** 500M+ Indian bilingual knowledge workers, healthcare professionals, legal practitioners, and educators.
+- **B2C Model:** Free open-source local desktop client for developers and power users; premium cloud-synced mobile companion app.
+- **B2B Enterprise Model:** Air-gapped, on-premise voice infrastructure for Indian hospitals (bilingual clinical note dictation) and legal firms (grounded voice Q&A over Indian Supreme Court case law and acts) where data privacy regulations prohibit public cloud data transfer.
 
----
-
-### 4. Technical Architecture & Tech Stack
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      BolSamajh Architecture                     │
-│                                                                 │
-│  [Global Hotkeys: pynput] ──► [Overlay HUD: Tkinter floating]   │
-│                                                                 │
-│  [Speech-to-Text]        [RAG Engine]        [LLM & TTS]       │
-│  • faster-whisper         • PyMuPDF / docx    • Ollama (local   │
-│    (medium, INT8/FP16)    • Multilingual        gemma3:4b)      │
-│  • CTranslate2 CUDA         Sentence-         • Google AI       │
-│    (RTX 3060 Ti)            Transformers        (Gemini 2.5     │
-│                           • FAISS vector db     Flash Free)     │
-│                                               • Edge-TTS        │
-│                                                 (SwaraNeural)   │
-│                                                                 │
-│  [In-App Text Insertion] ──► Direct into active window (Ctrl+V) │
-│  [Web-Call Interface]    ──► FastAPI + Vanilla HTML5/CSS3/JS    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-- **Runtime:** Python 3.12, Windows 11 x64, NVIDIA CUDA 12 (tested on RTX 3060 Ti 8GB VRAM).
-- **Hard Zero-Spend Rule:** 100% free and open-source models; zero subscription fees, zero cloud credit card requirements.
-
----
-
-### 5. Measured Performance & Benchmark
-All metrics are verified from direct script execution (`benchmark_data/hardware_measurements.json` and `benchmark_data/benchmark_summary.json`):
-
-#### Empirical Hardware Profile (RTX 3060 Ti):
-- **STT Engine:** `faster-whisper medium` with INT8-FP16 mixed precision
-- **STT Latency (Single sentence, warm):** **686.2 ms mean** (min: 584.0 ms, p95: 806.9 ms)
-- **Real-Time Factor (RTF):** **0.180x** (processes audio ~5.5× faster than real-time)
-- **VRAM Footprint:** **1,076 MB model allocation** (peak total system used: 2,437 MB, leaving >5.7 GB free for local LLM)
-- **Multilingual RAG Retrieval Latency:** **13.98 ms mean** across 20 indexed chunks via FAISS
-- **Time To First Audio (TTFA):** **644.6 ms** via streaming Edge-TTS
-
-#### 100-Sentence Hinglish Synthetic Stress Benchmark:
-- **Overall Mean WER:** 40.79% | **Mean CER:** 20.83% | **Batch Latency:** 1,288 ms
-- **Everyday Conversation (30 clips):** 26.95% WER
-- **Mid-sentence Code-switching (15 clips):** 29.10% WER
-- **Indian Names & Brands (15 clips):** 36.92% WER
-
----
-
-### 6. Commercialization & Startup Roadmap
-- **Market Size:** India has 700M+ smartphone and PC users, with Hinglish being the de facto corporate and personal communication medium.
-- **B2C Model:** Freemium desktop productivity tool (free local tier for power users; optional cloud sync for mobile).
-- **B2B Enterprise Model:** On-premise air-gapped deployment for Indian healthcare (bilingual doctor dictation), legal/judiciary (talk to case law PDFs), and banking operations where data cannot leave India.
+### 10. Links & Verification
+- **GitHub Repository:** https://github.com/P1Manav/BolSamajh
+- **CI Status:** GitHub Actions CPU workflow passes 23/23 tests (`.github/workflows/ci.yml`)
+- **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
+- **Architectural Decision Records:** 17 ADRs documented in [`DECISIONS.md`](DECISIONS.md)
