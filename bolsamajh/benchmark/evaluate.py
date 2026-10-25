@@ -244,24 +244,35 @@ def main():
         print(f" Loading Engine: {model_key} ({model_id}) on {args.device} ({args.compute_type})")
         print(f"==================================================================")
 
+        actual_device = args.device
+        actual_compute = args.compute_type
         try:
             model = WhisperModel(model_id, device=args.device, compute_type=args.compute_type)
         except Exception as e:
-            print(f"CUDA failed ({e}), falling back to CPU int8: {e}")
+            print("\n" + "!" * 72)
+            print(f"LOUD WARNING: Requested device '{args.device}' with precision '{args.compute_type}' FAILED!")
+            print(f"Exception: {e}")
+            print(f"FALLING BACK TO CPU (compute_type='int8').")
+            print(f"Latency and Real-Time Factor (RTF) will be severely degraded on CPU.")
+            print("!" * 72 + "\n")
+            actual_device = "cpu"
+            actual_compute = "int8"
             model = WhisperModel(model_id, device="cpu", compute_type="int8")
 
         # 1. Real Speech
         if args.suite in ["real", "all"]:
             real_res = evaluate_real_speech(model, max_clips=args.max_clips)
             if real_res:
-                real_res["compute_type"] = args.compute_type
+                real_res["device"] = actual_device
+                real_res["compute_type"] = actual_compute
                 results["real_speech"][model_key] = real_res
 
         # 2. Synthetic Stress
         if args.suite in ["synthetic", "all"]:
             synth_res = evaluate_synthetic_stress(model, max_clips=args.max_clips)
             if synth_res:
-                synth_res["compute_type"] = args.compute_type
+                synth_res["device"] = actual_device
+                synth_res["compute_type"] = actual_compute
                 results["synthetic_stress"][model_key] = synth_res
 
         # Free GPU memory between model evaluations

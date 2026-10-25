@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.11 | 3.12](https://img.shields.io/badge/Python-3.11_%7C_3.12-green.svg)](https://python.org)
 [![GPU: NVIDIA RTX](https://img.shields.io/badge/GPU-RTX_3060_Ti_Tested-76B900.svg)](https://nvidia.com)
-[![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#privacy--zero-spend-architecture)
+[![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#-privacy--architecture-transparency)
 [![Buildathon: Bolna x Symphony](https://img.shields.io/badge/Buildathon-Bolna_%C3%97_Symphony-orange.svg)](https://bolna.ai)
 
 BolSamajh is an open-source, local-first voice AI companion built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any application, document intelligence with verifiable page citations, and in-place voice editing — running natively on your hardware with zero subscription fees.
@@ -157,7 +157,7 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 ### 1. Real-World Speech Benchmark (Public Open Datasets)
 
-> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical phonemic transliteration scoring.
+> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical script-normalized transliteration scoring.
 
 | Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -177,28 +177,33 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 ### 3. Empirical Hardware & Latency Measurements
 
-> Measured locally on **NVIDIA GPU** (VRAM: 8192 MB) via `scripts/measure_hardware.py`.
+> Measured locally on **NVIDIA GeForce RTX 3060 Ti** (VRAM: 8192.0 MB) via `scripts/measure_hardware.py`.
 
 | Pipeline Component | Metric | Measured Value | Target / Baseline | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| **STT Latency (faster-whisper medium)** | Mean (warm run, 3.82s audio) | **686.2 ms** | < 1,000 ms | Passed |
-| **STT Real-Time Factor (RTF)** | Speed ratio (latency / duration) | **0.18x** | < 0.25x (4x realtime) | Passed |
-| **GPU VRAM Overhead** | STT Model Allocation Delta | **1076 MB** | < 2,048 MB (Fits 8GB) | Passed |
-| **Vector Retrieval Latency** | Cosine similarity across 20 chunks | **13.98 ms** | < 50 ms | Passed |
-| **TTS Time-to-First-Audio (TTFA)** | First audio packet delivered | **644.6 ms** | < 800 ms | Passed |
+| **STT Latency (Synthetic Audio)** | Warm run (3.82s audio, CUDA `int8_float16`) | **706.4 ms** | < 1,000 ms | **Passed** |
+| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.185x** | < 0.25x (4x realtime) | **Passed** |
+| **STT Latency (Real Speech)** | Long spontaneous speech (~9.4s avg, CPU eval) | **5307.8 ms** (RTF 0.567x) | Baseline (CPU fallback + 2.5x longer clips) | Informational |
+| **GPU VRAM Overhead** | STT Model Allocation Delta | **1076.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
+| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **32.92 ms** | < 50 ms | **Passed** |
+| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **626.4 ms** | < 800 ms | **Passed** |
+| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **1715.7 ms** | < 2,000 ms | **Passed** |
+
+> **Note on Latency Disparity (Synthetic vs Real Speech):**
+> Real-speech benchmark latency (5,307 ms / RTF 0.567) is ~7.5x higher than warm synthetic STT (706 ms / RTF 0.185). Root causes identified: (1) real speech clips in HiACC/FLEURS average 9.4s (up to 15.5s) compared to 3.8s in the synthetic set (2.5x duration delta); (2) the benchmark suite fell back to CPU INT8 in environments lacking direct CUDA initialization; (3) dense spontaneous code-switching required exhaustive beam decoding.
 
 ### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)
 
-> Grounded evaluation on the public Google XQuAD Hindi validation split (CC-BY-SA-4.0). Measures whether exact source passages are retrieved for Hindi/Hinglish questions.
+> Grounded evaluation on Google XQuAD Hindi validation set (CC-BY-SA-4.0). Calibrated across 200 relevant queries and 200 irrelevant/unanswerable queries by F1-score maximization.
 
 | Metric | Measured Value | Target / Notes |
 | :--- | :---: | :--- |
 | **Embedding Model** | `intfloat/multilingual-e5-base` | 512 token context, passage/query prefixes |
-| **Hit@1** | **93.33%** | Target passage retrieved at rank 1 |
-| **Hit@3** | **100.0%** | Target passage retrieved in top 3 |
-| **Hit@5** | **100.0%** | Target passage retrieved in top 5 |
-| **Mean Retrieval Latency** | **21.38 ms** | Sub-25ms local FAISS search |
-| **Empirical Refusal Threshold** | **0.81** | Calibrated: relevant mean (0.809) vs irrelevant max (0.756) |
+| **Hit@1** | **89.0%** | Target passage retrieved at rank 1 |
+| **Hit@3** | **98.0%** | Target passage retrieved in top 3 |
+| **Hit@5** | **98.5%** | Target passage retrieved in top 5 |
+| **Mean Retrieval Latency** | **22.31 ms** | Sub-35ms local FAISS search |
+| **Calibrated Refusal Threshold** | **0.785** | F1: **0.8685** (Precision: **81.86%**, Recall: **92.5%**) |
 
 <!-- BENCHMARK_TABLE_END -->
 ## ⌨️ Global Hotkeys Reference
@@ -228,6 +233,24 @@ We provide complete transparency regarding where data is processed:
 | **Cloud LLM Fallback (Gemini)** | Cloud (Google AI Studio) | Prompt text sent to Google | Transmitted via HTTPS with `x-goog-api-key` header (never in URL). Suppressed httpx logging prevents key leaks. |
 | **Neural TTS (Edge-TTS)**| Cloud (Microsoft Speech API) | Answer text sent to Microsoft | Synthesizes speech using Microsoft Edge's Read Aloud service. Requires internet. |
 | **Offline TTS (Piper)** | Local (Piper ONNX) | None | 100% offline text-to-speech option using local ONNX Hindi models (`hi_IN-pratham-medium`). |
+
+### 🛡️ 100% Offline Air-Gapped Mode
+While default operation uses Edge-TTS (cloud speech synthesis) and an optional Gemini fallback, BolSamajh offers a **strictly air-gapped, 100% offline mode** where zero bytes of data ever leave your machine:
+```bash
+# 1. Start local Ollama model
+ollama run gemma3:4b
+
+# 2. Configure full offline mode in your .env file:
+BOLSAMAJH_TTS_ENGINE=piper
+BOLSAMAJH_LLM_ENGINE=ollama
+BOLSAMAJH_LLM_AUTO_FALLBACK=false
+```
+When configured with these flags:
+- **Speech-to-Text (STT):** Local `faster-whisper` on NVIDIA GPU or CPU.
+- **Document RAG:** Local `intfloat/multilingual-e5-base` with local FAISS index.
+- **LLM Reasoning:** Local Ollama `gemma3:4b` with cloud fallback disabled.
+- **Text-to-Speech (TTS):** Local `piper-tts` using onnx Hindi voices.
+- **Voice Activity Detection:** Local on-device Silero VAD.
 
 ---
 

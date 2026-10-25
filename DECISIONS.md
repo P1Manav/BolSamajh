@@ -12,26 +12,25 @@
 **Date:** 2026-10-25  
 **Choice:** faster-whisper with `medium` model, `int8_float16` compute type on CUDA (RTX 3060 Ti).  
 **Alternatives considered:** whisper.cpp (needs separate build), OpenAI Whisper (slower, more VRAM), Vosk (lower accuracy for Hinglish).  
-**Reason:** CTranslate2 backend is 4× faster than original Whisper. `medium` model (~1.5 GB VRAM in INT8) fits alongside LLM on RTX 3060 Ti 8 GB. Initial prompt biasing (`initial_prompt="Hinglish, Hindi, Devanagari, English. Bolo. Samjho."`) ensures script consistency and prevents phonetics drifting into unintended scripts.
+**Reason:** CTranslate2 backend is 4× faster than original Whisper. `medium` model (~1.5 GB VRAM in INT8) fits alongside LLM on RTX 3060 Ti 8 GB. Condition on previous text disabled (`condition_on_previous_text=False`), Silero VAD filtering, and post-ASR regex cleanup strip disfluencies and normalize digits without hallucination loops.
 
-## D003: LLM Local — Ollama + gemma3:4b (with Google AI Studio Fallback)
+## D003: LLM Layer — Ollama + gemma3:4b (with Google AI Studio Fallback)
 **Date:** 2026-10-25  
-**Choice:** Ollama serving gemma3:4b locally, Google AI Studio free tier (Gemini 2.0 Flash — 15 RPM, 1M tokens/day free) as fallback.  
+**Choice:** Ollama serving `gemma3:4b` locally, with optional Google AI Studio (`gemini-1.5-flash` / `gemini-2.5-flash` free tier via `x-goog-api-key`) as cloud fallback.  
 **Alternatives considered:** llama.cpp direct, Phi-3 (less multilingual), Mistral (English-centric).  
-**Reason:** Gemma 3 4B has strong multilingual capability including Hindi/English, fits in 8 GB VRAM alongside whisper medium, and Ollama provides a simple HTTP API.
+**Reason:** Gemma 3 4B has strong multilingual capability including Hindi/English, fits in 8 GB VRAM alongside whisper medium, and Ollama provides a simple local HTTP API. Free-tier Gemini provides an optional, unmetered fallback when local resources are constrained.
 
-## D004: TTS — Edge-TTS (Online Neural Speech)
+## D004: TTS — Edge-TTS (Online) + Piper (100% Offline Local)
 **Date:** 2026-10-25  
-**Choice:** Edge-TTS with `hi-IN-SwaraNeural` voice for neural speech synthesis.  
-**Alternatives considered:** gTTS (unnatural robotic voice, no streaming), Coqui TTS (resource-heavy), Piper (open-source offline, requires verified high-quality Hindi ONNX voice model).  
-**Reason:** Edge-TTS is free (uses Microsoft Edge's speech service, no API key), supports streaming audio, and produces high-quality natural Hindi and Indian English voices with low latency (TTFA ~644 ms). Requires internet connectivity, as noted in the Privacy and Limitations documentation.
+**Choice:** Edge-TTS with `hi-IN-SwaraNeural` voice as primary online synthesizer; Piper ONNX as 100% offline local alternative.  
+**Alternatives considered:** gTTS (unnatural robotic voice, no streaming), Coqui TTS (resource-heavy).  
+**Reason:** Edge-TTS is free (uses Microsoft Edge's speech service, no API key), supports streaming audio, and produces high-quality natural Hindi and Indian English voices with low packet latency (~626 ms). Piper provides fully offline, air-gapped capability using local ONNX Hindi models.
 
-
-## D005: Embeddings — paraphrase-multilingual-MiniLM-L12-v2
+## D005: Embeddings — intfloat/multilingual-e5-base
 **Date:** 2026-10-25  
-**Choice:** sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (420 MB).  
-**Alternatives considered:** multilingual-e5-small (less tested), BGE-M3 (1.3 GB, overkill).  
-**Reason:** Supports 50+ languages including Hindi and English, small enough to run on CPU, well-tested with FAISS.
+**Choice:** `intfloat/multilingual-e5-base` (768-dim, 512 token context) with asymmetric `passage: ` and `query: ` prefixes and local FAISS inner-product index.  
+**Alternatives considered:** sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (shorter context, lower retrieval precision on cross-page context), BGE-M3 (1.3 GB, overkill).  
+**Reason:** E5-base provides superior cross-lingual semantic alignment across Hindi, Gujarati, and English with 512 token capacity, achieving 98.0% Hit@3 on Google XQuAD Hindi with sub-35ms retrieval and calibrated refusal threshold at 0.785.
 
 ## D006: Text Insertion — Clipboard Simulation
 **Date:** 2026-10-25  

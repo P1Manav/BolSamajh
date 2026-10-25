@@ -38,10 +38,10 @@ BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud s
 
 ### 7. What are your key measured metrics? (All backed by repository JSON files)
 All metrics originate from reproducible scripts in `benchmark_data/`:
-- **Inference Latency (`hardware_measurements.json`):** **686.2 ms mean** on a 3.82s sentence on NVIDIA RTX 3060 Ti (**0.180x Real-Time Factor**, running 5.5× faster than real-time).
+- **Inference Latency (`hardware_measurements.json`):** **706.4 ms mean** on a 3.82s sentence on NVIDIA RTX 3060 Ti (**0.185x Real-Time Factor**, running 5.4× faster than real-time); real-speech spontaneous code-switch baseline is 5,307.8 ms (RTF 0.567x) on 9.4s average clips.
 - **VRAM Overhead (`hardware_measurements.json`):** **1,076 MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
-- **Document Retrieval (`retrieval_benchmark.json`):** **93.33% Hit@1, 100.0% Hit@3, 100.0% Hit@5** on Google XQuAD Hindi validation split with **21.38 ms mean latency** and empirical refusal threshold of 0.76.
-- **Time-To-First-Audio (`hardware_measurements.json`):** **644.6 ms** via streaming neural speech.
+- **Document Retrieval (`retrieval_benchmark.json`):** **89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5** on Google XQuAD Hindi validation split with **22.31 ms mean latency** and calibrated refusal threshold of **0.785** (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
+- **Time-To-First-Audio (`hardware_measurements.json`):** **626.4 ms** Edge-TTS first-packet latency; **1,715.7 ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
 - **Real Speech Benchmark (`benchmark_results.json`):**
   - Read Hindi (FLEURS `hi_in`): **24.15% WER** (large-v3-turbo), **27.39% WER** (medium).
   - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **52.84% WER** (medium).
@@ -64,6 +64,6 @@ BolSamajh directly supports Bolna's vision of autonomous voice agents:
 
 ### 10. Links & Verification
 - **GitHub Repository:** https://github.com/P1Manav/BolSamajh
-- **CI Status:** GitHub Actions CPU workflow passes 23/23 tests (`.github/workflows/ci.yml`)
+- **CI Status:** GitHub Actions multi-OS CPU workflow runs unit tests passing 22/22 non-slow tests on Ubuntu & Windows, with full 23/23 tests passing locally and via manual workflow.
 - **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
 - **Architectural Decision Records:** 17 ADRs documented in [`DECISIONS.md`](DECISIONS.md)

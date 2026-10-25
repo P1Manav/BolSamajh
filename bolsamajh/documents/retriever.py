@@ -31,7 +31,7 @@ class DocumentRetriever:
         embedding_model: str = "intfloat/multilingual-e5-base",
         chunk_size: int = 380,
         chunk_overlap: int = 40,
-        refusal_threshold: float = 0.76,
+        refusal_threshold: float = 0.785,
     ):
         self.embedding_model_name = embedding_model
         self.chunk_size = chunk_size

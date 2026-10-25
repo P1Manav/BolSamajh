@@ -72,7 +72,7 @@ class DocQAConfig:
     chunk_size: int = 380       # tokens (aligned with embedder context)
     chunk_overlap: int = 40     # tokens
     top_k: int = 5              # retrieval results
-    refusal_threshold: float = 0.76  # Empirical threshold from XQuAD Hindi benchmark (irrelevant max: 0.756)
+    refusal_threshold: float = 0.785  # Calibrated on 200 XQuAD Hindi QA pairs (F1=0.8685, Precision=81.86%, Recall=92.5%)
     response_language: Literal["hinglish", "hindi", "gujarati", "english"] = "hinglish"
 
 

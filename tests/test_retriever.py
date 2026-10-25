@@ -51,7 +51,7 @@ def test_retriever_indexing_and_refusal():
         ],
         doc_type="txt",
     )
-    retriever = DocumentRetriever(refusal_threshold=0.76)
+    retriever = DocumentRetriever(refusal_threshold=0.785)
     num_indexed = retriever.index_document(doc)
     assert num_indexed > 0
     assert retriever.is_loaded
