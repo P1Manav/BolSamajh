@@ -24,11 +24,11 @@ class HotkeyConfig:
 @dataclass
 class STTConfig:
     """Speech-to-text settings."""
-    engine: Literal["faster_whisper", "ai4bharat"] = "faster_whisper"
-    model_size: str = "medium"                # faster-whisper model size
-    language: str = "hi"                      # Language hint for Hinglish
+    engine: str = "faster_whisper"
+    model_size: str = "medium"                # faster-whisper model size (medium, large-v3-turbo, whisper-hinglish-swift)
+    language: str = "auto"                    # Auto-detect language or specify 'hi', 'en', 'gu'
     device: str = "cuda"                      # cuda or cpu
-    compute_type: str = "int8_float16"         # int8 weights + fp16 compute (fast on RTX 3060 Ti)
+    compute_type: str = "int8_float16"         # int8 weights + fp16 compute
 
 
 @dataclass
@@ -37,7 +37,9 @@ class LLMConfig:
     engine: Literal["ollama", "google_ai"] = "ollama"
     ollama_model: str = "gemma3:4b"
     ollama_base_url: str = "http://localhost:11434"
-    google_ai_model: str = "gemini-2.0-flash"
+    ollama_num_ctx: int = 8192                # 8k context window to prevent prompt truncation
+    auto_fallback: bool = True                 # Automatically fallback between Ollama and Gemini
+    google_ai_model: str = "gemini-1.5-flash"  # Verified free-tier model (15 RPM, no card needed)
     # API key read from env var GOOGLE_AI_API_KEY
     temperature: float = 0.3
     max_tokens: int = 1024
@@ -65,10 +67,11 @@ class DictationConfig:
 @dataclass
 class DocQAConfig:
     """Document Q&A settings."""
-    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    chunk_size: int = 500       # tokens
-    chunk_overlap: int = 50     # tokens
+    embedding_model: str = "intfloat/multilingual-e5-base"  # 512 token context limit
+    chunk_size: int = 380       # tokens (aligned with embedder context)
+    chunk_overlap: int = 40     # tokens
     top_k: int = 5              # retrieval results
+    refusal_threshold: float = 0.76  # Empirical threshold from XQuAD Hindi benchmark (irrelevant max: 0.756)
     response_language: Literal["hinglish", "hindi", "gujarati", "english"] = "hinglish"
 
 

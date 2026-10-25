@@ -81,6 +81,20 @@ class MicRecorder:
 
         return self._to_wav_bytes(audio_data)
 
+    def cancel(self) -> None:
+        """Cancel recording immediately, discarding captured audio."""
+        with self._lock:
+            self._recording = False
+            self._frames = []
+        if self._stream is not None:
+            try:
+                self._stream.stop()
+                self._stream.close()
+            except Exception:
+                pass
+            self._stream = None
+        log.info("Mic recording cancelled.")
+
     def _to_wav_bytes(self, audio: np.ndarray) -> bytes:
         """Convert numpy audio to WAV bytes."""
         buf = io.BytesIO()

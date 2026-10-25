@@ -32,6 +32,14 @@ class DictationPipeline:
         self.hud.set_state("listening")
         self.recorder.start()
 
+    def cancel(self) -> None:
+        """Cancel recording immediately and reset HUD."""
+        if self.recorder.is_recording:
+            self.recorder.cancel()
+        self._processing = False
+        self.hud.set_state("idle")
+        log.info("Dictation: cancelled by user")
+
     def stop_recording_and_transcribe(self) -> None:
         """Stop recording, transcribe, clean up, and insert text.
 

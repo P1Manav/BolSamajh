@@ -16,8 +16,8 @@ class FasterWhisperSTT(SpeechToText):
         self,
         model_size: str = "medium",
         device: str = "cuda",
-        compute_type: str = "int8",
-        language: str = "hi",
+        compute_type: str = "int8_float16",
+        language: str = "auto",
     ):
         self.model_size = model_size
         self.device = device
@@ -47,7 +47,7 @@ class FasterWhisperSTT(SpeechToText):
         log.info("Model loaded in %.1fs", time.time() - t0)
 
     def transcribe(self, audio_bytes: bytes) -> TranscriptResult:
-        """Transcribe WAV audio bytes."""
+        """Transcribe WAV audio bytes with silence and duration gates."""
         if self._model is None:
             self.load_model()
 
@@ -55,31 +55,67 @@ class FasterWhisperSTT(SpeechToText):
         audio_np = self._wav_bytes_to_np(audio_bytes)
         duration = len(audio_np) / 16000.0
 
-        log.debug("Transcribing %.1fs of audio…", duration)
+        # Minimum duration gate: clips < 0.4s are discarded as transient noise
+        if duration < 0.4:
+            log.debug("Audio clip too short (%.2fs < 0.4s); skipping.", duration)
+            return TranscriptResult(
+                text="",
+                language="",
+                confidence=0.0,
+                duration_seconds=duration,
+                processing_seconds=0.0
+            )
+
+        # Silence / low-energy gate: discard audio with RMS energy below 0.003
+        rms = float(np.sqrt(np.mean(audio_np ** 2))) if len(audio_np) > 0 else 0.0
+        if rms < 0.003:
+            log.debug("Audio clip RMS (%.5f) below silence threshold; skipping.", rms)
+            return TranscriptResult(
+                text="",
+                language="",
+                confidence=0.0,
+                duration_seconds=duration,
+                processing_seconds=0.0
+            )
+
+        log.debug("Transcribing %.1fs of audio (RMS=%.4f)…", duration, rms)
         t0 = time.time()
 
-        segments, info = self._model.transcribe(
-            audio_np,
-            language=self.language,
-            initial_prompt="Hinglish, Hindi, Devanagari, English. Bolo. Samjho.",
-            beam_size=5,
-            best_of=5,
-            temperature=0.0,
-            condition_on_previous_text=False,
-            vad_filter=True,
-            vad_parameters=dict(
+        transcribe_kwargs = {
+            "beam_size": 5,
+            "best_of": 5,
+            "temperature": 0.0,
+            "condition_on_previous_text": False,
+            "vad_filter": True,
+            "vad_parameters": dict(
                 min_silence_duration_ms=500,
                 speech_pad_ms=200,
             ),
-        )
+        }
 
+        # Language auto-detection or explicit code
+        if self.language and self.language.lower() != "auto":
+            transcribe_kwargs["language"] = self.language
+
+        segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
 
         # Collect all segment texts
         texts = []
         for segment in segments:
             texts.append(segment.text.strip())
 
-        text = " ".join(texts)
+        text = " ".join(texts).strip()
+
+        # Filter out common Whisper hallucination tokens on near-silent clips
+        import re
+        hallucination_pattern = re.compile(
+            r"^(thank you|thank you very much|thanks for watching|subtitles by|subscribe|thank you\.)$",
+            re.IGNORECASE
+        )
+        if hallucination_pattern.match(text) or text == "[BLANK_AUDIO]":
+            log.debug("Discarded hallucinated token: %r", text)
+            text = ""
+
         elapsed = time.time() - t0
 
         log.info("Transcribed in %.2fs (RTF=%.2f): %s",
@@ -87,7 +123,7 @@ class FasterWhisperSTT(SpeechToText):
 
         return TranscriptResult(
             text=text,
-            language=info.language if info else self.language,
+            language=info.language if info else (self.language or "unknown"),
             confidence=info.language_probability if info else 0.0,
             duration_seconds=duration,
             processing_seconds=elapsed,

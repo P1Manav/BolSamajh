@@ -21,31 +21,44 @@ class OllamaAdapter(LLMAdapter):
         base_url: str = "http://localhost:11434",
         temperature: float = 0.3,
         max_tokens: int = 1024,
+        num_ctx: int = 8192,
     ):
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.num_ctx = num_ctx
 
     @property
     def name(self) -> str:
         return f"ollama/{self.model}"
 
+    async def check_status(self) -> tuple[bool, str]:
+        """Check detailed status of Ollama server and model."""
+        try:
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                resp = await client.get(f"{self.base_url}/api/tags")
+                if resp.status_code != 200:
+                    return False, f"Ollama HTTP error {resp.status_code}"
+                models = resp.json().get("models", [])
+                model_names = [m.get("name", "") for m in models]
+                # Check exact or prefix match (e.g. gemma3:4b or gemma3:latest)
+                model_base = self.model.split(":")[0]
+                has_model = any(self.model in n or n.startswith(model_base) for n in model_names)
+                if has_model:
+                    return True, f"Ollama ready ({self.model})"
+                return False, f"Model '{self.model}' not found in Ollama. Run: ollama run {self.model}"
+        except httpx.ConnectError:
+            return False, "Ollama is not running. Start with: ollama serve"
+        except Exception as e:
+            return False, f"Ollama connection error: {e}"
+
     async def is_available(self) -> bool:
         """Check if Ollama is running and the model is available."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(f"{self.base_url}/api/tags")
-                if resp.status_code == 200:
-                    models = resp.json().get("models", [])
-                    model_names = [m.get("name", "") for m in models]
-                    available = any(self.model in n for n in model_names)
-                    log.info("Ollama available, model %s %s",
-                             self.model, "found" if available else "NOT found")
-                    return available
-        except Exception as e:
-            log.debug("Ollama not available: %s", e)
-        return False
+        ready, msg = await self.check_status()
+        if not ready:
+            log.warning("Ollama status: %s", msg)
+        return ready
 
     async def generate(self, prompt: str, system: str = "") -> str:
         """Generate a complete response from Ollama."""
@@ -58,6 +71,7 @@ class OllamaAdapter(LLMAdapter):
             "options": {
                 "temperature": self.temperature,
                 "num_predict": self.max_tokens,
+                "num_ctx": self.num_ctx,
             },
         }
 
@@ -84,6 +98,7 @@ class OllamaAdapter(LLMAdapter):
             "options": {
                 "temperature": self.temperature,
                 "num_predict": self.max_tokens,
+                "num_ctx": self.num_ctx,
             },
         }
 

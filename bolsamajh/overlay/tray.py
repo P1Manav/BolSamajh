@@ -26,18 +26,50 @@ def _create_icon_image(size: int = 64) -> Image.Image:
     return img
 
 
-def create_tray(config) -> pystray.Icon:
-    """Create and return the system-tray icon (call .run() to start)."""
+def create_tray(config, on_quit_callback=None) -> pystray.Icon:
+    """Create and return the system-tray icon with Script Control menu."""
     def on_quit(icon, item):
         log.info("Quitting BolSamajh…")
+        if on_quit_callback:
+            on_quit_callback()
         icon.stop()
+
+    def set_script(mode: str):
+        def _handler(icon, item):
+            log.info("Script mode switched to: %s", mode)
+            config.dictation.script = mode
+        return _handler
 
     icon = pystray.Icon(
         name="BolSamajh",
         icon=_create_icon_image(),
         title="BolSamajh — Bolo. Samjho.",
         menu=pystray.Menu(
-            Item("BolSamajh v0.1.0", lambda *a: None, enabled=False),
+            Item("BolSamajh v1.0.0", lambda *a: None, enabled=False),
+            pystray.Menu.SEPARATOR,
+            Item(
+                "Script Control",
+                pystray.Menu(
+                    Item(
+                        "Natural (Mixed)",
+                        set_script("natural"),
+                        checked=lambda item: getattr(config.dictation, "script", "natural") == "natural",
+                        radio=True
+                    ),
+                    Item(
+                        "Roman (English Letters)",
+                        set_script("roman"),
+                        checked=lambda item: getattr(config.dictation, "script", "natural") == "roman",
+                        radio=True
+                    ),
+                    Item(
+                        "Devanagari (Hindi Script)",
+                        set_script("devanagari"),
+                        checked=lambda item: getattr(config.dictation, "script", "natural") == "devanagari",
+                        radio=True
+                    ),
+                )
+            ),
             pystray.Menu.SEPARATOR,
             Item("Quit", on_quit),
         ),

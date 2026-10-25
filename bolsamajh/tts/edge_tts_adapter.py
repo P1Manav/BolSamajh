@@ -55,6 +55,23 @@ class EdgeTTSAdapter(TextToSpeech):
         self._stop_event.clear()
         self._speaking = True
 
+        # Pre-process text according to voice requirements:
+        # 1. hi-IN-SwaraNeural expects Devanagari script for Hindi/Hinglish phonetics
+        if lang == "hi" and not any('\u0900' <= c <= '\u097F' for c in text):
+            try:
+                from aksharamukha import transliterate
+                text = transliterate.process("ISO", "Devanagari", text)
+            except Exception as e:
+                log.debug("Transliteration to Devanagari skipped: %s", e)
+
+        # 2. gu-IN-DhwaniNeural requires Gujarati script
+        elif lang == "gu" and not any('\u0A80' <= c <= '\u0AFF' for c in text):
+            try:
+                from aksharamukha import transliterate
+                text = transliterate.process("ISO", "Gujarati", text)
+            except Exception as e:
+                log.debug("Transliteration to Gujarati skipped: %s", e)
+
         voice = _VOICES.get(lang, _VOICES["hi"])
         log.info("Edge-TTS: speaking %d chars with voice %s", len(text), voice)
 

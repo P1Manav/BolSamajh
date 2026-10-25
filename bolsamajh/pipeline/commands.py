@@ -67,6 +67,14 @@ class VoiceCommandsPipeline:
         self.hud.set_state("listening", "Listening command…")
         self.recorder.start()
 
+    def cancel(self) -> None:
+        """Cancel command recording and reset HUD."""
+        if self.recorder.is_recording:
+            self.recorder.cancel()
+        self._processing = False
+        self.hud.set_state("idle")
+        log.info("Voice Command: cancelled by user")
+
     def stop_and_execute(self) -> None:
         """Stop listening and execute command on selected text."""
         if not self.recorder.is_recording:

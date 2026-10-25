@@ -37,24 +37,9 @@ def _create_stt(config: AppConfig):
 
 
 def _create_llm(config: AppConfig):
-    """Create the LLM adapter based on config."""
-    if config.llm.engine == "ollama":
-        from bolsamajh.llm.ollama_adapter import OllamaAdapter
-        return OllamaAdapter(
-            model=config.llm.ollama_model,
-            base_url=config.llm.ollama_base_url,
-            temperature=config.llm.temperature,
-            max_tokens=config.llm.max_tokens,
-        )
-    elif config.llm.engine == "google_ai":
-        from bolsamajh.llm.google_ai import GoogleAIAdapter
-        return GoogleAIAdapter(
-            model=config.llm.google_ai_model,
-            temperature=config.llm.temperature,
-            max_tokens=config.llm.max_tokens,
-        )
-    else:
-        raise ValueError(f"Unknown LLM engine: {config.llm.engine}")
+    """Create the LLM adapter based on config with auto-fallback."""
+    from bolsamajh.llm.factory import create_llm_adapter
+    return create_llm_adapter(config)
 
 
 def _create_tts(config: AppConfig):
@@ -62,6 +47,9 @@ def _create_tts(config: AppConfig):
     if config.tts.engine == "edge_tts":
         from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
         return EdgeTTSAdapter()
+    elif config.tts.engine == "piper":
+        from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+        return PiperTTSAdapter(model_path=config.tts.piper_model_path)
     else:
         raise ValueError(f"Unknown TTS engine: {config.tts.engine}")
 
@@ -159,8 +147,12 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
     )
     threading.Thread(target=_cmd_ptt_monitor, daemon=True).start()
 
-    # --- Stop / interrupt ---
+    # --- Stop / interrupt / cancel active recording ---
     def on_stop():
+        log.info("Escape pressed: cancelling active recording and interrupting speech")
+        dictation_pipeline.cancel()
+        doc_qa_pipeline.cancel()
+        commands_pipeline.cancel()
         doc_qa_pipeline.interrupt()
 
     keyboard.add_hotkey(stop_key, on_stop, suppress=False)

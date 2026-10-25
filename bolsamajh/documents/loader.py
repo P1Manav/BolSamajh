@@ -33,8 +33,40 @@ class Document:
         return len(self.pages)
 
 
+def _extract_page_ocr(page, page_num: int, filename: str) -> str:
+    """Attempt local OCR on scanned PDF page using PyMuPDF OCR or pytesseract."""
+    # 1. Try PyMuPDF native OCR bindings
+    try:
+        tp = page.get_textpage_ocr(language="hin+eng")
+        ocr_text = tp.extractText().strip()
+        if ocr_text:
+            log.info("OCR successfully extracted %d characters from page %d of '%s'",
+                     len(ocr_text), page_num, filename)
+            return ocr_text
+    except Exception as e:
+        log.debug("PyMuPDF get_textpage_ocr failed on page %d: %s", page_num, e)
+
+    # 2. Try pytesseract if installed locally
+    try:
+        import io
+        from PIL import Image
+        import pytesseract
+
+        pix = page.get_pixmap(dpi=150)
+        img = Image.open(io.BytesIO(pix.tobytes("png")))
+        ocr_text = pytesseract.image_to_string(img, lang="hin+eng").strip()
+        if ocr_text:
+            log.info("pytesseract extracted %d characters from page %d of '%s'",
+                     len(ocr_text), page_num, filename)
+            return ocr_text
+    except Exception as e:
+        log.debug("pytesseract fallback unavailable on page %d: %s", page_num, e)
+
+    return ""
+
+
 def load_pdf(file_path: str) -> Document:
-    """Load a PDF file using PyMuPDF."""
+    """Load a PDF file using PyMuPDF with OCR fallback for scanned pages."""
     import fitz  # PyMuPDF
 
     path = Path(file_path)
@@ -45,18 +77,38 @@ def load_pdf(file_path: str) -> Document:
     doc = fitz.open(str(path))
 
     pages = []
+    blank_pages = []
     for page_num in range(len(doc)):
         page = doc[page_num]
-        text = page.get_text("text")
-        if text.strip():
+        text = page.get_text("text").strip()
+
+        if not text:
+            log.warning("Page %d of '%s' has no embedded text (possible scan); attempting OCR fallback...",
+                        page_num + 1, path.name)
+            text = _extract_page_ocr(page, page_num + 1, path.name)
+
+        if text:
             pages.append(DocumentPage(
-                text=text.strip(),
+                text=text,
                 page_number=page_num + 1,
                 source=str(path),
             ))
+        else:
+            blank_pages.append(page_num + 1)
+            log.warning("Page %d of '%s' contains no readable text.", page_num + 1, path.name)
+
+    if blank_pages:
+        log.warning("PDF '%s' has %d page(s) without extractable text: %s",
+                    path.name, len(blank_pages), blank_pages)
 
     title = doc.metadata.get("title", "") or path.stem
     doc.close()
+
+    if not pages:
+        raise ValueError(
+            f"PDF '{path.name}' contains no readable text. It appears to be scanned images "
+            "and local OCR was unable to extract text. Please ensure Tesseract is installed for image PDFs."
+        )
 
     result = Document(
         title=title,

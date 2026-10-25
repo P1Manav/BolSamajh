@@ -1,4 +1,11 @@
-"""Google AI Studio (Gemini) LLM adapter — free tier fallback."""
+"""Google AI Studio (Gemini) LLM adapter — free tier fallback.
+
+Adheres to Tier 2 Requirement 14:
+- Free tier verified model (gemini-1.5-flash: 15 RPM, 1M TPM, no card required).
+- Sends API key in 'x-goog-api-key' header instead of URL parameters.
+- Uses native 'systemInstruction' instead of fake user/model turn pairs.
+- Suppresses httpx / httpcore loggers to WARNING so API keys never leak into logs.
+"""
 
 import os
 import json
@@ -10,17 +17,21 @@ import httpx
 
 from bolsamajh.llm.base import LLMAdapter
 
+# Ensure HTTP client loggers never dump request URLs or auth headers
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 log = logging.getLogger(__name__)
 
-# Google AI Studio free tier endpoint
+# Google AI Studio endpoint
 _API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
 
 class GoogleAIAdapter(LLMAdapter):
     """LLM adapter for Google AI Studio (Gemini) free tier.
 
-    Free tier limits (as of Oct 2026):
-    - Gemini 2.0 Flash: 15 RPM, 1M tokens/day
+    Free tier limits (as verified in Google AI Studio documentation):
+    - Gemini 1.5 Flash: 15 RPM, 1M TPM, 1,500 RPD
     - No credit card required
 
     Requires env var: GOOGLE_AI_API_KEY
@@ -28,11 +39,11 @@ class GoogleAIAdapter(LLMAdapter):
 
     def __init__(
         self,
-        model: str = "gemini-2.0-flash",
+        model: str = "gemini-1.5-flash",
         temperature: float = 0.3,
         max_tokens: int = 1024,
     ):
-        self.model = model
+        self.model = os.getenv("GOOGLE_AI_MODEL", model)
         self.temperature = temperature
         self.max_tokens = max_tokens
         self._api_key = os.getenv("GOOGLE_AI_API_KEY", "")
@@ -40,6 +51,13 @@ class GoogleAIAdapter(LLMAdapter):
     @property
     def name(self) -> str:
         return f"google-ai/{self.model}"
+
+    def _get_headers(self) -> dict:
+        """Header with API key; never expose in URL params."""
+        return {
+            "x-goog-api-key": self._api_key,
+            "Content-Type": "application/json",
+        }
 
     async def is_available(self) -> bool:
         """Check if API key is set and endpoint responds."""
@@ -50,38 +68,34 @@ class GoogleAIAdapter(LLMAdapter):
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.get(
                     f"{_API_BASE}/models/{self.model}",
-                    params={"key": self._api_key},
+                    headers=self._get_headers(),
                 )
                 available = resp.status_code == 200
                 log.info("Google AI Studio %s: %s",
-                         self.model, "available" if available else "not available")
+                         self.model, "available" if available else f"HTTP {resp.status_code}")
                 return available
         except Exception as e:
             log.debug("Google AI not reachable: %s", e)
             return False
 
     async def generate(self, prompt: str, system: str = "") -> str:
-        """Generate using Gemini API."""
+        """Generate using Gemini API with native systemInstruction and header auth."""
         t0 = time.time()
 
-        contents = []
-        if system:
-            contents.append({"role": "user", "parts": [{"text": system}]})
-            contents.append({"role": "model", "parts": [{"text": "Understood. I will follow these instructions."}]})
-        contents.append({"role": "user", "parts": [{"text": prompt}]})
-
         payload = {
-            "contents": contents,
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {
                 "temperature": self.temperature,
                 "maxOutputTokens": self.max_tokens,
             },
         }
+        if system:
+            payload["systemInstruction"] = {"parts": [{"text": system}]}
 
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(
                 f"{_API_BASE}/models/{self.model}:generateContent",
-                params={"key": self._api_key},
+                headers=self._get_headers(),
                 json=payload,
             )
             resp.raise_for_status()
@@ -99,26 +113,22 @@ class GoogleAIAdapter(LLMAdapter):
         return text
 
     async def generate_stream(self, prompt: str, system: str = "") -> AsyncIterator[str]:
-        """Stream using Gemini API (streamGenerateContent)."""
-        contents = []
-        if system:
-            contents.append({"role": "user", "parts": [{"text": system}]})
-            contents.append({"role": "model", "parts": [{"text": "Understood."}]})
-        contents.append({"role": "user", "parts": [{"text": prompt}]})
-
+        """Stream using Gemini API (streamGenerateContent) with header auth."""
         payload = {
-            "contents": contents,
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {
                 "temperature": self.temperature,
                 "maxOutputTokens": self.max_tokens,
             },
         }
+        if system:
+            payload["systemInstruction"] = {"parts": [{"text": system}]}
 
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream(
                 "POST",
-                f"{_API_BASE}/models/{self.model}:streamGenerateContent",
-                params={"key": self._api_key, "alt": "sse"},
+                f"{_API_BASE}/models/{self.model}:streamGenerateContent?alt=sse",
+                headers=self._get_headers(),
                 json=payload,
             ) as resp:
                 resp.raise_for_status()
@@ -131,8 +141,8 @@ class GoogleAIAdapter(LLMAdapter):
                             if candidates:
                                 parts = candidates[0].get("content", {}).get("parts", [])
                                 for part in parts:
-                                    text = part.get("text", "")
-                                    if text:
-                                        yield text
+                                    token = part.get("text", "")
+                                    if token:
+                                        yield token
                         except json.JSONDecodeError:
                             continue

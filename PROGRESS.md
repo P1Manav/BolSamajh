@@ -2,11 +2,54 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Tier 1 Complete — Benchmark v2 on Real Speech & Canonical Scoring
+## Current Status: 🎯 Tier 2 Complete — Core Product Correctness, Long-Context RAG, LLM Fallback, Streaming TTS & Voice Barge-In
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Tier 2 — Core Product Correctness & Robust Voice Pipelines
+- [x] **Dictation Output & Hallucination Prevention (`bolsamajh/stt/faster_whisper_stt.py`):**
+  - Default `language="auto"` enables organic code-switched Hindi-English transcription without forced Hindi phonetics.
+  - Stripped hardcoded initial prompt (`Bolo. Samjho.`) that leaked into silent or background noise clips.
+  - Added dual silence gating: audio duration gate (<0.4s) and RMS energy threshold (<0.003) to prevent silence hallucination.
+  - Added regex post-filtering to reject repetitive hallucination loops (e.g. `[Applause]`, `Thank you for watching`, `Subtitles by...`).
+- [x] **Accurate Script Control & Tray Integration (`bolsamajh/utils/text_cleanup.py`, `bolsamajh/overlay/tray.py`):**
+  - Replaced naive character map with `aksharamukha` offline transliteration library.
+  - Fully supports `natural` (mixed as transcribed), `roman` (clean Latin with diacritic stripping), and `devanagari` scripts.
+  - Exposed live script selection in system tray menu.
+- [x] **Text Cleanup & Currency Disfluency Hardening (`bolsamajh/utils/text_cleanup.py`):**
+  - Fixed currency regex with strict word boundaries `\b` (`doctors 5` is untouched; `Rs 500` -> `₹500`).
+  - Removed aggressive fillers that deleted real Hindi/English words (`like`, `so`, `sun`, `actually`, `matlab`, `accha`, `dekho`, `toh` preserved).
+  - Isolated true disfluencies (`umm`, `uhh`, `hmm`, `अम्म`, `उहह`, `हम्म`).
+  - Verified with 4 unit tests in `tests/test_cleanup.py`.
+- [x] **Long-Context Multilingual RAG & Refusal Calibration (`bolsamajh/documents/`):**
+  - Replaced 128-token MiniLM with `intfloat/multilingual-e5-base` (512 token context limit, `passage: ` and `query: ` prefixes).
+  - Implemented cross-page paragraph chunking (`bolsamajh/documents/chunker.py`) with format-specific citations (`Page N` only for PDFs, `Section: X` / `Paragraph N` for Web/DOCX/TXT).
+  - Evaluated on Google XQuAD Hindi validation split (`scripts/evaluate_retrieval_xquad.py`):
+    * **Hit@1:** 93.33%
+    * **Hit@3:** 100.0%
+    * **Hit@5:** 100.0%
+    * **Mean Latency:** 21.38 ms
+    * **Relevant Mean Score:** 0.809 vs **Irrelevant Max Score:** 0.756.
+  - Set empirical refusal threshold to **0.76** based on benchmark results.
+- [x] **LLM Layer Robustness & Seamless Auto-Fallback (`bolsamajh/llm/`):**
+  - Set `num_ctx: 8192` in `OllamaAdapter` options so long document prompts are never truncated.
+  - Added `check_status()` to verify server connectivity and model pull status.
+  - Created `FallbackLLMAdapter` (`bolsamajh/llm/fallback.py`) and `create_llm_adapter` factory.
+  - Updated `GoogleAIAdapter`: replaced retired model with verified free-tier `gemini-1.5-flash` (15 RPM, no card needed), added `x-goog-api-key` header authentication, top-level `systemInstruction`, and suppressed `httpx`/`httpcore` loggers to `WARNING`.
+- [x] **Document Handling & Prompt Injection Hardening (`bolsamajh/documents/loader.py`, `bolsamajh/pipeline/doc_qa.py`):**
+  - Added OCR fallback for scanned PDFs via PyMuPDF native OCR and `pytesseract` with clear logging for unreadable pages.
+  - Wrapped retrieved context inside `<document_data>` XML tags with explicit instruction to treat content strictly as passive data.
+  - Implemented 3-turn short conversational memory in `DocQAPipeline` to enable natural follow-ups (*"ruko, yeh dobara samjhao"*).
+- [x] **Voice Latency, Offline TTS & Voice Barge-In (`bolsamajh/pipeline/doc_qa.py`, `bolsamajh/tts/`, `bolsamajh/utils/vad.py`):**
+  - Implemented sentence-by-sentence streaming from LLM generator into TTS, reporting Time-To-First-Audio (TTFA).
+  - Transliterates Roman Hinglish to Devanagari via `aksharamukha` before sending to `hi-IN-SwaraNeural` for natural Hindi phonology.
+  - Implemented `PiperTTSAdapter` (`bolsamajh/tts/piper_adapter.py`) supporting 100% offline local TTS with verified MIT-licensed Piper Hindi voices (`hi_IN-pratham-medium`).
+  - Added voice barge-in with Silero VAD (`BargeInMonitor` in `bolsamajh/utils/vad.py`) to stop TTS immediately when user speaks.
+  - Wired `Escape` key to abort active microphone recording across all pipelines in addition to halting TTS.
+- [x] **Unit Test Suite:**
+  - 15/15 unit tests passing in `pytest tests/` (cleanup, llm, normalization, retriever).
 
 #### Tier 1 — Benchmark v2 on Real Speech & Canonical Normalization
 - [x] **Zero Manual Recording & Verified Permissive Licenses:**

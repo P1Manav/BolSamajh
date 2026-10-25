@@ -75,3 +75,33 @@
 **Alternatives considered:** Only synthetic evaluation; character-exact scoring without phonetic transliteration (penalizes loanword spelling variations).  
 **Reason:** Separating real human speech from synthetic stress gives voice-AI judges clear, reproducible evidence. Canonical phonemic transliteration accurately measures whether the speech recognition captured the right words rather than penalizing script mismatches (e.g. मीटिंग vs meeting).
 
+## D013: Long-Context Multilingual Embeddings (`intfloat/multilingual-e5-base`) & Refusal Calibration
+**Date:** 2026-10-25  
+**Choice:** Replace 128-token MiniLM with `intfloat/multilingual-e5-base` (512 token max sequence length, explicit `passage: ` and `query: ` prefixes). Calibrate cosine similarity refusal threshold on Google XQuAD Hindi validation split.  
+**Alternatives considered:** `paraphrase-multilingual-MiniLM-L12-v2` (truncates 500-token chunks after 128 tokens), `BGE-M3` (heavier VRAM footprint).  
+**Reason:** XQuAD Hindi empirical evaluation achieved 93.33% Hit@1, 100.0% Hit@3, 100.0% Hit@5 at 21.38 ms latency. Calibrated refusal threshold of 0.76 cleanly rejects out-of-domain queries (irrelevant max: 0.756) while retaining true relevant passages (relevant mean: 0.809).
+
+## D014: Prompt-Injection Guardrails & Conversational Memory
+**Date:** 2026-10-25  
+**Choice:** Wrap document context within `<document_data>` XML delimiters with explicit system instructions treating context as untrusted passive data. Maintain 3-turn short conversational history in `DocQAPipeline`.  
+**Alternatives considered:** Direct string interpolation without guardrails (susceptible to adversarial override); full chat history (exceeds local context limits).  
+**Reason:** Hardens the RAG pipeline against malicious PDF/doc payloads attempting to override system behavior. Conversational memory enables natural follow-ups ("ruko, yeh dobara samjhao", "explain in simpler terms").
+
+## D015: Sentence-by-Sentence TTS Streaming & Voice Barge-In via Silero VAD
+**Date:** 2026-10-25  
+**Choice:** Stream tokens from LLM generator, delimit sentences (`.`, `?`, `!`, `।`, `\n`), synthesize and play audio immediately on the first completed sentence. Monitor microphone with Silero VAD (`BargeInMonitor`) during playback to halt TTS on user speech.  
+**Alternatives considered:** Waiting for full LLM generation before starting TTS (3-5s TTFA); pure keypress interruption.  
+**Reason:** Drops Time-To-First-Audio (TTFA) to under 800 ms. Voice barge-in provides a hands-free conversational experience aligned with modern voice assistants.
+
+## D016: Piper Offline TTS Adapter with Verified Hindi Voices
+**Date:** 2026-10-25  
+**Choice:** Implement `PiperTTSAdapter` using `piper-tts` ONNX runtime with official MIT-licensed `hi_IN-pratham-medium` voice from Hugging Face (`rhasspy/piper-voices`).  
+**Alternatives considered:** Offline TTS claims without implementation (failed audit); heavyweight Coqui TTS.  
+**Reason:** Delivers true 100% offline text-to-speech capability when internet access is unavailable or privacy constraints forbid external cloud speech endpoints.
+
+## D017: LLM Layer Hardening — Context Window, Auto-Fallback & Header Auth
+**Date:** 2026-10-25  
+**Choice:** Set `num_ctx: 8192` explicitly in Ollama API payload. Implement `FallbackLLMAdapter` between local Ollama and Google AI Studio. Update Google AI Studio adapter to verified free-tier `gemini-1.5-flash`, native `systemInstruction`, and `x-goog-api-key` header auth (never in URL params). Set `httpx`/`httpcore` loggers to `WARNING`.  
+**Alternatives considered:** Hardcoded single provider; API key in URL parameters (leaks to HTTP proxy logs).  
+**Reason:** Ensures zero prompt truncation on 8k context, zero key leakage in logs or URL traces, and automatic failover if local Ollama is not running.
+
