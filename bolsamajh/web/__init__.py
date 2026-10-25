@@ -1,0 +1,1 @@
+"""BolSamajh Web Package."""
