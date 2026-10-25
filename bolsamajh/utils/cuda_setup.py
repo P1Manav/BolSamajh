@@ -67,7 +67,7 @@ def auto_detect_device() -> tuple[str, str, str]:
     Returns:
         (device, compute_type, recommended_model)
         - On GPU: ('cuda', 'int8_float16', 'medium')
-        - On CPU: ('cpu', 'int8', 'whisper-hinglish-swift')
+        - On CPU: ('cpu', 'int8', 'MSpider3/whisper-hindi2hinglish-swift-ct2')
     """
     setup_cuda_dlls()
     try:
@@ -79,8 +79,8 @@ def auto_detect_device() -> tuple[str, str, str]:
     except Exception as e:
         log.debug("CUDA check exception: %s", e)
 
-    log.info("No CUDA GPU detected or initialization failed. Falling back to CPU:int8 with swift model")
-    return "cpu", "int8", "whisper-hinglish-swift"
+    log.info("No CUDA GPU detected or initialization failed. Falling back to CPU:int8 with MSpider3/whisper-hindi2hinglish-swift-ct2")
+    return "cpu", "int8", "MSpider3/whisper-hindi2hinglish-swift-ct2"
 
 
 # Auto-configure on module import

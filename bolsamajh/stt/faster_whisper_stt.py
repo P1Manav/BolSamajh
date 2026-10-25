@@ -9,6 +9,22 @@ from bolsamajh.stt.base import SpeechToText, TranscriptResult
 log = logging.getLogger(__name__)
 
 
+MODEL_NAME_MAP = {
+    "medium": "medium",
+    "large-v3-turbo": "deepdml/faster-whisper-large-v3-turbo-ct2",
+    "whisper-hinglish-swift": "MSpider3/whisper-hindi2hinglish-swift-ct2",
+    "whisper-hindi2hinglish-prime": "Oriserve/Whisper-Hindi2Hinglish-Prime",
+    "base": "base",
+    "small": "small",
+    "tiny": "tiny",
+}
+
+
+def resolve_model_id(model_name: str) -> str:
+    """Resolve shorthand model aliases to exact HuggingFace or standard model IDs."""
+    return MODEL_NAME_MAP.get(model_name, model_name)
+
+
 class FasterWhisperSTT(SpeechToText):
     """Speech-to-text using faster-whisper (CTranslate2 backend)."""
 
@@ -30,17 +46,18 @@ class FasterWhisperSTT(SpeechToText):
         return f"faster-whisper-{self.model_size}"
 
     def load_model(self) -> None:
-        """Load the faster-whisper model."""
+        """Load the faster-whisper model with alias resolution."""
         if self._model is not None:
             return
 
         from faster_whisper import WhisperModel
 
-        log.info("Loading faster-whisper model '%s' on %s (%s)…",
-                 self.model_size, self.device, self.compute_type)
+        resolved_model = resolve_model_id(self.model_size)
+        log.info("Loading faster-whisper model '%s' (resolved to '%s') on %s (%s)…",
+                 self.model_size, resolved_model, self.device, self.compute_type)
         t0 = time.time()
         self._model = WhisperModel(
-            self.model_size,
+            resolved_model,
             device=self.device,
             compute_type=self.compute_type,
         )
@@ -93,9 +110,14 @@ class FasterWhisperSTT(SpeechToText):
             ),
         }
 
-        # Language auto-detection or explicit code
-        if self.language and self.language.lower() != "auto":
-            transcribe_kwargs["language"] = self.language
+        # Language auto-detection with short-clip fallback (< 2.0s -> fallback to "hi")
+        target_lang = self.language
+        if (not target_lang or target_lang.lower() == "auto") and duration < 2.0:
+            target_lang = "hi"
+            log.info("Audio duration %.2fs < 2.0s: falling back from language='auto' to default 'hi'", duration)
+
+        if target_lang and target_lang.lower() != "auto":
+            transcribe_kwargs["language"] = target_lang
 
         segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
 

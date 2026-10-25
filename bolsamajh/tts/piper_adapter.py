@@ -3,6 +3,7 @@
 import io
 import os
 import wave
+import hashlib
 import logging
 import threading
 from pathlib import Path
@@ -23,6 +24,26 @@ log = logging.getLogger(__name__)
 _PIPER_HF_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/main/hi/hi_IN/pratham/medium"
 _MODEL_FILENAME = "hi_IN-pratham-medium.onnx"
 _CONFIG_FILENAME = "hi_IN-pratham-medium.onnx.json"
+
+# Pinned SHA-256 hashes for cryptographic verification
+_MODEL_SHA256 = "169964b0871667f6793416d4b35e97357a68ba1ad01df8580c28048989ee7693"
+_CONFIG_SHA256 = "b68edd2cd7950dd436314013b7cd12e9699e5a3f6fe5af5af94294cf6aa7b9fd"
+
+
+def _verify_sha256(filepath: Path, expected_sha256: str) -> bool:
+    """Verify SHA-256 hash of a file against expected value."""
+    if not filepath.exists():
+        return False
+    h = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    actual = h.hexdigest()
+    if actual.lower() != expected_sha256.lower():
+        log.warning("SHA-256 mismatch for %s: expected %s, got %s",
+                    filepath.name, expected_sha256, actual)
+        return False
+    return True
 
 
 class PiperTTSAdapter(TextToSpeech):
@@ -48,7 +69,7 @@ class PiperTTSAdapter(TextToSpeech):
         return self._speaking
 
     def _ensure_model(self) -> tuple[Path, Path]:
-        """Ensure model and json config files exist, downloading if needed."""
+        """Ensure model and json config files exist and pass SHA-256 verification."""
         if self.model_path and Path(self.model_path).exists():
             model_file = Path(self.model_path)
             json_file = model_file.with_suffix(".onnx.json") if not model_file.name.endswith(".json") else model_file
@@ -59,12 +80,22 @@ class PiperTTSAdapter(TextToSpeech):
         model_file = self._models_dir / _MODEL_FILENAME
         json_file = self._models_dir / _CONFIG_FILENAME
 
-        if not model_file.exists() or not json_file.exists():
+        # Check existing files
+        valid_model = model_file.exists() and _verify_sha256(model_file, _MODEL_SHA256)
+        valid_config = json_file.exists() and _verify_sha256(json_file, _CONFIG_SHA256)
+
+        if not valid_model or not valid_config:
             import urllib.request
-            log.info("Downloading Piper Hindi voice (%s)...", _MODEL_FILENAME)
+            log.info("Downloading Piper Hindi voice (%s) with SHA-256 verification...", _MODEL_FILENAME)
             urllib.request.urlretrieve(f"{_PIPER_HF_BASE}/{_MODEL_FILENAME}", model_file)
             urllib.request.urlretrieve(f"{_PIPER_HF_BASE}/{_CONFIG_FILENAME}", json_file)
-            log.info("Piper Hindi voice downloaded to %s", model_file)
+
+            if not _verify_sha256(model_file, _MODEL_SHA256):
+                raise ValueError(f"Downloaded Piper model {model_file.name} failed SHA-256 verification!")
+            if not _verify_sha256(json_file, _CONFIG_SHA256):
+                raise ValueError(f"Downloaded Piper config {json_file.name} failed SHA-256 verification!")
+
+            log.info("Piper Hindi voice verified and saved to %s", model_file)
 
         return model_file, json_file
 
@@ -103,8 +134,26 @@ class PiperTTSAdapter(TextToSpeech):
                 text = transliterate.process("ISO", "Devanagari", text)
 
             wav_io = io.BytesIO()
-            with wave.open(wav_io, "wb") as wav_file:
-                self._voice.synthesize(text, wav_file)
+
+            # Support both Piper API shapes:
+            # Shape 1: voice.synthesize(text, wav_file)
+            # Shape 2: voice.synthesize(text) / voice.synthesize_stream_raw(text) yielding bytes
+            try:
+                with wave.open(wav_io, "wb") as wav_file:
+                    self._voice.synthesize(text, wav_file)
+            except (TypeError, AttributeError):
+                # Shape 2
+                raw = self._voice.synthesize(text)
+                if hasattr(raw, "__iter__") and not isinstance(raw, (bytes, bytearray)):
+                    raw_bytes = b"".join(raw)
+                else:
+                    raw_bytes = bytes(raw)
+                with wave.open(wav_io, "wb") as wav_file:
+                    wav_file.setnchannels(1)
+                    wav_file.setsampwidth(2)
+                    sr = getattr(getattr(self._voice, "config", None), "sample_rate", 22050)
+                    wav_file.setframerate(sr)
+                    wav_file.writeframes(raw_bytes)
 
             if self._stop_event.is_set():
                 return

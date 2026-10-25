@@ -55,12 +55,15 @@ class VoiceCommandsPipeline:
         self._selected_text: str = ""
         self._selection_event = threading.Event()
         self._processing = False
+        self._worker_thread: threading.Thread | None = None
+        self._cancel_requested: bool = False
 
     def start_command(self) -> None:
         """Start listening for command immediately; capture highlighted text in parallel."""
         if self.recorder.is_recording or self._processing:
             return
 
+        self._cancel_requested = False
         # 1. Start audio recording IMMEDIATELY to prevent clipping opening syllables
         self.hud.set_state("listening", "Listening command…")
         self.recorder.start()
@@ -77,10 +80,17 @@ class VoiceCommandsPipeline:
         threading.Thread(target=_capture, daemon=True).start()
 
     def cancel(self) -> None:
-        """Cancel command recording and reset HUD."""
+        """Cancel command recording and join worker thread."""
+        self._cancel_requested = True
         if self.recorder.is_recording:
             self.recorder.cancel()
-        self._processing = False
+        if self._worker_thread and self._worker_thread.is_alive():
+            self._worker_thread.join(timeout=0.5)
+            if not self._worker_thread.is_alive():
+                self._worker_thread = None
+                self._processing = False
+        else:
+            self._processing = False
         self.hud.set_state("idle")
         log.info("Voice Command: cancelled by user")
 
@@ -101,6 +111,7 @@ class VoiceCommandsPipeline:
             args=(wav_bytes,),
             daemon=True,
         )
+        self._worker_thread = thread
         thread.start()
 
     def _process_command(self, wav_bytes: bytes) -> None:
@@ -109,6 +120,8 @@ class VoiceCommandsPipeline:
         t0 = time.time()
 
         try:
+            if self._cancel_requested:
+                return
             # Ensure selection capture thread has completed
             self._selection_event.wait(timeout=1.0)
             selected = self._selected_text
@@ -169,5 +182,6 @@ class VoiceCommandsPipeline:
             log.error("Voice command execution failed: %s", e, exc_info=True)
             self.hud.set_state("error")
         finally:
-            self._processing = False
+            if not self._cancel_requested or (self._worker_thread and not self._worker_thread.is_alive()):
+                self._processing = False
             self._selected_text = ""

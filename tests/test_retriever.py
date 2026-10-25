@@ -7,20 +7,28 @@ from bolsamajh.documents.retriever import DocumentRetriever
 
 
 def test_chunker_cross_page_and_citations():
-    """Test chunker splits and formats citations properly."""
+    """Test chunker splits, formats citations, generates chunk_ids, and handles merged spans."""
+    # 1. Multi-page PDF test
     pdf_doc = Document(
         title="Test Report",
         source="report.pdf",
         pages=[
-            DocumentPage(text="First paragraph of page 1. " * 30, page_number=1, source="report.pdf"),
-            DocumentPage(text="Second paragraph on page 2. " * 30, page_number=2, source="report.pdf"),
+            DocumentPage(text="First paragraph of page 1. Short ending.", page_number=1, source="report.pdf"),
+            DocumentPage(text="Second paragraph continuing on page 2.", page_number=2, source="report.pdf"),
         ],
         doc_type="pdf",
     )
-    chunks = chunk_document(pdf_doc, chunk_size=50, chunk_overlap=10)
-    assert len(chunks) > 0
-    assert chunks[0].citation.startswith("Page ")
+    # A single chunk that spans both page 1 and page 2
+    chunks = chunk_document(pdf_doc, chunk_size=300, chunk_overlap=10)
+    assert len(chunks) == 1
+    # Check chunk_id instead of loose substring
+    assert chunks[0].chunk_id == "report.pdf_chunk_0"
+    assert chunks[0].chunk_index == 0
+    assert chunks[0].page_start == 1
+    assert chunks[0].page_end == 2
+    assert chunks[0].citation == "Pages 1–2"
 
+    # 2. Web doc test (must never be called 'Page')
     web_doc = Document(
         title="Blog Post",
         source="https://example.com/blog",
@@ -31,7 +39,9 @@ def test_chunker_cross_page_and_citations():
     )
     web_chunks = chunk_document(web_doc, chunk_size=50, chunk_overlap=10)
     assert len(web_chunks) > 0
-    assert "Section" in web_chunks[0].citation
+    assert web_chunks[0].chunk_id == "blog_chunk_0"
+    assert web_chunks[0].citation.startswith("Section")
+    assert not web_chunks[0].citation.startswith("Page")
 
 
 @pytest.mark.slow

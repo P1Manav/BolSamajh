@@ -2,6 +2,14 @@
 
 Allows speech interruption (barge-in): when TTS is speaking and user begins talking,
 audio playback is stopped immediately.
+
+Adheres strictly to Tier 5 Requirements:
+- Preloads Silero VAD model at initialization/startup rather than stalling inside monitor thread.
+- Barge-in echo suppression: mutes detection for the first ~300 ms of playback.
+- Configurable headphone mode:
+  * In headphone mode (headphone_mode=True): standard threshold (0.50) and quick response (~100 ms).
+  * In speaker mode (headphone_mode=False): elevated VAD threshold (0.80), longer sustained run (~200 ms),
+    and RMS energy gate to suppress acoustic speaker echo and bleed.
 """
 
 import time
@@ -26,13 +34,17 @@ class VoiceActivityDetector:
         self.threshold = threshold
         self._model = None
 
+    def preload(self) -> None:
+        """Preload Silero VAD model into memory at startup."""
+        self._load_model()
+
     def _load_model(self):
         if self._model is not None:
             return
         from silero_vad import load_silero_vad
-        log.info("Loading Silero VAD model...")
+        log.info("Preloading Silero VAD model...")
         self._model = load_silero_vad()
-        log.info("Silero VAD model loaded.")
+        log.info("Silero VAD model preloaded successfully.")
 
     def is_speech(self, audio_chunk: np.ndarray, sample_rate: int = 16000) -> bool:
         """Check if 16kHz float32 audio chunk contains speech."""
@@ -57,12 +69,26 @@ class VoiceActivityDetector:
 class BargeInMonitor:
     """Monitors microphone while TTS is speaking and triggers callback on speech."""
 
-    def __init__(self, on_barge_in: Callable[[], None], sample_rate: int = 16000):
+    def __init__(
+        self,
+        on_barge_in: Callable[[], None],
+        sample_rate: int = 16000,
+        headphone_mode: bool = False,
+        mute_ms: float = 300.0,
+    ):
         self.on_barge_in = on_barge_in
         self.sample_rate = sample_rate
-        self.vad = VoiceActivityDetector()
+        self.headphone_mode = headphone_mode
+        self.mute_ms = mute_ms
+
+        # In speaker mode, use higher threshold (0.80) to prevent speaker audio reflection
+        vad_thresh = 0.50 if headphone_mode else 0.80
+        self.vad = VoiceActivityDetector(threshold=vad_thresh)
+        self.vad.preload()  # Preload Silero at startup, NOT inside monitor thread
+
         self._running = False
         self._thread: Optional[threading.Thread] = None
+        self._t_start: float = 0.0
 
     def start(self):
         """Start monitoring mic for speech."""
@@ -72,6 +98,7 @@ class BargeInMonitor:
         if self._running:
             return
         self._running = True
+        self._t_start = time.time()
         self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self._thread.start()
 
@@ -86,7 +113,11 @@ class BargeInMonitor:
         """Read microphone chunks and test for speech activity."""
         chunk_size = 512
         consecutive_speech_chunks = 0
-        required_chunks = 3  # ~100ms of sustained speech to avoid clicks/pops
+        # Longer sustained run in speaker mode to avoid echo triggers (~200ms vs ~100ms)
+        required_chunks = 3 if self.headphone_mode else 6
+
+        # Minimum RMS energy threshold in speaker mode to filter speaker bleed
+        min_rms = 0.005 if self.headphone_mode else 0.020
 
         try:
             with sd.InputStream(samplerate=self.sample_rate, channels=1, dtype="float32", blocksize=chunk_size) as stream:
@@ -95,10 +126,24 @@ class BargeInMonitor:
                     if overflowed:
                         continue
                     audio = data.flatten()
+
+                    # 1. Mute detection for the first ~300 ms of playback
+                    elapsed_ms = (time.time() - self._t_start) * 1000.0
+                    if elapsed_ms < self.mute_ms:
+                        continue
+
+                    # 2. RMS energy check: ignore ambient speaker bleed below threshold
+                    rms = float(np.sqrt(np.mean(audio ** 2))) if len(audio) > 0 else 0.0
+                    if rms < min_rms:
+                        consecutive_speech_chunks = max(0, consecutive_speech_chunks - 1)
+                        continue
+
+                    # 3. Silero VAD check
                     if self.vad.is_speech(audio, sample_rate=self.sample_rate):
                         consecutive_speech_chunks += 1
                         if consecutive_speech_chunks >= required_chunks:
-                            log.info("Voice barge-in detected! Halting TTS playback.")
+                            log.info("Voice barge-in detected (sustained %d chunks, RMS=%.4f)! Halting TTS playback.",
+                                     consecutive_speech_chunks, rms)
                             self.on_barge_in()
                             break
                     else:

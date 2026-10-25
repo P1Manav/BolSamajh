@@ -59,8 +59,21 @@ def _extract_page_ocr(page, page_num: int, filename: str) -> str:
             log.info("pytesseract extracted %d characters from page %d of '%s'",
                      len(ocr_text), page_num, filename)
             return ocr_text
+    except ImportError:
+        log.warning(
+            "Page %d of '%s' appears scanned but OCR failed: 'pytesseract' is not installed. "
+            "To enable local OCR for scanned PDFs, install pytesseract and Tesseract engine: "
+            "Windows: `winget install UB-Mannheim.TesseractOCR` && `pip install pytesseract` | "
+            "Linux: `sudo apt install tesseract-ocr tesseract-ocr-hin`",
+            page_num, filename
+        )
     except Exception as e:
-        log.debug("pytesseract fallback unavailable on page %d: %s", page_num, e)
+        log.warning(
+            "Tesseract OCR failed on page %d of '%s': %s. "
+            "Ensure Tesseract binary is in your PATH. "
+            "(Windows: winget install UB-Mannheim.TesseractOCR | Linux: sudo apt install tesseract-ocr tesseract-ocr-hin)",
+            page_num, filename, e
+        )
 
     return ""
 

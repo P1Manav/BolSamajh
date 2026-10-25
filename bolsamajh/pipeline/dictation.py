@@ -23,20 +23,30 @@ class DictationPipeline:
         self.hud = hud
         self.recorder = MicRecorder()
         self._processing = False
+        self._worker_thread: threading.Thread | None = None
+        self._cancel_requested: bool = False
 
     def start_recording(self) -> None:
         """Begin push-to-talk recording."""
         if self.recorder.is_recording or self._processing:
             return
+        self._cancel_requested = False
         log.info("🎤 Dictation: recording started")
         self.hud.set_state("listening")
         self.recorder.start()
 
     def cancel(self) -> None:
-        """Cancel recording immediately and reset HUD."""
+        """Cancel recording immediately and join worker thread."""
+        self._cancel_requested = True
         if self.recorder.is_recording:
             self.recorder.cancel()
-        self._processing = False
+        if self._worker_thread and self._worker_thread.is_alive():
+            self._worker_thread.join(timeout=0.5)
+            if not self._worker_thread.is_alive():
+                self._worker_thread = None
+                self._processing = False
+        else:
+            self._processing = False
         self.hud.set_state("idle")
         log.info("Dictation: cancelled by user")
 
@@ -63,6 +73,7 @@ class DictationPipeline:
             args=(wav_bytes,),
             daemon=True,
         )
+        self._worker_thread = thread
         thread.start()
 
     def _process_audio(self, wav_bytes: bytes) -> None:
@@ -71,6 +82,8 @@ class DictationPipeline:
         t0 = time.time()
 
         try:
+            if self._cancel_requested:
+                return
             # 1. Transcribe
             result = self.stt.transcribe(wav_bytes)
 
@@ -105,4 +118,5 @@ class DictationPipeline:
             self.hud.set_state("error")
 
         finally:
-            self._processing = False
+            if not self._cancel_requested or (self._worker_thread and not self._worker_thread.is_alive()):
+                self._processing = False

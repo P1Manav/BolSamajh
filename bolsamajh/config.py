@@ -85,6 +85,7 @@ class AppConfig:
     tts: TTSConfig = field(default_factory=TTSConfig)
     dictation: DictationConfig = field(default_factory=DictationConfig)
     doc_qa: DocQAConfig = field(default_factory=DocQAConfig)
+    headphone_mode: bool = False               # False = speaker mode (echo gate active); True = headphone mode
     debug: bool = False
 
 
@@ -107,15 +108,19 @@ def load_config() -> AppConfig:
     # Engine overrides
     if os.getenv("BOLSAMAJH_STT_ENGINE"):
         config.stt.engine = os.getenv("BOLSAMAJH_STT_ENGINE")
+    if os.getenv("BOLSAMAJH_STT_MODEL"):
+        config.stt.model_size = os.getenv("BOLSAMAJH_STT_MODEL")
     if os.getenv("BOLSAMAJH_STT_DEVICE"):
         config.stt.device = os.getenv("BOLSAMAJH_STT_DEVICE")
     else:
-        # Auto-detect optimal device and compute type
+        # Auto-detect optimal device, compute type, and model
         try:
             from bolsamajh.utils.cuda_setup import auto_detect_device
             dev, comp, model = auto_detect_device()
             config.stt.device = dev
             config.stt.compute_type = comp
+            if not os.getenv("BOLSAMAJH_STT_MODEL"):
+                config.stt.model_size = model
         except Exception:
             pass
 
@@ -127,6 +132,8 @@ def load_config() -> AppConfig:
         config.llm.google_ai_model = os.getenv("GOOGLE_AI_MODEL")
     if os.getenv("BOLSAMAJH_SCRIPT"):
         config.dictation.script = os.getenv("BOLSAMAJH_SCRIPT")
+    if os.getenv("BOLSAMAJH_HEADPHONE_MODE"):
+        config.headphone_mode = os.getenv("BOLSAMAJH_HEADPHONE_MODE", "").lower() in ("1", "true", "yes")
     if os.getenv("BOLSAMAJH_DEBUG"):
         config.debug = os.getenv("BOLSAMAJH_DEBUG", "").lower() in ("1", "true")
 
