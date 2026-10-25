@@ -38,10 +38,10 @@ BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud s
 
 ### 7. What are your key measured metrics? (All backed by repository JSON files)
 All metrics originate from reproducible scripts in `benchmark_data/`:
-- **Inference Latency (`hardware_measurements.json`):** **706.4 ms mean** on a 3.82s sentence on NVIDIA RTX 3060 Ti (**0.185x Real-Time Factor**, running 5.4× faster than real-time); real-speech spontaneous code-switch baseline is 5,307.8 ms (RTF 0.567x) on 9.4s average clips.
-- **VRAM Overhead (`hardware_measurements.json`):** **1,076 MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
+- **Inference Latency (`hardware_measurements.json`):** Measured on NVIDIA RTX 3060 Ti GPU (`cuda` `int8_float16`): **1,425.0 ms mean** on a 3.82s sentence (RTF 0.373x); real-speech spontaneous code-switch is **2,262.2 ms** (RTF **0.146x**, running 6.8× faster than real-time) on a 15.45s clip (`hiacc_cs_001.wav`). Across the full 300-clip real-speech suite, `large-v3-turbo` achieves **997.0 ms mean latency (RTF 0.131x)** and `whisper-hinglish-swift` achieves **386.9 ms (RTF 0.051x)**.
+- **VRAM Overhead (`hardware_measurements.json`):** **1,075 MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
 - **Document Retrieval (`retrieval_benchmark.json`):** **89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5** on Google XQuAD Hindi validation split with **22.31 ms mean latency** and calibrated refusal threshold of **0.785** (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
-- **Time-To-First-Audio (`hardware_measurements.json`):** **626.4 ms** Edge-TTS first-packet latency; **1,715.7 ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
+- **Time-To-First-Audio (`hardware_measurements.json`):** **672.9 ms** Edge-TTS first-packet latency; **2,520.5 ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
 - **Real Speech Benchmark (`benchmark_results.json`):**
   - Read Hindi (FLEURS `hi_in`): **26.0% WER** (95% CI: [22.92, 29.63%]) on `large-v3-turbo`; **34.25% WER** (95% CI: [31.01, 37.45%]) on `medium`.
   - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **38.59% WER** (95% CI: [32.75, 44.65%]) on `large-v3-turbo`; **50.41% WER** (95% CI: [44.68, 56.41%]) on `medium`.

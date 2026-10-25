@@ -24,8 +24,7 @@ BolSamajh v0.1.0 is the first production-ready release of the open-source, local
 - **Document Citations & Chunk Spans:** Tracks exact cross-page merged chunk page spans (`Pages 1–2` for PDFs) and formats DOCX/web citations strictly as `Section: ...` (never `Page`).
 
 ### 2. Empirical Benchmark & Credibility Audit (Tiers 1 & 2)
-- **Outlier WER Resolution:** Identified and eliminated the upstream 1700% WER outlier in HiACC (`hiacc_cs_007` truncated reference transcript), resolved Urdu auto-detect misclassifications with language routing, and added repetition penalty + VAD filtering.
-  - HiACC Code-Switching WER dropped from 121.5% to **38.59%** on `large-v3-turbo`.
+- **Dataset Validation & Script Routing:** Added reference validation filters in `scripts/fetch_benchmark_data.py` requiring `len(words) >= 4` and duration consistency to prevent truncated upstream references, language routing for Indic/English scripts, and repetition penalty + VAD filtering.
 - **400 Audio Clip Benchmark Evaluation:**
   - 300 Real Speech Clips: 100 HiACC Hinglish code-switching, 100 Google FLEURS Hindi, 100 Google FLEURS Gujarati.
   - 100 Synthetic Degraded Stress Clips: 4 Edge-TTS voices across 5 categories and automated DSP degradations (speed ±10%, additive noise at 20/10/5 dB SNR, 8 kHz telephony bandpass + mu-law).

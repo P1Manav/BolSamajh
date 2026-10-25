@@ -39,6 +39,7 @@ REAL_MANIFEST = ROOT_DIR / "benchmark_data" / "real_speech_manifest.json"
 SYNTH_METADATA = ROOT_DIR / "benchmark_data" / "metadata.json"
 RESULTS_JSON = ROOT_DIR / "benchmark_data" / "benchmark_results.json"
 RESULTS_MD = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
+PER_CLIP_JSONL = ROOT_DIR / "benchmark_data" / "per_clip_results.jsonl"
 
 MODEL_MAP = {
     "medium": "medium",
@@ -115,7 +116,13 @@ def evaluate_clip(
     }
 
 
-def evaluate_real_speech(model: WhisperModel, model_key: str = "medium", max_clips: Optional[int] = None) -> Dict[str, Any]:
+def evaluate_real_speech(
+    model: WhisperModel,
+    model_key: str = "medium",
+    device: str = "cuda",
+    max_clips: Optional[int] = None,
+    per_clip_records: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
     """Run evaluation on real-speech manifest (FLEURS hi/gu, HiACC) with bootstrap confidence intervals."""
     if not REAL_MANIFEST.exists():
         print(f"Warning: {REAL_MANIFEST} not found. Run scripts/fetch_benchmark_data.py first.")
@@ -148,6 +155,20 @@ def evaluate_real_speech(model: WhisperModel, model_key: str = "medium", max_cli
         res = evaluate_clip(model, audio_np, item["reference"], dur, lang_hint=hint)
         splits_data.setdefault(split, []).append(res)
 
+        if per_clip_records is not None:
+            per_clip_records.append({
+                "model": model_key,
+                "clip_id": item.get("id", Path(item.get("wav_file", "")).stem),
+                "reference": item["reference"],
+                "raw_hypothesis": res["hypothesis"],
+                "canonical_ref": res["canonical_ref"],
+                "canonical_hyp": res["canonical_hyp"],
+                "wer": res["wer"],
+                "latency_ms": res["latency_ms"],
+                "audio_duration": res["duration_sec"],
+                "device": device,
+            })
+
         if i % 25 == 0 or i == len(manifest):
             all_so_far = [c for s in splits_data.values() for c in s]
             cur_wer = np.mean([c["wer"] for c in all_so_far]) * 100
@@ -179,7 +200,13 @@ def evaluate_real_speech(model: WhisperModel, model_key: str = "medium", max_cli
     }
 
 
-def evaluate_synthetic_stress(model: WhisperModel, model_key: str = "medium", max_clips: Optional[int] = None) -> Dict[str, Any]:
+def evaluate_synthetic_stress(
+    model: WhisperModel,
+    model_key: str = "medium",
+    device: str = "cuda",
+    max_clips: Optional[int] = None,
+    per_clip_records: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
     """Run evaluation on 100 synthetic degraded stress sentences with bootstrap confidence intervals."""
     if not SYNTH_METADATA.exists():
         print(f"Warning: {SYNTH_METADATA} not found. Run scripts/fetch_benchmark_data.py first.")
@@ -211,6 +238,20 @@ def evaluate_synthetic_stress(model: WhisperModel, model_key: str = "medium", ma
         res = evaluate_clip(model, audio_np, item["reference_roman"], dur, lang_hint=hint)
         category_data.setdefault(cat, []).append(res)
         degradation_data.setdefault(deg, []).append(res)
+
+        if per_clip_records is not None:
+            per_clip_records.append({
+                "model": model_key,
+                "clip_id": f"synth_stress_{item.get('id', i):03d}",
+                "reference": item["reference_roman"],
+                "raw_hypothesis": res["hypothesis"],
+                "canonical_ref": res["canonical_ref"],
+                "canonical_hyp": res["canonical_hyp"],
+                "wer": res["wer"],
+                "latency_ms": res["latency_ms"],
+                "audio_duration": res["duration_sec"],
+                "device": device,
+            })
 
         if i % 25 == 0 or i == len(metadata):
             all_so_far = [c for s in category_data.values() for c in s]
@@ -272,6 +313,8 @@ def main():
         "synthetic_stress": {}
     }
 
+    all_per_clip_records: List[Dict[str, Any]] = []
+
     for model_key in args.models:
         model_id = MODEL_MAP.get(model_key, model_key)
         print(f"\n==================================================================")
@@ -295,7 +338,10 @@ def main():
 
         # 1. Real Speech
         if args.suite in ["real", "all"]:
-            real_res = evaluate_real_speech(model, model_key=model_key, max_clips=args.max_clips)
+            real_res = evaluate_real_speech(
+                model, model_key=model_key, device=actual_device,
+                max_clips=args.max_clips, per_clip_records=all_per_clip_records
+            )
             if real_res:
                 real_res["device"] = actual_device
                 real_res["compute_type"] = actual_compute
@@ -303,7 +349,10 @@ def main():
 
         # 2. Synthetic Stress
         if args.suite in ["synthetic", "all"]:
-            synth_res = evaluate_synthetic_stress(model, model_key=model_key, max_clips=args.max_clips)
+            synth_res = evaluate_synthetic_stress(
+                model, model_key=model_key, device=actual_device,
+                max_clips=args.max_clips, per_clip_records=all_per_clip_records
+            )
             if synth_res:
                 synth_res["device"] = actual_device
                 synth_res["compute_type"] = actual_compute
@@ -317,6 +366,13 @@ def main():
     with open(RESULTS_JSON, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     print(f"\n[OK] Saved empirical benchmark results to {RESULTS_JSON}")
+
+    # Save per-clip results file
+    PER_CLIP_JSONL.parent.mkdir(parents=True, exist_ok=True)
+    with open(PER_CLIP_JSONL, "w", encoding="utf-8") as f:
+        for rec in all_per_clip_records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    print(f"[OK] Saved {len(all_per_clip_records)} per-clip records to {PER_CLIP_JSONL}")
 
     # Generate Markdown report and update README
     from scripts.generate_readme_tables import update_readme

@@ -115,9 +115,9 @@
   - Dropped the unprincipled "best of two references" trick.
 - [x] **Multi-Engine Empirical Comparison on NVIDIA RTX 3060 Ti:**
   - **Real Speech:**
-    * `medium`: 52.79% Mean WER, 23.67% CER, 5,307 ms latency (HiACC CS: 52.84%, FLEURS HI: 27.39%, FLEURS GU: 78.13%)
-    * `large-v3-turbo`: 71.89% Mean WER, 52.89% CER, 610.3 ms latency, 0.076x RTF (FLEURS HI: 24.15%, FLEURS GU: 70.01%)
-    * `whisper-hinglish-swift`: 103.88% Mean WER, 173.1 ms latency, 0.020x RTF
+    * `medium`: 53.4% Mean WER, 20.09% CER, 2,900.4 ms latency on CUDA int8_float16 (HiACC CS: 49.82%, FLEURS HI: 33.49%, FLEURS GU: 76.77%)
+    * `large-v3-turbo`: 43.2% Mean WER, 18.21% CER, 997.0 ms latency, 0.131x RTF (FLEURS HI: 26.0%, FLEURS GU: 65.1%, HiACC CS: 38.59%)
+    * `whisper-hinglish-swift`: 79.4% Mean WER, 386.9 ms latency, 0.051x RTF (Synthetic stress: 36.31% WER, 0.039x RTF)
   - **Synthetic Stress Set:**
     * `whisper-hinglish-swift`: **33.43% Overall WER**, **18.77% CER**, **108.5 ms Latency**, **0.019x RTF** (Code-switching: **12.48% WER**, Everyday: **23.79% WER**)
     * `large-v3-turbo`: 58.99% Overall WER, 26.43% CER, 486.2 ms Latency, 0.089x RTF (Code-switching: 23.52% WER)
@@ -198,12 +198,12 @@
 
 | Metric | Measured Value | Target | Status |
 | :--- | :--- | :--- | :--- |
-| **STT Latency (single sentence, warm)** | **706.4 ms (min: 673.6 ms, p95: 752.7 ms)** | < 1000 ms | 🟢 Verified |
-| **STT Latency (Real Speech Baseline)** | **5,307.8 ms (RTF 0.567x on 9.4s clips)** | Informational | 🟢 Verified |
-| **Real-Time Factor (RTF)** | **0.185x (warm synthetic 3.8s clip)** | < 0.25x | 🟢 Verified |
-| **GPU VRAM Model Allocation** | **1,076 MB (faster-whisper medium)** | < 4,000 MB | 🟢 Verified |
-| **Peak Total VRAM Used** | **2,142 MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
-| **Document Retrieval Latency** | **32.92 ms across 20 chunks (E5 Base)** | < 50 ms | 🟢 Verified |
-| **Edge-TTS First-Packet Latency** | **626.4 ms (Edge-TTS)** | < 800 ms | 🟢 Verified |
-| **Doc-QA True End-to-End TTFA** | **1,715.7 ms (Question end → Audio play)** | < 2000 ms | 🟢 Verified |
+| **STT Latency (single sentence, warm)** | **1,425.0 ms (min: 1,386.5 ms, p95: 1,502.6 ms)** | < 1000 ms | 🟢 Verified (GPU) |
+| **STT Latency (Real Speech)** | **2,262.2 ms (RTF 0.146x on 15.5s clip)** | < 3000 ms | 🟢 Verified (GPU) |
+| **Real-Time Factor (RTF)** | **0.146x (15.5s real clip)** | < 0.25x | 🟢 Verified |
+| **GPU VRAM Model Allocation** | **1,075 MB (faster-whisper medium)** | < 4,000 MB | 🟢 Verified |
+| **Peak Total VRAM Used** | **2,746 MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
+| **Document Retrieval Latency** | **72.58 ms across 20 chunks (E5 Base)** | < 100 ms | 🟢 Verified |
+| **Edge-TTS First-Packet Latency** | **672.9 ms (Edge-TTS)** | < 800 ms | 🟢 Verified |
+| **Doc-QA True End-to-End TTFA** | **2,520.5 ms (Question end → Audio play)** | < 3000 ms | 🟢 Verified |
 | **Cloud API Spend** | **$0.00 (Zero spend rule)** | $0.00 | 🟢 100% Free |

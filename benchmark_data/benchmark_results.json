@@ -1,6 +1,6 @@
 {
   "benchmark_version": "v2.0",
-  "timestamp": "2026-10-25 18:15:20",
+  "timestamp": "2026-10-25 23:30:50",
   "hardware": {
     "device": "cuda",
     "compute_type": "int8_float16"
@@ -8,44 +8,44 @@
   "real_speech": {
     "medium": {
       "total_clips": 300,
-      "mean_wer_pct": 53.87,
+      "mean_wer_pct": 53.36,
       "mean_wer_ci_95": [
-        50.87,
-        56.94
+        50.38,
+        56.37
       ],
-      "mean_cer_pct": 20.37,
-      "mean_latency_ms": 1489.7,
-      "mean_rtf": 0.192,
+      "mean_cer_pct": 20.09,
+      "mean_latency_ms": 2900.4,
+      "mean_rtf": 0.39,
       "splits": {
         "code_switched_hinglish": {
           "count": 100,
-          "wer_pct": 50.41,
+          "wer_pct": 49.82,
           "wer_ci_95": [
-            44.68,
-            56.41
+            43.98,
+            55.74
           ],
-          "cer_pct": 27.96,
-          "mean_latency_ms": 1081.1
+          "cer_pct": 27.35,
+          "mean_latency_ms": 2271.4
         },
         "read_hindi": {
           "count": 100,
-          "wer_pct": 34.25,
+          "wer_pct": 33.49,
           "wer_ci_95": [
-            31.01,
-            37.45
+            30.56,
+            36.32
           ],
-          "cer_pct": 10.87,
-          "mean_latency_ms": 1536.6
+          "cer_pct": 10.09,
+          "mean_latency_ms": 2924.0
         },
         "read_gujarati": {
           "count": 100,
-          "wer_pct": 76.96,
+          "wer_pct": 76.77,
           "wer_ci_95": [
-            73.74,
-            80.3
+            73.57,
+            80.08
           ],
-          "cer_pct": 22.28,
-          "mean_latency_ms": 1851.4
+          "cer_pct": 22.83,
+          "mean_latency_ms": 3505.9
         }
       },
       "device": "cuda",
@@ -58,9 +58,9 @@
         40.27,
         46.43
       ],
-      "mean_cer_pct": 18.26,
-      "mean_latency_ms": 608.3,
-      "mean_rtf": 0.085,
+      "mean_cer_pct": 18.21,
+      "mean_latency_ms": 997.0,
+      "mean_rtf": 0.131,
       "splits": {
         "code_switched_hinglish": {
           "count": 100,
@@ -70,7 +70,7 @@
             44.65
           ],
           "cer_pct": 20.98,
-          "mean_latency_ms": 365.4
+          "mean_latency_ms": 527.2
         },
         "read_hindi": {
           "count": 100,
@@ -79,8 +79,8 @@
             22.92,
             29.63
           ],
-          "cer_pct": 8.09,
-          "mean_latency_ms": 555.7
+          "cer_pct": 7.96,
+          "mean_latency_ms": 895.0
         },
         "read_gujarati": {
           "count": 100,
@@ -90,7 +90,7 @@
             68.88
           ],
           "cer_pct": 25.69,
-          "mean_latency_ms": 903.9
+          "mean_latency_ms": 1568.9
         }
       },
       "device": "cuda",
@@ -104,8 +104,8 @@
         82.81
       ],
       "mean_cer_pct": 29.08,
-      "mean_latency_ms": 158.2,
-      "mean_rtf": 0.021,
+      "mean_latency_ms": 386.9,
+      "mean_rtf": 0.051,
       "splits": {
         "code_switched_hinglish": {
           "count": 100,
@@ -115,7 +115,7 @@
             57.96
           ],
           "cer_pct": 20.42,
-          "mean_latency_ms": 99.8
+          "mean_latency_ms": 234.0
         },
         "read_hindi": {
           "count": 100,
@@ -125,7 +125,7 @@
             76.62
           ],
           "cer_pct": 25.13,
-          "mean_latency_ms": 182.5
+          "mean_latency_ms": 451.4
         },
         "read_gujarati": {
           "count": 100,
@@ -135,7 +135,7 @@
             114.53
           ],
           "cer_pct": 41.7,
-          "mean_latency_ms": 192.3
+          "mean_latency_ms": 475.3
         }
       },
       "device": "cuda",
@@ -151,8 +151,8 @@
         69.53
       ],
       "mean_cer_pct": 28.71,
-      "mean_latency_ms": 692.3,
-      "mean_rtf": 0.131,
+      "mean_latency_ms": 1404.8,
+      "mean_rtf": 0.267,
       "categories": {
         "everyday": {
           "count": 30,
@@ -162,7 +162,7 @@
             70.82
           ],
           "mean_cer_pct": 28.16,
-          "mean_latency_ms": 633.5
+          "mean_latency_ms": 1277.7
         },
         "technical": {
           "count": 20,
@@ -172,7 +172,7 @@
             70.39
           ],
           "mean_cer_pct": 20.96,
-          "mean_latency_ms": 560.2
+          "mean_latency_ms": 1127.5
         },
         "numbers": {
           "count": 20,
@@ -182,7 +182,7 @@
             96.87
           ],
           "mean_cer_pct": 43.89,
-          "mean_latency_ms": 718.3
+          "mean_latency_ms": 1458.0
         },
         "names": {
           "count": 15,
@@ -192,7 +192,7 @@
             77.07
           ],
           "mean_cer_pct": 26.13,
-          "mean_latency_ms": 674.9
+          "mean_latency_ms": 1375.6
         },
         "codeswitch": {
           "count": 15,
@@ -202,7 +202,7 @@
             62.13
           ],
           "mean_cer_pct": 22.45,
-          "mean_latency_ms": 968.6
+          "mean_latency_ms": 1987.0
         }
       },
       "degradations": {
@@ -213,7 +213,7 @@
             57.13,
             67.1
           ],
-          "mean_latency_ms": 645.2
+          "mean_latency_ms": 1295.2
         },
         "speed_variation": {
           "count": 20,
@@ -222,7 +222,7 @@
             53.13,
             77.91
           ],
-          "mean_latency_ms": 595.0
+          "mean_latency_ms": 1208.9
         },
         "noise_20db_snr": {
           "count": 8,
@@ -231,7 +231,7 @@
             28.21,
             76.19
           ],
-          "mean_latency_ms": 538.2
+          "mean_latency_ms": 1075.7
         },
         "noise_10db_snr": {
           "count": 7,
@@ -240,7 +240,7 @@
             41.62,
             89.55
           ],
-          "mean_latency_ms": 643.3
+          "mean_latency_ms": 1269.7
         },
         "noise_5db_snr": {
           "count": 5,
@@ -249,7 +249,7 @@
             52.05,
             91.75
           ],
-          "mean_latency_ms": 673.8
+          "mean_latency_ms": 1355.1
         },
         "8khz_telephone_mulaw": {
           "count": 20,
@@ -258,7 +258,7 @@
             60.31,
             93.33
           ],
-          "mean_latency_ms": 707.4
+          "mean_latency_ms": 1458.4
         },
         "combined_stress": {
           "count": 20,
@@ -267,7 +267,7 @@
             34.26,
             64.12
           ],
-          "mean_latency_ms": 905.0
+          "mean_latency_ms": 1848.1
         }
       },
       "device": "cuda",
@@ -281,8 +281,8 @@
         62.89
       ],
       "mean_cer_pct": 24.24,
-      "mean_latency_ms": 323.8,
-      "mean_rtf": 0.06,
+      "mean_latency_ms": 517.7,
+      "mean_rtf": 0.096,
       "categories": {
         "everyday": {
           "count": 30,
@@ -292,7 +292,7 @@
             71.61
           ],
           "mean_cer_pct": 26.53,
-          "mean_latency_ms": 322.6
+          "mean_latency_ms": 515.7
         },
         "technical": {
           "count": 20,
@@ -302,7 +302,7 @@
             61.08
           ],
           "mean_cer_pct": 17.43,
-          "mean_latency_ms": 305.9
+          "mean_latency_ms": 472.9
         },
         "numbers": {
           "count": 20,
@@ -312,7 +312,7 @@
             83.5
           ],
           "mean_cer_pct": 34.56,
-          "mean_latency_ms": 341.8
+          "mean_latency_ms": 548.2
         },
         "names": {
           "count": 15,
@@ -322,7 +322,7 @@
             70.01
           ],
           "mean_cer_pct": 21.25,
-          "mean_latency_ms": 332.0
+          "mean_latency_ms": 524.0
         },
         "codeswitch": {
           "count": 15,
@@ -332,7 +332,7 @@
             54.43
           ],
           "mean_cer_pct": 17.95,
-          "mean_latency_ms": 317.7
+          "mean_latency_ms": 534.6
         }
       },
       "degradations": {
@@ -343,7 +343,7 @@
             49.54,
             66.24
           ],
-          "mean_latency_ms": 321.0
+          "mean_latency_ms": 519.7
         },
         "speed_variation": {
           "count": 20,
@@ -352,7 +352,7 @@
             47.79,
             74.16
           ],
-          "mean_latency_ms": 308.8
+          "mean_latency_ms": 490.5
         },
         "noise_20db_snr": {
           "count": 8,
@@ -361,7 +361,7 @@
             25.03,
             67.08
           ],
-          "mean_latency_ms": 314.2
+          "mean_latency_ms": 459.9
         },
         "noise_10db_snr": {
           "count": 7,
@@ -370,7 +370,7 @@
             36.88,
             102.21
           ],
-          "mean_latency_ms": 342.6
+          "mean_latency_ms": 528.4
         },
         "noise_5db_snr": {
           "count": 5,
@@ -379,7 +379,7 @@
             72.05,
             92.73
           ],
-          "mean_latency_ms": 358.9
+          "mean_latency_ms": 617.5
         },
         "8khz_telephone_mulaw": {
           "count": 20,
@@ -388,7 +388,7 @@
             47.81,
             68.63
           ],
-          "mean_latency_ms": 327.8
+          "mean_latency_ms": 503.7
         },
         "combined_stress": {
           "count": 20,
@@ -397,7 +397,7 @@
             29.27,
             58.44
           ],
-          "mean_latency_ms": 326.0
+          "mean_latency_ms": 551.4
         }
       },
       "device": "cuda",
@@ -411,8 +411,8 @@
         42.32
       ],
       "mean_cer_pct": 18.41,
-      "mean_latency_ms": 92.9,
-      "mean_rtf": 0.017,
+      "mean_latency_ms": 213.9,
+      "mean_rtf": 0.039,
       "categories": {
         "everyday": {
           "count": 30,
@@ -422,7 +422,7 @@
             27.36
           ],
           "mean_cer_pct": 7.87,
-          "mean_latency_ms": 87.0
+          "mean_latency_ms": 198.0
         },
         "technical": {
           "count": 20,
@@ -432,7 +432,7 @@
             43.04
           ],
           "mean_cer_pct": 10.69,
-          "mean_latency_ms": 90.2
+          "mean_latency_ms": 195.0
         },
         "numbers": {
           "count": 20,
@@ -442,7 +442,7 @@
             86.75
           ],
           "mean_cer_pct": 51.64,
-          "mean_latency_ms": 108.2
+          "mean_latency_ms": 266.0
         },
         "names": {
           "count": 15,
@@ -452,7 +452,7 @@
             34.16
           ],
           "mean_cer_pct": 10.25,
-          "mean_latency_ms": 91.4
+          "mean_latency_ms": 215.0
         },
         "codeswitch": {
           "count": 15,
@@ -462,7 +462,7 @@
             40.2
           ],
           "mean_cer_pct": 13.62,
-          "mean_latency_ms": 89.4
+          "mean_latency_ms": 200.4
         }
       },
       "degradations": {
@@ -473,7 +473,7 @@
             17.35,
             29.2
           ],
-          "mean_latency_ms": 88.3
+          "mean_latency_ms": 186.8
         },
         "speed_variation": {
           "count": 20,
@@ -482,7 +482,7 @@
             21.99,
             38.43
           ],
-          "mean_latency_ms": 88.5
+          "mean_latency_ms": 209.8
         },
         "noise_20db_snr": {
           "count": 8,
@@ -491,7 +491,7 @@
             16.81,
             35.34
           ],
-          "mean_latency_ms": 87.5
+          "mean_latency_ms": 182.5
         },
         "noise_10db_snr": {
           "count": 7,
@@ -500,7 +500,7 @@
             44.05,
             87.79
           ],
-          "mean_latency_ms": 104.9
+          "mean_latency_ms": 243.0
         },
         "noise_5db_snr": {
           "count": 5,
@@ -509,7 +509,7 @@
             46.36,
             130.85
           ],
-          "mean_latency_ms": 113.7
+          "mean_latency_ms": 252.1
         },
         "8khz_telephone_mulaw": {
           "count": 20,
@@ -518,7 +518,7 @@
             34.34,
             59.21
           ],
-          "mean_latency_ms": 98.5
+          "mean_latency_ms": 244.8
         },
         "combined_stress": {
           "count": 20,
@@ -527,7 +527,7 @@
             21.96,
             37.64
           ],
-          "mean_latency_ms": 89.0
+          "mean_latency_ms": 207.1
         }
       },
       "device": "cuda",

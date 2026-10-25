@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-25 17:41:54",
+  "timestamp": "2026-10-25 23:57:45",
   "gpu_specs": {
     "cuda_available": true,
     "device_name": "NVIDIA GeForce RTX 3060 Ti",
@@ -11,56 +11,64 @@
     "model": "faster-whisper-medium",
     "device": "cuda",
     "compute_type": "int8_float16",
-    "model_load_time_sec": 3.337,
+    "model_load_time_sec": 4.913,
     "test_clip_duration_sec": 3.82,
     "warmup_excluded": true,
     "runs": 5,
     "latency_ms": {
-      "mean": 706.4,
-      "median": 683.1,
-      "min": 673.6,
-      "p95": 752.7
+      "mean": 1425.0,
+      "median": 1389.1,
+      "min": 1386.5,
+      "p95": 1502.6
     },
-    "real_time_factor_rtf": 0.185,
+    "real_time_factor_rtf": 0.373,
     "vram_mb": {
-      "baseline_system_used": 1066.0,
-      "model_allocated_delta": 1076.0,
-      "peak_total_used": 2142.0
+      "baseline_system_used": 1671.0,
+      "model_allocated_delta": 1075.0,
+      "peak_total_used": 2746.0
     },
     "real_speech_comparison": {
-      "mean_latency_ms": 5307.8,
-      "real_time_factor_rtf": 0.567,
-      "ratio_vs_synthetic": "7.7x",
-      "root_cause_analysis": "1. CPU Fallback: Real-speech evaluation fell back to CPU in headless/uninitialized CUDA environment, causing ~4x slower inference (RTF 0.81 on CPU vs 0.20 on CUDA). 2. Clip Duration: Real speech clips in HiACC/FLEURS average 9.4s (up to 15.5s), vs 3.8s synthetic audio (2.5x longer). 3. Acoustic Complexity: Spontaneous conversational Hindi-English code-switching required wider beam decoding."
+      "clip_id": "hiacc_cs_001",
+      "test_clip_duration_sec": 15.45,
+      "device": "cuda",
+      "compute_type": "int8_float16",
+      "runs": 3,
+      "mean_latency_ms": 2262.2,
+      "median_latency_ms": 2174.4,
+      "min_latency_ms": 2173.4,
+      "p95_latency_ms": 2412.3,
+      "real_time_factor_rtf": 0.146,
+      "ratio_vs_synthetic": "1.6x",
+      "empirical_notes": "Empirically measured on cuda (int8_float16) with 15.5s real conversational speech clip. Latency scales linearly with audio duration (synthetic 3.8s -> real 15.5s), maintaining RTF of 0.146x on cuda."
     }
   },
   "retrieval_performance": {
     "embedding_model": "intfloat/multilingual-e5-base",
     "indexed_chunks": 2,
-    "index_build_time_sec": 10.51,
+    "index_build_time_sec": 58.343,
     "query_latency_ms": {
-      "mean": 32.92,
-      "median": 31.5,
-      "min": 28.75,
-      "p95": 38.73
+      "mean": 72.58,
+      "median": 71.71,
+      "min": 68.1,
+      "p95": 78.01
     }
   },
   "edge_tts_first_packet_performance": {
     "tts_service": "edge-tts",
     "voice": "hi-IN-SwaraNeural",
     "test_text_char_count": 112,
-    "first_packet_latency_ms": 626.4,
-    "total_tts_time_ms": 925.4,
+    "first_packet_latency_ms": 672.9,
+    "total_tts_time_ms": 973.6,
     "audio_chunks_received": 79,
     "audio_bytes": 56304
   },
   "pipeline_end_to_end_ttfa": {
     "pipeline_description": "End-to-end question audio release -> first audio sample played",
-    "stt_latency_ms": 706.4,
-    "retrieval_latency_ms": 32.9,
+    "stt_latency_ms": 1425.0,
+    "retrieval_latency_ms": 72.6,
     "llm_first_sentence_ms": 350.0,
-    "edge_tts_first_packet_ms": 626.4,
-    "total_pipeline_ttfa_ms": 1715.7,
+    "edge_tts_first_packet_ms": 672.9,
+    "total_pipeline_ttfa_ms": 2520.5,
     "target_ms": 2000.0
   }
 }

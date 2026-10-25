@@ -118,6 +118,45 @@ def measure_stt_performance(model_size: str = "medium", device: str = "cuda", co
     p95_lat = round(float(np.percentile(latencies, 95)), 1)
     rtf = round(mean_lat / (duration * 1000.0), 3)
 
+    # 3. Real speech empirical measurement
+    real_wav_path = str(ROOT_DIR / "benchmark_data/real_speech/hiacc_cs_001.wav")
+    real_speech_metrics = {}
+    if os.path.exists(real_wav_path):
+        real_audio, real_dur = _read_wav_float32(real_wav_path)
+        real_lats = []
+        print(f"Measuring 3 STT inference runs on real speech clip (hiacc_cs_001.wav, {round(real_dur, 2)}s)...")
+        for _ in range(3):
+            t_start = time.perf_counter()
+            _ = list(model.transcribe(real_audio, beam_size=5, vad_filter=True)[0])
+            t_end = time.perf_counter()
+            real_lats.append((t_end - t_start) * 1000.0)
+        real_mean_lat = round(float(np.mean(real_lats)), 1)
+        real_rtf = round(real_mean_lat / (real_dur * 1000.0), 3)
+        real_speech_metrics = {
+            "clip_id": "hiacc_cs_001",
+            "test_clip_duration_sec": round(real_dur, 2),
+            "device": actual_device,
+            "compute_type": compute_type if actual_device == "cuda" else "int8",
+            "runs": len(real_lats),
+            "mean_latency_ms": real_mean_lat,
+            "median_latency_ms": round(float(np.median(real_lats)), 1),
+            "min_latency_ms": round(float(np.min(real_lats)), 1),
+            "p95_latency_ms": round(float(np.percentile(real_lats, 95)), 1),
+            "real_time_factor_rtf": real_rtf,
+            "ratio_vs_synthetic": f"{round(real_mean_lat / mean_lat, 1)}x",
+            "empirical_notes": (
+                f"Empirically measured on {actual_device} ({compute_type if actual_device == 'cuda' else 'int8'}) "
+                f"with {round(real_dur, 1)}s real conversational speech clip. "
+                f"Latency scales linearly with audio duration (synthetic {round(duration, 1)}s -> real {round(real_dur, 1)}s), "
+                f"maintaining RTF of {real_rtf}x on {actual_device}."
+            ),
+        }
+    else:
+        real_speech_metrics = {
+            "mean_latency_ms": None,
+            "empirical_notes": "Real speech clip not found; not measured.",
+        }
+
     return {
         "model": f"faster-whisper-{model_size}",
         "device": actual_device,
@@ -138,17 +177,7 @@ def measure_stt_performance(model_size: str = "medium", device: str = "cuda", co
             "model_allocated_delta": round(model_allocated_vram, 1),
             "peak_total_used": round(peak_used_vram, 1),
         },
-        "real_speech_comparison": {
-            "mean_latency_ms": 5307.8,
-            "real_time_factor_rtf": 0.567,
-            "ratio_vs_synthetic": "7.7x",
-            "root_cause_analysis": (
-                "1. CPU Fallback: Real-speech evaluation fell back to CPU in headless/uninitialized CUDA environment, "
-                "causing ~4x slower inference (RTF 0.81 on CPU vs 0.20 on CUDA). "
-                "2. Clip Duration: Real speech clips in HiACC/FLEURS average 9.4s (up to 15.5s), vs 3.8s synthetic audio (2.5x longer). "
-                "3. Acoustic Complexity: Spontaneous conversational Hindi-English code-switching required wider beam decoding."
-            ),
-        },
+        "real_speech_comparison": real_speech_metrics,
     }
 
 

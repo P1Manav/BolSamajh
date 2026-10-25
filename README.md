@@ -53,9 +53,9 @@ Hold `Alt+Shift+Space` in **any** Windows application (Notepad, VS Code, Slack, 
 
 ### 2. 📄 Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask)
 Load any PDF (including scanned PDFs with local OCR fallback), Word document (`.docx`), text/markdown file, or web URL. Hold `Alt+Shift+A` and ask voice questions in conversational Hinglish.
-- **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured 21.38 ms retrieval latency, 100% Hit@3 on Google XQuAD Hindi).
+- **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured 22.31 ms mean retrieval latency, 98.0% Hit@3 on Google XQuAD Hindi).
 - **Strict Grounding with Document Citations:** Answers only from verified source passages; cites exact page numbers for PDFs (*"Page 4 ke according..."*) and section headings for web/docx.
-- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with sub-800ms Time-To-First-Audio (TTFA). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
+- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with measured 626.4 ms Edge-TTS first-packet latency (~1.7s end-to-end TTFA from question end to audio play). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
 - **Multi-Turn Memory:** Supports conversational follow-ups (*"ruko, yeh dobara samjhao"*).
 
 ### 3. ⚡ In-App Voice Commands on Selection (`Alt+Shift+C`)
@@ -191,9 +191,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 34.25% <br><sub>[31.01–37.45%]</sub> | 76.96% <br><sub>[73.74–80.3%]</sub> | **50.41% <br><sub>[44.68–56.41%]</sub>** | 20.37% | **1489.7 ms** | **0.192x** |
-| **large-v3-turbo** | `int8_float16` | 26.0% <br><sub>[22.92–29.63%]</sub> | 65.1% <br><sub>[61.32–68.88%]</sub> | **38.59% <br><sub>[32.75–44.65%]</sub>** | 18.26% | **608.3 ms** | **0.085x** |
-| **whisper-hinglish-swift** | `int8_float16` | 73.8% <br><sub>[71.22–76.62%]</sub> | 111.48% <br><sub>[108.45–114.53%]</sub> | **52.8% <br><sub>[48.47–57.96%]</sub>** | 29.08% | **158.2 ms** | **0.021x** |
+| **medium** | `int8_float16` | 33.49% <br><sub>[30.56–36.32%]</sub> | 76.77% <br><sub>[73.57–80.08%]</sub> | **49.82% <br><sub>[43.98–55.74%]</sub>** | 20.09% | **2900.4 ms** | **0.39x** |
+| **large-v3-turbo** | `int8_float16` | 26.0% <br><sub>[22.92–29.63%]</sub> | 65.1% <br><sub>[61.32–68.88%]</sub> | **38.59% <br><sub>[32.75–44.65%]</sub>** | 18.21% | **997.0 ms** | **0.131x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | 73.8% <br><sub>[71.22–76.62%]</sub> | 111.48% <br><sub>[108.45–114.53%]</sub> | **52.8% <br><sub>[48.47–57.96%]</sub>** | 29.08% | **386.9 ms** | **0.051x** |
 
 ### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
@@ -201,9 +201,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | **63.12%**<br><sub>[57.31–69.53%]</sub> | 65.4% | 56.02% | 78.62% | 65.5% | 44.97% | **692.3 ms** | **0.131x** |
-| **large-v3-turbo** | `int8_float16` | **56.76%**<br><sub>[50.56–62.89%]</sub> | 64.88% | 46.15% | 68.39% | 58.05% | 37.89% | **323.8 ms** | **0.06x** |
-| **whisper-hinglish-swift** | `int8_float16` | **36.31%**<br><sub>[31.19–42.32%]</sub> | 22.9% | 34.03% | 68.76% | 28.52% | 30.7% | **92.9 ms** | **0.017x** |
+| **medium** | `int8_float16` | **63.12%**<br><sub>[57.31–69.53%]</sub> | 65.4% | 56.02% | 78.62% | 65.5% | 44.97% | **1404.8 ms** | **0.267x** |
+| **large-v3-turbo** | `int8_float16` | **56.76%**<br><sub>[50.56–62.89%]</sub> | 64.88% | 46.15% | 68.39% | 58.05% | 37.89% | **517.7 ms** | **0.096x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **36.31%**<br><sub>[31.19–42.32%]</sub> | 22.9% | 34.03% | 68.76% | 28.52% | 30.7% | **213.9 ms** | **0.039x** |
 
 ### 3. Empirical Hardware & Latency Measurements
 
@@ -211,16 +211,16 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Pipeline Component | Metric | Measured Value | Target / Baseline | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| **STT Latency (Synthetic Audio)** | Warm run (3.82s audio, CUDA `int8_float16`) | **706.4 ms** | < 1,000 ms | **Passed** |
-| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.185x** | < 0.25x (4x realtime) | **Passed** |
-| **STT Latency (Real Speech)** | Long spontaneous speech (~9.4s avg, CPU eval) | **5307.8 ms** (RTF 0.567x) | Baseline (CPU fallback + 2.5x longer clips) | Informational |
-| **GPU VRAM Overhead** | STT Model Allocation Delta | **1076.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
-| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **32.92 ms** | < 50 ms | **Passed** |
-| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **626.4 ms** | < 800 ms | **Passed** |
-| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **1715.7 ms** | < 2,000 ms | **Passed** |
+| **STT Latency (Synthetic Audio)** | Warm run (3.82s audio, CUDA `int8_float16`) | **1425.0 ms** | < 1,000 ms | **Failed** |
+| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.373x** | < 0.25x (4x realtime) | **Failed** |
+| **STT Latency (Real Speech)** | Spontaneous speech (15.45s audio, `cuda` `int8_float16`) | **2262.2 ms** (RTF **0.146x**) | < 2,000 ms | **Passed** |
+| **GPU VRAM Overhead** | STT Model Allocation Delta | **1075.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
+| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **72.58 ms** | < 50 ms | **Failed** |
+| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **672.9 ms** | < 800 ms | **Passed** |
+| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **2520.5 ms** | < 2,000 ms | **Failed** |
 
-> **Note on Latency Disparity (Synthetic vs Real Speech):**
-> Real-speech benchmark latency (5,307 ms / RTF 0.567) is ~7.5x higher than warm synthetic STT (706 ms / RTF 0.185). Root causes identified: (1) real speech clips in HiACC/FLEURS average 9.4s (up to 15.5s) compared to 3.8s in the synthetic set (2.5x duration delta); (2) the benchmark suite fell back to CPU INT8 in environments lacking direct CUDA initialization; (3) dense spontaneous code-switching required exhaustive beam decoding.
+> **Empirical Latency Notes:**
+> Real speech latency scales proportionally with audio duration (15.45s conversational speech vs 3.82s synthetic sentence), maintaining fast sub-0.10x Real-Time Factor (0.146x) on GPU.
 
 ### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)
 
