@@ -1,49 +1,65 @@
-# BolSamajh v0.1.0 — Release Notes
+# BolSamajh v0.1.1 — Release Notes
 
-> **Release Tag:** `v0.1.0`  
-> **Release Date:** 2026-10-25  
+> **Release Tag:** `v0.1.1`  
+> **Release Date:** 2026-10-26  
 > **Buildathon:** Bolna × Symphony Voice AI Buildathon  
-> **Status:** All acceptance tests passing (41/41 unit tests, green CI on Ubuntu and Windows)
+> **Status:** All acceptance tests passing (53/53 unit tests, green CI on Ubuntu and Windows across Python 3.11 and 3.12)
 
 ---
 
 ## 🚀 Overview
 
-BolSamajh v0.1.0 is the first production-ready release of the open-source, local-first voice AI companion built for 500 million Hinglish and Indian-language speakers. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable citations, in-place voice editing, and standard OpenAI-compatible audio gateway endpoints for Bolna agents.
+BolSamajh v0.1.1 is an audited, empirical release of the open-source, local-first voice AI companion built for 500 million Hinglish and Indian-language speakers. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable citations, in-place voice editing, and standard OpenAI-compatible audio gateway endpoints for Bolna agents.
 
 ---
 
-## 🌟 Key Highlights & Fixes
+## 🌟 Key Highlights & Fixes in v0.1.1
 
-### 1. Robustness & Voice Desktop Engine (Tier 5)
-- **Acoustic Echo Suppression & Barge-In:** Mutes detection for the first ~300 ms of sentence playback; requires an elevated VAD threshold (0.80) and longer sustained run (~200 ms) in speaker mode to prevent speaker audio reflection; supports `headphone_mode` via config flag.
-- **Answer Interruption Generation ID:** When interrupted via voice barge-in or keypress, the active generation ID advances immediately, ensuring that queued and future streamed sentence chunks are discarded.
-- **Worker Cancellation Lifecycle:** Worker threads are joined cleanly on `cancel()`, guaranteeing that `_processing` flags are cleared only when workers fully exit.
-- **Modifier Release for Hotkeys:** Releases physical Shift, Alt, and Ctrl modifiers before simulating `Ctrl+C` or `Ctrl+V` to prevent hotkey conflicts (e.g. `Alt+Shift+C`), and safely restores them.
-- **Multilingual Sentence Splitter:** Intelligent boundary detection that prevents premature splitting on decimals (`15.50`), English abbreviations (`Dr.`, `Mr.`, `Mrs.`, `Rs.`), and Hindi abbreviations (`डॉ.`, `पं.`, `रु.`), while properly splitting on Hindi dandas (`।`, `॥`) and question marks.
-- **Document Citations & Chunk Spans:** Tracks exact cross-page merged chunk page spans (`Pages 1–2` for PDFs) and formats DOCX/web citations strictly as `Section: ...` (never `Page`).
+### 1. CI & Environment Integrity (Tier 0)
+- Fixed headless Linux CI failure in clipboard handling by stubbing `Key` and providing a null keyboard fallback when pynput cannot initialize.
+- Added offline `fake_edge_tts` fixture in `tests/conftest.py` so CI runs without network dependencies (`pytest -m "not slow and not network"`).
+- Pinned exact dependency versions in `requirements.lock.txt` for both Python 3.11 and 3.12 across Ubuntu and Windows.
 
-### 2. Empirical Benchmark & Credibility Audit (Tiers 1 & 2)
-- **Dataset Validation & Script Routing:** Added reference validation filters in `scripts/fetch_benchmark_data.py` requiring `len(words) >= 4` and duration consistency to prevent truncated upstream references, language routing for Indic/English scripts, and repetition penalty + VAD filtering.
-- **400 Audio Clip Benchmark Evaluation:**
-  - 300 Real Speech Clips: 100 HiACC Hinglish code-switching, 100 Google FLEURS Hindi, 100 Google FLEURS Gujarati.
-  - 100 Synthetic Degraded Stress Clips: 4 Edge-TTS voices across 5 categories and automated DSP degradations (speed ±10%, additive noise at 20/10/5 dB SNR, 8 kHz telephony bandpass + mu-law).
-- **Bootstrap 95% Confidence Intervals:** Computed non-parametric bootstrap CIs (1,000 resamples) for all WER metrics in `benchmark_results.json` and README tables.
-- **Deterministic Fetch Script:** Added `scripts/fetch_benchmark_data.py` with fixed random seeds for 100% reproducible benchmark data generation.
-- **Calibrated Refusal Threshold:** Empirically calibrated cosine similarity refusal threshold to **0.785** across 200 Google XQuAD Hindi questions, maximizing F1 to **0.8685** (Precision: 81.86%, Recall: 92.5%).
+### 2. Empirical Benchmark & Latency Truth (Tier 1)
+- Evaluated 1,200 real speech and synthetic stress clips across three models on an NVIDIA GeForce RTX 3060 Ti GPU.
+- Committed complete per-clip results in `benchmark_data/per_clip_results.jsonl` (model, clip ID, reference, raw hypothesis, normalized texts, WER, latency, audio duration, device).
+- Generated Section 3 worst clips automatically via `scripts/dump_worst_clips.py` with zero hand edits.
+- Re-measured real speech latency on GPU: **2,262.2 ms** (RTF **0.146x**, running 6.8× faster than real-time) on a 15.45s clip (`hiacc_cs_001.wav`), replacing fabricated latency claims.
+- Clarified that `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve Swift.
 
-### 3. Web Gateway & Security Hardening (Tiers 3 & 4)
-- **Bolna Voice Gateway:** Standard OpenAI-compatible `/v1/audio/transcriptions` and `/v1/audio/speech` endpoints verified against live running server instances.
-- **Path Traversal Protection:** Validates that audio file requests strictly resolve within the audio cache directory using `Path.resolve().is_relative_to`.
-- **Bearer Token Authentication:** Enforces `Authorization: Bearer <BOLSAMAJH_API_KEY>` for all gateway endpoints.
-- **Binding Security:** Refuses to bind on external or non-localhost interfaces unless `BOLSAMAJH_API_KEY` is set.
-- **Single-Hop SSRF Defense:** Manually resolves and re-validates each redirect hop, blocking all private, loopback, link-local, and reserved IPv4/IPv6 ranges.
-- **Streaming Upload Limit:** Aborts oversized audio file uploads in 64 KB streaming chunks with HTTP 413, preventing memory exhaustion.
+### 3. Gemini Fallback & Speech Gateway (Tier 2)
+- Replaced retired `gemini-1.5-flash` with `gemini-2.0-flash` (configurable via `GOOGLE_AI_MODEL`), added model-retired diagnostics, and removed unverified verification claims.
+- Enhanced `/v1/audio/speech` endpoint to honor `response_format` (`mp3`, `wav`), `speed` (rate adjustment), and return clean HTTP 502 JSON error on Edge-TTS upstream failure (no bare 500s).
+- Clarified Bolna gateway documentation as implemented and integration-tested, with clear live testing steps.
+
+### 4. Server Security Hardening (Tier 3)
+- Protected `/api/*` endpoints with HMAC Bearer token auth (`hmac.compare_digest`) when `BOLSAMAJH_API_KEY` is configured, while keeping `/`, `/static`, and `/api/status` exempt.
+- Hardened `safe_fetch_url` against DNS rebinding attacks by connecting sockets directly to the vetted, resolved IP address (preserving Host header and TLS SNI).
+- Wrapped `/api/qa/stream` in error handling that emits an `error` SSE event before `[DONE]`.
+- Enforced HTTP 400 with "unsupported audio" on `/api/qa/voice` if audio resampling fails, rather than passing raw bytes to STT.
+- Corrected Indic TTS transliteration: ceased running destructive ISO transliteration on Roman Hinglish; transliteration is only applied cross-script between Indic scripts (e.g. Gujarati to Devanagari).
+- Documented 60-second TTL cache for the `/api/status` LLM readiness check.
+
+### 5. Voice & Desktop Honesty (Tier 4)
+- Added `is_active` property and WARNING log capture on mic stream errors in `BargeInMonitor`.
+- Added end-to-end integration tests exercising real sentence splitting, generation ID tracking, cleanup pipeline, and BargeInMonitor.
+- Re-labeled README capabilities table using strictly allowed statuses: **Verified**, **Implemented, untested on hardware**, or **Not implemented**.
+
+---
+
+## ⚠️ Honest Known Limitations
+
+1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus exhibits 50.41% WER on Whisper medium and 38.59% on large-v3-turbo due to diverse Indian regional accents and colloquial loanwords.
+2. **Orthographic vs. Phonetic Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"* vs *"मीटिंग"*). While BolSamajh uses canonical script-normalized transliteration to bridge Devanagari and Latin scripts without penalizing alphabet mismatches, it does not phonemically collapse loanword spelling variants.
+3. **Physical Hardware Execution:** Features such as physical microphone hotkey dictation, in-place OS clipboard pasting, and 100% offline air-gapped mode with physical network disconnection are implemented and verified via unit/integration tests with synthetic audio and stubs, but are marked **Implemented, untested on hardware** for this automated session.
+4. **Swift Model Conversion:** The model `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve's Swift model.
+5. **Bolna Live Integration:** The Bolna audio gateway endpoints (`/v1/audio/transcriptions` and `/v1/audio/speech`) are implemented and pass all integration tests against the OpenAI specification, but have not yet been tested against a live Bolna agent in production.
+6. **Numerical Digit Variations:** ASR output alternates between written Hindi words (*"पंद्रह"*) and ASCII digits (*"15"*), which increases raw word error rates on numerical test sets.
 
 ---
 
 ## 🧪 Test Suite Status
 
-- **Total Test Cases:** 41 passed (40 non-slow in automated CI, 1 slow in local/manual workflow).
-- **Test Execution Time:** ~24.5 seconds on Windows / Ubuntu.
-- **Verified Python Environments:** Python 3.11, Python 3.12.
+- **Total Test Cases:** 53 passed (53 non-slow in automated CI, 2 deselected slow).
+- **Verified Python Environments:** Python 3.11, Python 3.12 (clean venvs created from `requirements.lock.txt`).
+- **Platforms:** Ubuntu (CI), Windows (Local & CI).

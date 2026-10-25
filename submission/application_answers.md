@@ -28,13 +28,13 @@ BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud s
 5. **Interactive Web-Call Mode:** Full-featured browser UI with live audio waveform visualizers, document drag-and-drop, and SSE streaming.
 
 ### 6. What technologies and models did you use?
-- **Speech-to-Text (STT):** `faster-whisper` (`medium`, `large-v3-turbo-ct2`, and `whisper-hinglish-swift-ct2` CTranslate2 INT8/FP16 models) running on NVIDIA CUDA 12 via pip wheels with automatic CPU int8 fallback.
+- **Speech-to-Text (STT):** `faster-whisper` (`medium`, `large-v3-turbo-ct2`, and `whisper-hinglish-swift-ct2` [third-party CT2 conversion of Oriserve Swift, unverified]) running on NVIDIA CUDA 12 via pip wheels with automatic CPU int8 fallback.
 - **Phonetics & Script Normalization:** `aksharamukha` offline library for script transformation (Natural, Roman Latin with diacritic stripping, Devanagari) and canonical script-normalized benchmark scoring.
 - **Document RAG:** `intfloat/multilingual-e5-base` (512 token context, passage/query prefixes), PyMuPDF with local OCR fallback for scanned PDFs, and FAISS vector index.
-- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-1.5-flash` free tier via `x-goog-api-key` header).
-- **Text-to-Speech (TTS):** Microsoft Edge-TTS (`hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX).
-- **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in; `Escape` key for immediate recording cancellation and audio stop.
-- **Desktop & Web:** Python 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.
+- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-2.0-flash` or configurable free tier via `x-goog-api-key` header).
+- **Text-to-Speech (TTS):** Microsoft Edge-TTS (`hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX). Edge-TTS neural voices natively pronounce Roman Hinglish without destructive ISO transliteration.
+- **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in (exposed `is_active` state and warning logging); `Escape` key for immediate recording cancellation and audio stop.
+- **Desktop & Web:** Python 3.11 & 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.
 
 ### 7. What are your key measured metrics? (All backed by repository JSON files)
 All metrics originate from reproducible scripts in `benchmark_data/`:
@@ -55,9 +55,9 @@ All metrics originate from reproducible scripts in `benchmark_data/`:
 BolSamajh directly supports Bolna's vision of autonomous voice agents:
 - Exposes standard OpenAI-compatible endpoints:
   - `POST /v1/audio/transcriptions` (Hinglish STT)
-  - `POST /v1/audio/speech` (Natural Indian TTS)
+  - `POST /v1/audio/speech` (Natural Indian TTS with mp3/wav response formats and rate adjustment)
+- Status: Implemented and integration-tested against the OpenAI API specification; live end-to-end testing instructions and checklist documented in [`docs/bolna_integration.md`](docs/bolna_integration.md).
 - A Bolna agent deployed locally or via cloud tunnel can configure `base_url="http://localhost:8000/v1"` to gain free, unlimited, low-latency Hinglish transcription and Indian-language voice synthesis without per-minute cloud billing.
-- Complete documentation and tested curl examples are provided in [`docs/bolna_integration.md`](docs/bolna_integration.md).
 
 ### 9. What is your commercialization / startup roadmap?
 - **Target Market:** 500M+ Indian bilingual knowledge workers, healthcare professionals, legal practitioners, and educators.
@@ -66,6 +66,6 @@ BolSamajh directly supports Bolna's vision of autonomous voice agents:
 
 ### 10. Links & Verification
 - **GitHub Repository:** https://github.com/P1Manav/BolSamajh
-- **CI Status:** GitHub Actions multi-OS CPU workflow runs unit tests across Ubuntu & Windows (40 non-slow tests passing in CI, with all 41/41 tests passing locally and in the manual slow-test workflow).
+- **CI Status:** GitHub Actions multi-OS CPU matrix workflow (Ubuntu + Windows on Python 3.11 and 3.12) running 53 non-slow tests all passing green.
 - **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
 - **Architectural Decision Records:** 17 ADRs documented in [`DECISIONS.md`](DECISIONS.md)
