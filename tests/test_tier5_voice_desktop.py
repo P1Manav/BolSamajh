@@ -183,3 +183,133 @@ def test_short_clip_language_fallback():
     assert mock_model.transcribe.called
     kwargs = mock_model.transcribe.call_args[1]
     assert kwargs.get("language") == "hi"
+
+
+def test_doc_qa_pipeline_stream_and_speak_integration():
+    """Integration test: real sentence splitter + generation ID tracking + TTS stub.
+    Exercises _stream_and_speak end to end, verifying that when an interrupt occurs,
+    remaining sentences from the LLM stream are rejected and not spoken.
+    """
+    import asyncio
+
+    async def _run():
+        config = AppConfig()
+        mock_stt = MagicMock()
+        mock_hud = MagicMock()
+
+        spoken_sentences = []
+
+        class StubTTS:
+            def __init__(self):
+                self.stopped = False
+
+            async def speak(self, text: str, lang: str = "hi"):
+                spoken_sentences.append(text)
+
+            def stop(self):
+                self.stopped = True
+
+        tts_stub = StubTTS()
+
+        class StubLLM:
+            async def generate_stream(self, prompt: str, system: str = ""):
+                # Yield sentence 1 in pieces
+                yield "Yeh pehla sentence hai. "
+                # Interrupt occurs here!
+                pipeline.interrupt()
+                # Yield remaining sentences that should NOT be spoken
+                yield "Yeh doosra sentence hai jo drop hona chahiye. "
+                yield "Yeh teesra sentence hai."
+
+        llm_stub = StubLLM()
+        pipeline = DocQAPipeline(config, mock_stt, llm_stub, tts_stub, mock_hud)
+        # In real usage, stop_and_answer increments _generation_id to 1 before spawning stream
+        pipeline._generation_id = 1
+        active_gen = pipeline._generation_id
+
+        # Disable sounddevice mic monitoring in test environment
+        with patch("bolsamajh.utils.vad.sd", None):
+            result_text = await pipeline._stream_and_speak(
+                question="Kaise ho?",
+                system="System prompt",
+                t_start=time.time(),
+                lang_code="hi",
+                gen_id=active_gen,
+            )
+
+        # Verify:
+        # 1. First sentence was yielded
+        assert "Yeh pehla sentence hai." in result_text
+        # 2. Only the first sentence was spoken; second and third were dropped due to interrupt!
+        assert len(spoken_sentences) == 1
+        assert spoken_sentences[0] == "Yeh pehla sentence hai."
+        # 3. TTS stop() was called on interrupt
+        assert tts_stub.stopped
+
+    asyncio.run(_run())
+
+
+def test_dictation_pipeline_process_audio_integration():
+    """Integration test: STT stub -> real cleanup_text (fillers, currency, lakh/crore) -> clipboard insert."""
+    config = AppConfig()
+    mock_hud = MagicMock()
+
+    class StubSTT:
+        def transcribe(self, audio_bytes: bytes):
+            from bolsamajh.stt.base import TranscriptResult
+            return TranscriptResult(
+                text="uh maine 5 lakh rupees pay kiye hmm",
+                language="hi",
+                duration_seconds=2.5,
+            )
+
+    pasted_text = []
+
+    def mock_insert_text(text: str):
+        pasted_text.append(text)
+
+    pipeline = DictationPipeline(config, StubSTT(), mock_hud)
+
+    with patch("bolsamajh.pipeline.dictation.insert_text", side_effect=mock_insert_text):
+        pipeline._process_audio(b"dummy_wav_bytes")
+
+    assert len(pasted_text) == 1
+    # Verify real cleanup pipeline ran: 'uh' and 'hmm' stripped, '5 lakh rupees' formatted to '₹5 lakh', sentence capitalized
+    assert pasted_text[0] == "Maine ₹5 lakh pay kiye"
+
+
+def test_barge_in_monitor_is_active_and_warning_logging(caplog):
+    """Integration test: BargeInMonitor is_active property and warning logging on stream error."""
+    import logging
+    from bolsamajh.utils.vad import BargeInMonitor
+
+    triggered = False
+
+    def on_barge():
+        nonlocal triggered
+        triggered = True
+
+    monitor = BargeInMonitor(on_barge_in=on_barge, headphone_mode=False)
+    assert not monitor.is_active
+
+    # Test error logging at WARNING when stream fails
+    class FailingSD:
+        class InputStream:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __enter__(self):
+                raise RuntimeError("Audio hardware unavailable (simulated mic error)")
+
+            def __exit__(self, *args):
+                pass
+
+    with caplog.at_level(logging.WARNING):
+        with patch("bolsamajh.utils.vad.sd", FailingSD()):
+            monitor.start()
+            if monitor._thread:
+                monitor._thread.join(timeout=1.0)
+
+    assert not monitor.is_active
+    assert any("BargeInMonitor microphone exception" in record.message for record in caplog.records)
+

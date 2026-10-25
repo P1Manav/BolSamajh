@@ -90,6 +90,11 @@ class BargeInMonitor:
         self._thread: Optional[threading.Thread] = None
         self._t_start: float = 0.0
 
+    @property
+    def is_active(self) -> bool:
+        """Return True if background microphone monitoring is currently active."""
+        return self._running and (self._thread is not None and self._thread.is_alive())
+
     def start(self):
         """Start monitoring mic for speech."""
         if sd is None:
@@ -149,6 +154,6 @@ class BargeInMonitor:
                     else:
                         consecutive_speech_chunks = max(0, consecutive_speech_chunks - 1)
         except Exception as e:
-            log.debug("BargeInMonitor exception: %s", e)
+            log.warning("BargeInMonitor microphone exception: %s", e)
         finally:
             self._running = False
