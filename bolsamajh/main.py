@@ -5,8 +5,11 @@ Run with:  python -m bolsamajh
 
 import sys
 import time
+import asyncio
 import threading
 import logging
+from tkinter import filedialog
+import tkinter as tk
 
 from bolsamajh.config import load_config, AppConfig
 from bolsamajh.overlay.hud import OverlayHUD
@@ -33,55 +36,121 @@ def _create_stt(config: AppConfig):
         raise ValueError(f"Unknown STT engine: {config.stt.engine}")
 
 
-def _setup_hotkeys(config: AppConfig, dictation_pipeline) -> None:
+def _create_llm(config: AppConfig):
+    """Create the LLM adapter based on config."""
+    if config.llm.engine == "ollama":
+        from bolsamajh.llm.ollama_adapter import OllamaAdapter
+        return OllamaAdapter(
+            model=config.llm.ollama_model,
+            base_url=config.llm.ollama_base_url,
+            temperature=config.llm.temperature,
+            max_tokens=config.llm.max_tokens,
+        )
+    elif config.llm.engine == "google_ai":
+        from bolsamajh.llm.google_ai import GoogleAIAdapter
+        return GoogleAIAdapter(
+            model=config.llm.google_ai_model,
+            temperature=config.llm.temperature,
+            max_tokens=config.llm.max_tokens,
+        )
+    else:
+        raise ValueError(f"Unknown LLM engine: {config.llm.engine}")
+
+
+def _create_tts(config: AppConfig):
+    """Create the TTS adapter based on config."""
+    if config.tts.engine == "edge_tts":
+        from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
+        return EdgeTTSAdapter()
+    else:
+        raise ValueError(f"Unknown TTS engine: {config.tts.engine}")
+
+
+def _prompt_document_path() -> str | None:
+    """Show a file dialog or URL prompt for document loading."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+
+    file_path = filedialog.askopenfilename(
+        title="BolSamajh — Load Document",
+        filetypes=[
+            ("Documents", "*.pdf;*.docx;*.doc"),
+            ("PDF Files", "*.pdf"),
+            ("Word Documents", "*.docx;*.doc"),
+            ("All Files", "*.*"),
+        ],
+    )
+    root.destroy()
+    return file_path if file_path else None
+
+
+def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline) -> None:
     """Register global hotkeys using the keyboard library."""
     import keyboard
 
-    # Track dictation key state for push-to-talk
     dictation_key = config.hotkeys.dictation
+    doc_load_key = config.hotkeys.doc_load
+    doc_ask_key = config.hotkeys.doc_ask
+    stop_key = config.hotkeys.stop
 
-    def on_dictation_press(_event=None):
-        dictation_pipeline.start_recording()
-
-    def on_dictation_release(_event=None):
-        dictation_pipeline.stop_recording_and_transcribe()
-
-    # Register push-to-talk: press to start, release to stop
-    keyboard.on_press_key(
-        dictation_key.split("+")[-1],  # The main key
-        lambda e: on_dictation_press()
-        if all(keyboard.is_pressed(k) for k in dictation_key.split("+")[:-1])
-        else None,
-        suppress=False,
-    )
-
-    # Use add_hotkey for the full combo with on_release
-    keyboard.add_hotkey(
-        dictation_key,
-        on_dictation_press,
-        suppress=False,
-        trigger_on_release=False,
-    )
-
-    # For push-to-talk release detection: poll-based approach
-    # We detect when the dictation hotkey combo is released
-    _ptt_active = threading.Event()
-
+    # --- Dictation push-to-talk ---
     def _ptt_monitor():
         """Monitor for push-to-talk key release."""
         keys = dictation_key.split("+")
         while True:
             time.sleep(0.05)
             if dictation_pipeline.recorder.is_recording:
-                # Check if any key in the combo was released
                 all_pressed = all(keyboard.is_pressed(k) for k in keys)
                 if not all_pressed:
-                    on_dictation_release()
+                    dictation_pipeline.stop_recording_and_transcribe()
 
-    monitor_thread = threading.Thread(target=_ptt_monitor, daemon=True)
-    monitor_thread.start()
+    keyboard.add_hotkey(
+        dictation_key,
+        dictation_pipeline.start_recording,
+        suppress=False,
+    )
+    threading.Thread(target=_ptt_monitor, daemon=True).start()
 
-    log.info("Hotkeys registered: dictation=%s", dictation_key)
+    # --- Document loading ---
+    def on_doc_load():
+        def _load():
+            path = _prompt_document_path()
+            if path:
+                doc_qa_pipeline.load_document(path)
+        threading.Thread(target=_load, daemon=True).start()
+
+    keyboard.add_hotkey(doc_load_key, on_doc_load, suppress=False)
+
+    # --- Document Q&A push-to-talk ---
+    def _qa_ptt_monitor():
+        """Monitor for Q&A key release."""
+        keys = doc_ask_key.split("+")
+        while True:
+            time.sleep(0.05)
+            if doc_qa_pipeline.recorder.is_recording:
+                all_pressed = all(keyboard.is_pressed(k) for k in keys)
+                if not all_pressed:
+                    doc_qa_pipeline.stop_and_answer()
+
+    keyboard.add_hotkey(
+        doc_ask_key,
+        doc_qa_pipeline.start_question,
+        suppress=False,
+    )
+    threading.Thread(target=_qa_ptt_monitor, daemon=True).start()
+
+    # --- Stop / interrupt ---
+    def on_stop():
+        doc_qa_pipeline.interrupt()
+
+    keyboard.add_hotkey(stop_key, on_stop, suppress=False)
+
+    log.info("Hotkeys registered:")
+    log.info("  Dictation:  %s (hold to talk)", dictation_key)
+    log.info("  Load Doc:   %s", doc_load_key)
+    log.info("  Ask Doc:    %s (hold to talk)", doc_ask_key)
+    log.info("  Stop:       %s", stop_key)
 
 
 def main() -> None:
@@ -101,25 +170,34 @@ def main() -> None:
     hud = OverlayHUD()
     hud.start()
 
-    # 2. Create STT engine (lazy-loads model on first use)
+    # 2. Create engines (lazy-loaded)
     stt = _create_stt(config)
-    log.info("STT engine: %s (model loads on first use)", stt.name)
+    llm = _create_llm(config)
+    tts = _create_tts(config)
+    log.info("Engines: STT=%s  LLM=%s  TTS=%s", stt.name, llm.name, tts.name)
 
-    # 3. Create dictation pipeline
+    # 3. Create pipelines
     from bolsamajh.pipeline.dictation import DictationPipeline
+    from bolsamajh.pipeline.doc_qa import DocQAPipeline
+
     dictation = DictationPipeline(config, stt, hud)
+    doc_qa = DocQAPipeline(config, stt, llm, tts, hud)
 
     # 4. Register hotkeys
-    _setup_hotkeys(config, dictation)
+    _setup_hotkeys(config, dictation, doc_qa)
 
     # 5. Show ready state
-    hud.show_text("BolSamajh Ready ✓", duration_ms=2000)
+    hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
+
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    log.info("  Ready! Hotkeys active.")
+    log.info("  Hold Ctrl+Shift+Space to dictate")
+    log.info("  Ctrl+Shift+D to load a document")
+    log.info("  Hold Ctrl+Shift+A to ask about it")
+    log.info("  Escape to stop/interrupt")
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     # 6. Start system tray (blocks main thread)
-    log.info("Hotkeys:  Dictation=%s  Stop=%s",
-             config.hotkeys.dictation, config.hotkeys.stop)
-    log.info("Ready! Hold %s to dictate.", config.hotkeys.dictation)
-
     from bolsamajh.overlay.tray import create_tray
     tray = create_tray(config)
     tray.run()

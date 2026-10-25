@@ -28,7 +28,7 @@ class STTConfig:
     model_size: str = "medium"                # faster-whisper model size
     language: str = "hi"                      # Language hint for Hinglish
     device: str = "cuda"                      # cuda or cpu
-    compute_type: str = "int8"                # int8 for lower VRAM
+    compute_type: str = "int8_float16"         # int8 weights + fp16 compute (fast on RTX 3060 Ti)
 
 
 @dataclass
