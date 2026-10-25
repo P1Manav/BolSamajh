@@ -16,13 +16,32 @@ import pyperclip
 
 log = logging.getLogger(__name__)
 
+class _StubKey:
+    shift = "shift"
+    shift_r = "shift_r"
+    alt = "alt"
+    alt_r = "alt_r"
+    alt_gr = "alt_gr"
+    ctrl = "ctrl"
+    ctrl_r = "ctrl_r"
+
+
+class _NullKeyboard:
+    def press(self, key):
+        pass
+
+    def release(self, key):
+        pass
+
+
 try:
-    from pynput.keyboard import Controller, Key
+    from pynput.keyboard import Controller, Key as _PynputKey
     _keyboard = Controller()
+    Key = _PynputKey
 except Exception:
     Controller = None
-    Key = None
-    _keyboard = None
+    Key = _StubKey
+    _keyboard = _NullKeyboard()
 
 
 MODIFIER_KEYS = [

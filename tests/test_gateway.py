@@ -15,8 +15,8 @@ from bolsamajh.web.server import app
 client = TestClient(app)
 
 
-def test_openai_speech_synthesis_end_to_end():
-    """Start server client, call /v1/audio/speech, and save a playable MP3 file."""
+def test_openai_speech_synthesis_end_to_end(fake_edge_tts):
+    """Start server client, call /v1/audio/speech, and verify MP3 response using fake_edge_tts."""
     payload = {
         "model": "tts-1",
         "input": "नमस्ते, BolSamajh में आपका स्वागत है।",
@@ -48,7 +48,7 @@ def test_openai_speech_synthesis_end_to_end():
             tmp_path.unlink()
 
 
-def test_openai_speech_voices():
+def test_openai_speech_voices(fake_edge_tts):
     """Verify that different voices (Swara, Neerja, Dhwani) are accepted and generate valid audio."""
     for voice in ["swara", "neerja", "dhwani"]:
         payload = {
@@ -59,6 +59,21 @@ def test_openai_speech_voices():
         response = client.post("/v1/audio/speech", json=payload)
         assert response.status_code == 200
         assert len(response.content) > 500
+
+
+@pytest.mark.network
+def test_openai_speech_synthesis_live():
+    """Live network test for Edge-TTS against Microsoft online service."""
+    payload = {
+        "model": "tts-1",
+        "input": "नमस्ते, live Edge-TTS network verification test.",
+        "voice": "swara",
+        "response_format": "mp3",
+    }
+    response = client.post("/v1/audio/speech", json=payload)
+    assert response.status_code == 200
+    assert "audio/mpeg" in response.headers.get("content-type", "")
+    assert len(response.content) > 1000
 
 
 def test_openai_transcription_end_to_end():

@@ -75,7 +75,7 @@ def test_audio_path_traversal_blocking():
         assert resp.status_code in (400, 403, 404), f"Payload '{payload}' was not rejected: HTTP {resp.status_code}"
 
 
-def test_gateway_auth_bearer_token(monkeypatch):
+def test_gateway_auth_bearer_token(monkeypatch, fake_edge_tts):
     """Verify that /v1/* endpoints enforce Authorization: Bearer <BOLSAMAJH_API_KEY> when key is set."""
     monkeypatch.setenv("BOLSAMAJH_API_KEY", "super-secret-token-123")
 

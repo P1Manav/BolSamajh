@@ -56,11 +56,25 @@ class FasterWhisperSTT(SpeechToText):
         log.info("Loading faster-whisper model '%s' (resolved to '%s') on %s (%s)…",
                  self.model_size, resolved_model, self.device, self.compute_type)
         t0 = time.time()
-        self._model = WhisperModel(
-            resolved_model,
-            device=self.device,
-            compute_type=self.compute_type,
-        )
+        try:
+            self._model = WhisperModel(
+                resolved_model,
+                device=self.device,
+                compute_type=self.compute_type,
+            )
+        except Exception as e:
+            if self.device != "cpu":
+                log.warning("Failed to initialize model on %s (%s), falling back to cpu (int8): %s",
+                            self.device, self.compute_type, e)
+                self.device = "cpu"
+                self.compute_type = "int8"
+                self._model = WhisperModel(
+                    resolved_model,
+                    device="cpu",
+                    compute_type="int8",
+                )
+            else:
+                raise
         log.info("Model loaded in %.1fs", time.time() - t0)
 
     def transcribe(self, audio_bytes: bytes) -> TranscriptResult:
@@ -119,12 +133,24 @@ class FasterWhisperSTT(SpeechToText):
         if target_lang and target_lang.lower() != "auto":
             transcribe_kwargs["language"] = target_lang
 
-        segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
-
-        # Collect all segment texts
-        texts = []
-        for segment in segments:
-            texts.append(segment.text.strip())
+        try:
+            segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
+            texts = []
+            for segment in segments:
+                texts.append(segment.text.strip())
+        except Exception as e:
+            if self.device != "cpu" and ("cublas" in str(e).lower() or "cuda" in str(e).lower()):
+                log.warning("CUDA execution failed at runtime (%s), falling back to cpu (int8)", e)
+                self.device = "cpu"
+                self.compute_type = "int8"
+                self._model = None
+                self.load_model()
+                segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
+                texts = []
+                for segment in segments:
+                    texts.append(segment.text.strip())
+            else:
+                raise
 
         text = " ".join(texts).strip()
 

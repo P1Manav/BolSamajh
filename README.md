@@ -18,8 +18,10 @@ BolSamajh is an open-source, local-first voice AI companion built specifically f
 
 ### ⚡ One-Command Quickstart
 
+**Prerequisites:** Python 3.11 or 3.12 only (CI-verified on Ubuntu & Windows).
+
 ```powershell
-git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh && python -m venv venv && .\venv\Scripts\activate && pip install -r requirements.txt && python -m bolsamajh
+git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh && python -m venv venv && .\venv\Scripts\activate && pip install -r requirements.lock.txt && python -m bolsamajh
 ```
 
 ---
