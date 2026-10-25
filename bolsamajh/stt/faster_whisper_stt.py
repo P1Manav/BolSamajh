@@ -61,6 +61,7 @@ class FasterWhisperSTT(SpeechToText):
         segments, info = self._model.transcribe(
             audio_np,
             language=self.language,
+            initial_prompt="Hinglish, Hindi, Devanagari, English. Bolo. Samjho.",
             beam_size=5,
             best_of=5,
             temperature=0.0,
@@ -71,6 +72,7 @@ class FasterWhisperSTT(SpeechToText):
                 speech_pad_ms=200,
             ),
         )
+
 
         # Collect all segment texts
         texts = []

@@ -1,0 +1,1002 @@
+[
+  {
+    "id": 1,
+    "category": "everyday",
+    "reference_roman": "Yaar kal meeting kitne baje schedule ki hai?",
+    "reference_devanagari": "यार कल मीटिंग कितने बजे शेड्यूल की है?",
+    "wav_path": "benchmark_data/audio/sentence_001.wav",
+    "duration_sec": 3.82,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:43"
+  },
+  {
+    "id": 2,
+    "category": "everyday",
+    "reference_roman": "Main thodi der me call back karta hoon, abhi drive kar raha hoon.",
+    "reference_devanagari": "मैं थोड़ी देर में कॉल बैक करता हूँ, अभी ड्राइव कर रहा हूँ।",
+    "wav_path": "benchmark_data/audio/sentence_002.wav",
+    "duration_sec": 5.59,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:45"
+  },
+  {
+    "id": 3,
+    "category": "everyday",
+    "reference_roman": "Chai peene chalte hain, bohot tired feel ho raha hai.",
+    "reference_devanagari": "चाय पीने चलते हैं, बहुत टायर्ड फील हो रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_003.wav",
+    "duration_sec": 4.63,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:46"
+  },
+  {
+    "id": 4,
+    "category": "everyday",
+    "reference_roman": "Tumne lunch order kiya kya ya bahar chalna hai?",
+    "reference_devanagari": "तुमने लंच ऑर्डर किया क्या या बाहर चलना है?",
+    "wav_path": "benchmark_data/audio/sentence_004.wav",
+    "duration_sec": 3.91,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:47"
+  },
+  {
+    "id": 5,
+    "category": "everyday",
+    "reference_roman": "Mera laptop restart ho gaya aur saara unsaved kaam chala gaya.",
+    "reference_devanagari": "मेरा लैपटॉप रीस्टार्ट हो गया और सारा अनसेव्ड काम चला गया।",
+    "wav_path": "benchmark_data/audio/sentence_005.wav",
+    "duration_sec": 5.28,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:50"
+  },
+  {
+    "id": 6,
+    "category": "everyday",
+    "reference_roman": "Traffic bohot zyada tha isliye reach karne me late ho gaya.",
+    "reference_devanagari": "ट्रैफिक बहुत ज़्यादा था इसलिए रीच करने में लेट हो गया।",
+    "wav_path": "benchmark_data/audio/sentence_006.wav",
+    "duration_sec": 4.73,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:52"
+  },
+  {
+    "id": 7,
+    "category": "everyday",
+    "reference_roman": "Kya tum mujhe woh presentation forward kar sakte ho please?",
+    "reference_devanagari": "क्या तुम मुझे वो प्रेजेंटेशन फॉरवर्ड कर सकते हो प्लीज?",
+    "wav_path": "benchmark_data/audio/sentence_007.wav",
+    "duration_sec": 4.7,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:53"
+  },
+  {
+    "id": 8,
+    "category": "everyday",
+    "reference_roman": "Weekend pe kya plans hain tumhare?",
+    "reference_devanagari": "वीकेंड पे क्या प्लान्स हैं तुम्हारे?",
+    "wav_path": "benchmark_data/audio/sentence_008.wav",
+    "duration_sec": 3.29,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:55"
+  },
+  {
+    "id": 9,
+    "category": "everyday",
+    "reference_roman": "Room ka AC theek se cooling nahi kar raha hai.",
+    "reference_devanagari": "रूम का एसी ठीक से कूलिंग नहीं कर रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_009.wav",
+    "duration_sec": 3.94,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:56"
+  },
+  {
+    "id": 10,
+    "category": "everyday",
+    "reference_roman": "Main shaam ko gym jaaunga, aaj leg day hai.",
+    "reference_devanagari": "मैं शाम को जिम जाऊंगा, आज लेग डे है।",
+    "wav_path": "benchmark_data/audio/sentence_010.wav",
+    "duration_sec": 4.08,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:29:58"
+  },
+  {
+    "id": 11,
+    "category": "everyday",
+    "reference_roman": "Wifi connect nahi ho raha hai, router restart karke dekho.",
+    "reference_devanagari": "वाईफाई कनेक्ट नहीं हो रहा है, राउटर रीस्टार्ट करके देखो।",
+    "wav_path": "benchmark_data/audio/sentence_011.wav",
+    "duration_sec": 5.28,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:01"
+  },
+  {
+    "id": 12,
+    "category": "everyday",
+    "reference_roman": "Mera phone charge pe laga do agar switch board khali ho.",
+    "reference_devanagari": "मेरा फोन चार्ज पे लगा दो अगर स्विच बोर्ड खाली हो।",
+    "wav_path": "benchmark_data/audio/sentence_012.wav",
+    "duration_sec": 4.9,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:02"
+  },
+  {
+    "id": 13,
+    "category": "everyday",
+    "reference_roman": "Weather bohot accha hai aaj, thandi hawa chal rahi hai.",
+    "reference_devanagari": "वेदर बहुत अच्छा है आज, ठंडी हवा चल रही है।",
+    "wav_path": "benchmark_data/audio/sentence_013.wav",
+    "duration_sec": 4.75,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:04"
+  },
+  {
+    "id": 14,
+    "category": "everyday",
+    "reference_roman": "Mujhe lagta hai hume ek baar client se double check kar lena chahiye.",
+    "reference_devanagari": "मुझे लगता है हमें एक बार क्लाइंट से डबल चेक कर लेना चाहिए।",
+    "wav_path": "benchmark_data/audio/sentence_014.wav",
+    "duration_sec": 5.11,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:06"
+  },
+  {
+    "id": 15,
+    "category": "everyday",
+    "reference_roman": "Yeh wala movie trailer bohot exciting lag raha hai.",
+    "reference_devanagari": "यह वाला मूवी ट्रेलर बहुत एक्साइटिंग लग रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_015.wav",
+    "duration_sec": 4.39,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:08"
+  },
+  {
+    "id": 16,
+    "category": "everyday",
+    "reference_roman": "Subah se migraine ho raha hai, screen time kam karna padega.",
+    "reference_devanagari": "सुबह से माइग्रेन हो रहा है, स्क्रीन टाइम कम करना पड़ेगा।",
+    "wav_path": "benchmark_data/audio/sentence_016.wav",
+    "duration_sec": 5.35,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:09"
+  },
+  {
+    "id": 17,
+    "category": "everyday",
+    "reference_roman": "Grocery shopping list me doodh aur eggs add kar do.",
+    "reference_devanagari": "ग्रॉसरी शॉपिंग लिस्ट में दूध और एग्स ऐड कर दो।",
+    "wav_path": "benchmark_data/audio/sentence_017.wav",
+    "duration_sec": 4.44,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:11"
+  },
+  {
+    "id": 18,
+    "category": "everyday",
+    "reference_roman": "Flight delayed hai lagbhag do ghante ke liye.",
+    "reference_devanagari": "फ्लाइट डिलेड है लगभग दो घंटे के लिए।",
+    "wav_path": "benchmark_data/audio/sentence_018.wav",
+    "duration_sec": 3.84,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:12"
+  },
+  {
+    "id": 19,
+    "category": "everyday",
+    "reference_roman": "Tumhara new flat kaisa hai, shifted comfortable ho gaye?",
+    "reference_devanagari": "तुम्हारा न्यू फ्लैट कैसा है, शिफ्टेड कम्फर्टेबल हो गए?",
+    "wav_path": "benchmark_data/audio/sentence_019.wav",
+    "duration_sec": 4.9,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:14"
+  },
+  {
+    "id": 20,
+    "category": "everyday",
+    "reference_roman": "Main WhatsApp pe location share kar raha hoon, follow kar lena.",
+    "reference_devanagari": "मैं व्हाट्सएप पे लोकेशन शेयर कर रहा हूँ, फॉलो कर लेना।",
+    "wav_path": "benchmark_data/audio/sentence_020.wav",
+    "duration_sec": 5.35,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:16"
+  },
+  {
+    "id": 21,
+    "category": "everyday",
+    "reference_roman": "Coffee bohot strong banayi hai tumne aaj.",
+    "reference_devanagari": "कॉफी बहुत स्ट्रॉन्ग बनाई है तुमने आज।",
+    "wav_path": "benchmark_data/audio/sentence_021.wav",
+    "duration_sec": 3.86,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:17"
+  },
+  {
+    "id": 22,
+    "category": "everyday",
+    "reference_roman": "Kal subah early morning walk pe chalte hain park me.",
+    "reference_devanagari": "कल सुबह अर्ली मॉर्निंग वॉक पे चलते हैं पार्क में।",
+    "wav_path": "benchmark_data/audio/sentence_022.wav",
+    "duration_sec": 4.42,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:19"
+  },
+  {
+    "id": 23,
+    "category": "everyday",
+    "reference_roman": "Please door lock kar dena jab bahar niklo.",
+    "reference_devanagari": "प्लीज डोर लॉक कर देना जब बाहर निकलो।",
+    "wav_path": "benchmark_data/audio/sentence_023.wav",
+    "duration_sec": 3.82,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:20"
+  },
+  {
+    "id": 24,
+    "category": "everyday",
+    "reference_roman": "Mera parcel deliver ho gaya security desk par.",
+    "reference_devanagari": "मेरा पार्सल डिलीवर हो गया सिक्योरिटी डेस्क पर।",
+    "wav_path": "benchmark_data/audio/sentence_024.wav",
+    "duration_sec": 4.3,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:22"
+  },
+  {
+    "id": 25,
+    "category": "everyday",
+    "reference_roman": "Yeh dress bohot stylish lag rahi hai wedding ke liye.",
+    "reference_devanagari": "यह ड्रेस बहुत स्टाइलिश लग रही है वेडिंग के लिए।",
+    "wav_path": "benchmark_data/audio/sentence_025.wav",
+    "duration_sec": 4.22,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:23"
+  },
+  {
+    "id": 26,
+    "category": "everyday",
+    "reference_roman": "Online sale chal rahi hai Amazon par bohot acche discounts hain.",
+    "reference_devanagari": "ऑनलाइन सेल चल रही है अमेज़न पर बहुत अच्छे डिस्काउंट्स हैं।",
+    "wav_path": "benchmark_data/audio/sentence_026.wav",
+    "duration_sec": 5.09,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:25"
+  },
+  {
+    "id": 27,
+    "category": "everyday",
+    "reference_roman": "Battery low ho gayi hai, charger kahan rakha hai?",
+    "reference_devanagari": "बैटरी लो हो गई है, चार्जर कहाँ रखा है?",
+    "wav_path": "benchmark_data/audio/sentence_027.wav",
+    "duration_sec": 4.01,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:27"
+  },
+  {
+    "id": 28,
+    "category": "everyday",
+    "reference_roman": "Music volume thoda kam kar do please, focus nahi ho raha.",
+    "reference_devanagari": "म्यूजिक वॉल्यूम थोड़ा कम कर दो प्लीज, फोकस नहीं हो रहा।",
+    "wav_path": "benchmark_data/audio/sentence_028.wav",
+    "duration_sec": 5.42,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:28"
+  },
+  {
+    "id": 29,
+    "category": "everyday",
+    "reference_roman": "Main kal aapse office me personally discuss karunga yeh matter.",
+    "reference_devanagari": "मैं कल आपसे ऑफिस में पर्सनली डिस्कस करूंगा यह मैटर।",
+    "wav_path": "benchmark_data/audio/sentence_029.wav",
+    "duration_sec": 4.78,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:30"
+  },
+  {
+    "id": 30,
+    "category": "everyday",
+    "reference_roman": "Bas pass me hi hoon, five minutes me pahunch raha hoon.",
+    "reference_devanagari": "बस पास में ही हूँ, फाइव मिनट्स में पहुँच रहा हूँ।",
+    "wav_path": "benchmark_data/audio/sentence_030.wav",
+    "duration_sec": 5.09,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:32"
+  },
+  {
+    "id": 31,
+    "category": "technical",
+    "reference_roman": "Python me async function define karne ke liye async def use karo.",
+    "reference_devanagari": "पायथन में असिंक्रोनस फंक्शन डिफाइन करने के लिए असिंक डेफ़ यूज़ करो।",
+    "wav_path": "benchmark_data/audio/sentence_031.wav",
+    "duration_sec": 5.98,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:34"
+  },
+  {
+    "id": 32,
+    "category": "technical",
+    "reference_roman": "Git merge conflict resolve karke branch ko rebase kar lo.",
+    "reference_devanagari": "गिट मर्ज कन्फ्लिक्ट रिज़ॉल्व करके ब्रांच को रीबेस कर लो।",
+    "wav_path": "benchmark_data/audio/sentence_032.wav",
+    "duration_sec": 4.82,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:35"
+  },
+  {
+    "id": 33,
+    "category": "technical",
+    "reference_roman": "Docker container build karke AWS ECS pe deploy karna hai.",
+    "reference_devanagari": "डॉकर कंटेनर बिल्ड करके एडब्ल्यूएस ईसीएस पे डिप्लॉय करना है।",
+    "wav_path": "benchmark_data/audio/sentence_033.wav",
+    "duration_sec": 5.26,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:37"
+  },
+  {
+    "id": 34,
+    "category": "technical",
+    "reference_roman": "Database queries ko optimize karne ke liye proper indexing lagao.",
+    "reference_devanagari": "डेटाबेस क्वेरीज़ को ऑप्टिमाइज़ करने के लिए प्रॉपर इंडेक्सिंग लगाओ।",
+    "wav_path": "benchmark_data/audio/sentence_034.wav",
+    "duration_sec": 5.69,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:39"
+  },
+  {
+    "id": 35,
+    "category": "technical",
+    "reference_roman": "FastAPI backend WebSocket connection handle kar raha hai.",
+    "reference_devanagari": "फास्टएपीआई बैकएंड वेबसॉकेट कनेक्शन हैंडल कर रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_035.wav",
+    "duration_sec": 4.85,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:41"
+  },
+  {
+    "id": 36,
+    "category": "technical",
+    "reference_roman": "React state update directly mutate mat karo, setter function use karo.",
+    "reference_devanagari": "रिएक्ट स्टेट अपडेट डायरेक्टली म्यूटेट मत करो, सेटर फंक्शन यूज़ करो।",
+    "wav_path": "benchmark_data/audio/sentence_036.wav",
+    "duration_sec": 6.22,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:43"
+  },
+  {
+    "id": 37,
+    "category": "technical",
+    "reference_roman": "PyTorch model inference RTX 3060 Ti GPU par 40ms me run hota hai.",
+    "reference_devanagari": "पायटॉर्च मॉडल इन्फरेंस आरटीएक्स 3060 टीआई जीपीयू पर 40 मिलीसेकंड में रन होता है।",
+    "wav_path": "benchmark_data/audio/sentence_037.wav",
+    "duration_sec": 8.04,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:45"
+  },
+  {
+    "id": 38,
+    "category": "technical",
+    "reference_roman": "REST API endpoint me rate limiting aur JWT authentication implement karo.",
+    "reference_devanagari": "रेस्ट एपीआई एंडपॉइंट में रेट लिमिटिंग और जेडब्ल्यूटी ऑथेंटिकेशन इम्प्लीमेंट करो।",
+    "wav_path": "benchmark_data/audio/sentence_038.wav",
+    "duration_sec": 7.01,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:47"
+  },
+  {
+    "id": 39,
+    "category": "technical",
+    "reference_roman": "FAISS vector store me cosine similarity search fast perform karti hai.",
+    "reference_devanagari": "फैस वेक्टर स्टोर में कोसाइन सिमिलैरिटी सर्च फास्ट परफॉर्म करती है।",
+    "wav_path": "benchmark_data/audio/sentence_039.wav",
+    "duration_sec": 5.59,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:50"
+  },
+  {
+    "id": 40,
+    "category": "technical",
+    "reference_roman": "Microservices communication ke liye gRPC ya RabbitMQ select kar sakte hain.",
+    "reference_devanagari": "माइक्रोसर्विस कम्युनिकेशन के लिए जीआरपीसी या रैबिटएमक्यू सेलेक्ट कर सकते हैं।",
+    "wav_path": "benchmark_data/audio/sentence_040.wav",
+    "duration_sec": 6.55,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:52"
+  },
+  {
+    "id": 41,
+    "category": "technical",
+    "reference_roman": "Pull request review karte waqt unit test coverage verify kar lena.",
+    "reference_devanagari": "पुल रिक्वेस्ट रिव्यू करते वक्त यूनिट टेस्ट कवरेज वेरीफाई कर लेना।",
+    "wav_path": "benchmark_data/audio/sentence_041.wav",
+    "duration_sec": 5.45,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:54"
+  },
+  {
+    "id": 42,
+    "category": "technical",
+    "reference_roman": "Frontend styling Tailwind CSS ya pure CSS modules me maintain karo.",
+    "reference_devanagari": "फ्रंटएंड स्टाइलिंग टेलविंड सीएसएस या प्योर सीएसएस मॉड्यूल्स में मेंटेन करो।",
+    "wav_path": "benchmark_data/audio/sentence_042.wav",
+    "duration_sec": 6.26,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:55"
+  },
+  {
+    "id": 43,
+    "category": "technical",
+    "reference_roman": "Memory leak identify karne ke liye heap profiler attach karo.",
+    "reference_devanagari": "मेमोरी लीक आइडेंटिफाई करने के लिए हीप प्रोफाइलर अटैच करो।",
+    "wav_path": "benchmark_data/audio/sentence_043.wav",
+    "duration_sec": 5.23,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:57"
+  },
+  {
+    "id": 44,
+    "category": "technical",
+    "reference_roman": "CI CD pipeline test cases fail hone par build reject kar deti hai.",
+    "reference_devanagari": "सीआई सीडी पाइपलाइन टेस्ट केसेस फेल होने पर बिल्ड रिजेक्ट कर देती है।",
+    "wav_path": "benchmark_data/audio/sentence_044.wav",
+    "duration_sec": 5.86,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:30:59"
+  },
+  {
+    "id": 45,
+    "category": "technical",
+    "reference_roman": "Redis cache layer configure karo taaki database latency drop ho sake.",
+    "reference_devanagari": "रेडिस कैश लेयर कॉन्फ़िगर करो ताकि डेटाबेस लेटेंसी ड्रॉप हो सके।",
+    "wav_path": "benchmark_data/audio/sentence_045.wav",
+    "duration_sec": 5.88,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:01"
+  },
+  {
+    "id": 46,
+    "category": "technical",
+    "reference_roman": "Open source Whisper model Hindi audio transcription accurately process karta hai.",
+    "reference_devanagari": "ओपन सोर्स व्हिस्पर मॉडल हिंदी ऑडियो ट्रांसक्रिप्शन एक्युरेटली प्रोसेस करता है।",
+    "wav_path": "benchmark_data/audio/sentence_046.wav",
+    "duration_sec": 6.22,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:03"
+  },
+  {
+    "id": 47,
+    "category": "technical",
+    "reference_roman": "Kubernetes cluster me pod autoscaling metrics based set ki hai.",
+    "reference_devanagari": "कुबेरनेट्स क्लस्टर में पॉड ऑटोस्केलिंग मीट्रिक्स बेस्ड सेट की है।",
+    "wav_path": "benchmark_data/audio/sentence_047.wav",
+    "duration_sec": 5.28,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:05"
+  },
+  {
+    "id": 48,
+    "category": "technical",
+    "reference_roman": "Edge computing architecture latency sensitive applications ke liye optimal hai.",
+    "reference_devanagari": "एज कंप्यूटिंग आर्किटेक्चर लेटेंसी सेंसिटिव एप्लिकेशन्स के लिए ऑप्टिमल है।",
+    "wav_path": "benchmark_data/audio/sentence_048.wav",
+    "duration_sec": 6.1,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:07"
+  },
+  {
+    "id": 49,
+    "category": "technical",
+    "reference_roman": "SQL query explain analyze karke execution plan verify kiya gaya.",
+    "reference_devanagari": "एसक्यूएल क्वेरी एक्सप्लेन एनालाइज़ करके एक्ज़ीक्यूशन प्लान वेरीफाई किया गया।",
+    "wav_path": "benchmark_data/audio/sentence_049.wav",
+    "duration_sec": 6.22,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:08"
+  },
+  {
+    "id": 50,
+    "category": "technical",
+    "reference_roman": "Type annotations TypeScript me runtime type safety guarantee nahi karte.",
+    "reference_devanagari": "टाइप एनोटेशन्स टाइपस्क्रिप्ट में रनटाइम टाइप सेफ्टी गारंटी नहीं करते।",
+    "wav_path": "benchmark_data/audio/sentence_050.wav",
+    "duration_sec": 5.78,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:10"
+  },
+  {
+    "id": 51,
+    "category": "numbers",
+    "reference_roman": "Total invoice amount ₹4,500 hai with 18% GST included.",
+    "reference_devanagari": "टोटल इनवॉइस अमाउंट ₹4,500 है विथ 18% जीएसटी इनक्लूडेड।",
+    "wav_path": "benchmark_data/audio/sentence_051.wav",
+    "duration_sec": 7.2,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:12"
+  },
+  {
+    "id": 52,
+    "category": "numbers",
+    "reference_roman": "Flight 15th August ko subah 6:30 AM par depart hogi.",
+    "reference_devanagari": "फ्लाइट 15 अगस्त को सुबह 6:30 बजे डिपार्ट होगी।",
+    "wav_path": "benchmark_data/audio/sentence_052.wav",
+    "duration_sec": 6.07,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:14"
+  },
+  {
+    "id": 53,
+    "category": "numbers",
+    "reference_roman": "Please mujhe 9876543210 par call back kar lena sham 5 baje.",
+    "reference_devanagari": "प्लीज मुझे 9876543210 पर कॉल बैक कर लेना शाम 5 बजे।",
+    "wav_path": "benchmark_data/audio/sentence_053.wav",
+    "duration_sec": 7.7,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:15"
+  },
+  {
+    "id": 54,
+    "category": "numbers",
+    "reference_roman": "Monthly flat rent ₹28,000 hai plus ₹2,500 maintenance charge.",
+    "reference_devanagari": "मंथली फ्लैट रेंट ₹28,000 है प्लस ₹2,500 मेंटेनेंस चार्ज।",
+    "wav_path": "benchmark_data/audio/sentence_054.wav",
+    "duration_sec": 7.08,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:17"
+  },
+  {
+    "id": 55,
+    "category": "numbers",
+    "reference_roman": "Project deadline 31st October 2026 ko midnight 11:59 PM par hai.",
+    "reference_devanagari": "प्रोजेक्ट डेडलाइन 31 अक्टूबर 2026 को मिडनाइट 11:59 बजे पर है।",
+    "wav_path": "benchmark_data/audio/sentence_055.wav",
+    "duration_sec": 7.82,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:20"
+  },
+  {
+    "id": 56,
+    "category": "numbers",
+    "reference_roman": "Petrol rate kal se ₹1.50 per litre increase ho gaya hai.",
+    "reference_devanagari": "पेट्रोल रेट कल से ₹1.50 पर लीटर इनक्रीज़ हो गया है।",
+    "wav_path": "benchmark_data/audio/sentence_056.wav",
+    "duration_sec": 5.83,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:21"
+  },
+  {
+    "id": 57,
+    "category": "numbers",
+    "reference_roman": "Account number 451298762341 me ₹50,000 transfer kar diye hain.",
+    "reference_devanagari": "अकाउंट नंबर 451298762341 में ₹50,000 ट्रांसफर कर दिए हैं।",
+    "wav_path": "benchmark_data/audio/sentence_057.wav",
+    "duration_sec": 8.93,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:24"
+  },
+  {
+    "id": 58,
+    "category": "numbers",
+    "reference_roman": "Discount coupon apply karne ke baad cart total ₹1,299 ban raha hai.",
+    "reference_devanagari": "डिस्काउंट कूपन अप्लाई करने के बाद कार्ट टोटल ₹1,299 बन रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_058.wav",
+    "duration_sec": 7.13,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:26"
+  },
+  {
+    "id": 59,
+    "category": "numbers",
+    "reference_roman": "Meeting 3:45 PM par start hogi aur duration lagbhag 45 minutes rahegi.",
+    "reference_devanagari": "मीटिंग 3:45 बजे स्टार्ट होगी और ड्यूरेशन लगभग 45 मिनट्स रहेगी।",
+    "wav_path": "benchmark_data/audio/sentence_059.wav",
+    "duration_sec": 7.97,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:28"
+  },
+  {
+    "id": 60,
+    "category": "numbers",
+    "reference_roman": "Humara office temperature 24.5 degrees Celsius set hai.",
+    "reference_devanagari": "हमारा ऑफिस टेम्परेचर 24.5 डिग्री सेल्सियस सेट है।",
+    "wav_path": "benchmark_data/audio/sentence_060.wav",
+    "duration_sec": 6.17,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:30"
+  },
+  {
+    "id": 61,
+    "category": "numbers",
+    "reference_roman": "Train PNR number 2458910243 confirm ho gaya coach B4 seat 23 par.",
+    "reference_devanagari": "ट्रेन पीएनआर नंबर 2458910243 कन्फर्म हो गया कोच बी4 सीट 23 पर।",
+    "wav_path": "benchmark_data/audio/sentence_061.wav",
+    "duration_sec": 9.0,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:32"
+  },
+  {
+    "id": 62,
+    "category": "numbers",
+    "reference_roman": "Car speedometer 80 km per hour cross kar chuka tha highway par.",
+    "reference_devanagari": "कार स्पीडोमीटर 80 किलोमीटर पर ऑवर क्रॉस कर चुका था हाईवे पर।",
+    "wav_path": "benchmark_data/audio/sentence_062.wav",
+    "duration_sec": 5.74,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:34"
+  },
+  {
+    "id": 63,
+    "category": "numbers",
+    "reference_roman": "Fixed deposit par annual interest rate 7.25% offer kiya ja raha hai.",
+    "reference_devanagari": "फिक्स्ड डिपॉजिट पर एनुअल इंटरेस्ट रेट 7.25% ऑफर किया जा रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_063.wav",
+    "duration_sec": 7.03,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:36"
+  },
+  {
+    "id": 64,
+    "category": "numbers",
+    "reference_roman": "OTP 849201 hai, yeh 10 minutes ke liye valid rahega.",
+    "reference_devanagari": "ओटीपी 849201 है, यह 10 मिनट्स के लिए वैलिड रहेगा।",
+    "wav_path": "benchmark_data/audio/sentence_064.wav",
+    "duration_sec": 7.03,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:37"
+  },
+  {
+    "id": 65,
+    "category": "numbers",
+    "reference_roman": "Total weight 3.5 kilograms hai baggage allowance ke andar.",
+    "reference_devanagari": "टोटल वेट 3.5 किलोग्राम्स है बैगेज अलाउंस के अंदर।",
+    "wav_path": "benchmark_data/audio/sentence_065.wav",
+    "duration_sec": 5.88,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:39"
+  },
+  {
+    "id": 66,
+    "category": "numbers",
+    "reference_roman": "Stock price 12% rise hua hai Q3 results announce hone ke baad.",
+    "reference_devanagari": "स्टॉक प्राइस 12% राइज़ हुआ है क्यू3 रिजल्ट्स अनाउंस होने के बाद।",
+    "wav_path": "benchmark_data/audio/sentence_066.wav",
+    "duration_sec": 6.24,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:41"
+  },
+  {
+    "id": 67,
+    "category": "numbers",
+    "reference_roman": "Passport expiry date 14th March 2032 show ho rahi hai.",
+    "reference_devanagari": "पासपोर्ट एक्सपायरी डेट 14 मार्च 2032 शो हो रही है।",
+    "wav_path": "benchmark_data/audio/sentence_067.wav",
+    "duration_sec": 5.69,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:42"
+  },
+  {
+    "id": 68,
+    "category": "numbers",
+    "reference_roman": "Speed test me download bandwidth 150 Mbps record hui.",
+    "reference_devanagari": "स्पीड टेस्ट में डाउनलोड बैंडविड्थ 150 एमबीपीएस रिकॉर्ड हुई।",
+    "wav_path": "benchmark_data/audio/sentence_068.wav",
+    "duration_sec": 5.81,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:44"
+  },
+  {
+    "id": 69,
+    "category": "numbers",
+    "reference_roman": "Electricity bill is month ₹3,420 aaya hai air conditioning use ki wajah se.",
+    "reference_devanagari": "इलेक्ट्रिसिटी बिल इस मंथ ₹3,420 आया है एयर कंडीशनिंग यूज़ की वजह से।",
+    "wav_path": "benchmark_data/audio/sentence_069.wav",
+    "duration_sec": 7.75,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:47"
+  },
+  {
+    "id": 70,
+    "category": "numbers",
+    "reference_roman": "Pin code 380015 Ahmedabad area belong karta hai.",
+    "reference_devanagari": "पिन कोड 380015 अहमदाबाद एरिया बिलॉन्ग करता है।",
+    "wav_path": "benchmark_data/audio/sentence_070.wav",
+    "duration_sec": 6.14,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:50"
+  },
+  {
+    "id": 71,
+    "category": "names",
+    "reference_roman": "Manav Ahmedabad se connect kar raha hai via Google Meet.",
+    "reference_devanagari": "मानव अहमदाबाद से कनेक्ट कर रहा है वाया गूगल मीट।",
+    "wav_path": "benchmark_data/audio/sentence_071.wav",
+    "duration_sec": 4.87,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:51"
+  },
+  {
+    "id": 72,
+    "category": "names",
+    "reference_roman": "Aarav Sharma ne Bengaluru me Swiggy aur Zomato me apply kiya.",
+    "reference_devanagari": "आरव शर्मा ने बेंगलुरु में स्विगी और ज़ोमैटो में अप्लाई किया।",
+    "wav_path": "benchmark_data/audio/sentence_072.wav",
+    "duration_sec": 5.23,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:53"
+  },
+  {
+    "id": 73,
+    "category": "names",
+    "reference_roman": "Pooja Patel ne Gandhinagar me TCS join kar liya hai.",
+    "reference_devanagari": "पूजा पटेल ने गांधीनगर में टीसीएस जॉइन कर लिया है।",
+    "wav_path": "benchmark_data/audio/sentence_073.wav",
+    "duration_sec": 4.68,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:54"
+  },
+  {
+    "id": 74,
+    "category": "names",
+    "reference_roman": "Rohan Verma ne Delhi se Mumbai Indigo flight book ki.",
+    "reference_devanagari": "रोहन वर्मा ने दिल्ली से मुंबई इंडिगो फ्लाइट बुक की।",
+    "wav_path": "benchmark_data/audio/sentence_074.wav",
+    "duration_sec": 4.9,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:56"
+  },
+  {
+    "id": 75,
+    "category": "names",
+    "reference_roman": "Symphony aur Bolna Voice AI buildathon organize kar rahe hain.",
+    "reference_devanagari": "सिम्फनी और बोलना वॉयस एआई बिल्डाथॉन ऑर्गेनाइज़ कर रहे हैं।",
+    "wav_path": "benchmark_data/audio/sentence_075.wav",
+    "duration_sec": 5.3,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:57"
+  },
+  {
+    "id": 76,
+    "category": "names",
+    "reference_roman": "Reliance Jio aur Airtel 5G network expand kar rahe hain Gujarat me.",
+    "reference_devanagari": "रिलायंस जियो और एयरटेल 5जी नेटवर्क एक्सपैंड कर रहे हैं गुजरात में।",
+    "wav_path": "benchmark_data/audio/sentence_076.wav",
+    "duration_sec": 6.14,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:31:58"
+  },
+  {
+    "id": 77,
+    "category": "names",
+    "reference_roman": "Infosys campus Pune me bohot picturesque design kiya gaya hai.",
+    "reference_devanagari": "इन्फोसिस कैंपस पुणे में बहुत पिक्चरेस्क डिज़ाइन किया गया है।",
+    "wav_path": "benchmark_data/audio/sentence_077.wav",
+    "duration_sec": 5.11,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:00"
+  },
+  {
+    "id": 78,
+    "category": "names",
+    "reference_roman": "HDFC Bank netbanking portal authenticate karne me issue aa raha hai.",
+    "reference_devanagari": "एचडीएफसी बैंक नेटबैंकिंग पोर्टल ऑथेंटिकेट करने में इशू आ रहा है।",
+    "wav_path": "benchmark_data/audio/sentence_078.wav",
+    "duration_sec": 5.54,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:01"
+  },
+  {
+    "id": 79,
+    "category": "names",
+    "reference_roman": "Ananya Deshmukh Hyderabad me Microsoft office me kaam karti hai.",
+    "reference_devanagari": "अनन्या देशमुख हैदराबाद में माइक्रोसॉफ्ट ऑफिस में काम करती है।",
+    "wav_path": "benchmark_data/audio/sentence_079.wav",
+    "duration_sec": 5.42,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:03"
+  },
+  {
+    "id": 80,
+    "category": "names",
+    "reference_roman": "Flipkart Big Billion Days sale agle hafte live hogi.",
+    "reference_devanagari": "फ्लिपकार्ट बिग बिलियन डेज़ सेल अगले हफ्ते लाइव होगी।",
+    "wav_path": "benchmark_data/audio/sentence_080.wav",
+    "duration_sec": 4.73,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:05"
+  },
+  {
+    "id": 81,
+    "category": "names",
+    "reference_roman": "Vikram Rathore ne Jaipur se handmade craft business start kiya.",
+    "reference_devanagari": "विक्रम राठौर ने जयपुर से हैंडमेड क्राफ्ट बिज़नेस स्टार्ट किया।",
+    "wav_path": "benchmark_data/audio/sentence_081.wav",
+    "duration_sec": 5.23,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:06"
+  },
+  {
+    "id": 82,
+    "category": "names",
+    "reference_roman": "Tata Motors electric vehicles segment me market leader ban gaya hai.",
+    "reference_devanagari": "टाटा मोटर्स इलेक्ट्रिक व्हीकल्स सेगमेंट में मार्केट लीडर बन गया है।",
+    "wav_path": "benchmark_data/audio/sentence_082.wav",
+    "duration_sec": 5.57,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:08"
+  },
+  {
+    "id": 83,
+    "category": "names",
+    "reference_roman": "Bhopal aur Indore Clean City rankings me consistently top karte hain.",
+    "reference_devanagari": "भोपाल और इंदौर क्लीन सिटी रैंकिंग्स में कंसिस्टेंटली टॉप करते हैं।",
+    "wav_path": "benchmark_data/audio/sentence_083.wav",
+    "duration_sec": 5.64,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:10"
+  },
+  {
+    "id": 84,
+    "category": "names",
+    "reference_roman": "Siddharth Mehta ne IIT Bombay se computer science complete kiya.",
+    "reference_devanagari": "सिद्धार्थ मेहता ने आईआईटी बॉम्बे से कंप्यूटर साइंस कम्प्लीट किया।",
+    "wav_path": "benchmark_data/audio/sentence_084.wav",
+    "duration_sec": 5.95,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:11"
+  },
+  {
+    "id": 85,
+    "category": "names",
+    "reference_roman": "Paytm UPI transaction instantly complete ho jata hai bina delay ke.",
+    "reference_devanagari": "पेटीएम यूपीआई ट्रांजैक्शन इंस्टैंटली कम्प्लीट हो जाता है बिना डिले के।",
+    "wav_path": "benchmark_data/audio/sentence_085.wav",
+    "duration_sec": 6.17,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:13"
+  },
+  {
+    "id": 86,
+    "category": "codeswitch",
+    "reference_roman": "Honestly speaking, mujhe lagta hai architecture thoda over-engineered hai.",
+    "reference_devanagari": "ऑनेस्टली स्पीकिंग, मुझे लगता है आर्किटेक्चर थोड़ा ओवर-इंजीनियर्ड है।",
+    "wav_path": "benchmark_data/audio/sentence_086.wav",
+    "duration_sec": 5.93,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:14"
+  },
+  {
+    "id": 87,
+    "category": "codeswitch",
+    "reference_roman": "Please ensure karna ki production database backup ready rahe before migration.",
+    "reference_devanagari": "प्लीज एन्श्योर करना कि प्रोडक्शन डेटाबेस बैकअप रेडी रहे बिफोर माइग्रेशन।",
+    "wav_path": "benchmark_data/audio/sentence_087.wav",
+    "duration_sec": 6.34,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:20"
+  },
+  {
+    "id": 88,
+    "category": "codeswitch",
+    "reference_roman": "Maine client ko politely explain kiya that this feature is out of scope.",
+    "reference_devanagari": "मैंने क्लाइंट को पोलाइटली एक्सप्लेन किया दैट दिस फीचर इज़ आउट ऑफ स्कोप।",
+    "wav_path": "benchmark_data/audio/sentence_088.wav",
+    "duration_sec": 6.05,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:22"
+  },
+  {
+    "id": 89,
+    "category": "codeswitch",
+    "reference_roman": "At the end of the day, quality deliver karna hi hamari top priority hai.",
+    "reference_devanagari": "एट द एंड ऑफ द डे, क्वालिटी डिलीवर करना ही हमारी टॉप प्रायोरिटी है।",
+    "wav_path": "benchmark_data/audio/sentence_089.wav",
+    "duration_sec": 6.0,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:24"
+  },
+  {
+    "id": 90,
+    "category": "codeswitch",
+    "reference_roman": "By the way, kya aapne documentation thoroughly review kiya hai?",
+    "reference_devanagari": "बाई द वे, क्या आपने डॉक्यूमेंटेशन थरौली रिव्यू किया है?",
+    "wav_path": "benchmark_data/audio/sentence_090.wav",
+    "duration_sec": 5.42,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:26"
+  },
+  {
+    "id": 91,
+    "category": "codeswitch",
+    "reference_roman": "I completely agree with you ki code refactoring bohot urgently required hai.",
+    "reference_devanagari": "आई कम्प्लीटली अग्री विथ यू कि कोड रीफैक्टरिंग बहुत अर्जेंटली रिक्वायर्ड है।",
+    "wav_path": "benchmark_data/audio/sentence_091.wav",
+    "duration_sec": 6.24,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:29"
+  },
+  {
+    "id": 92,
+    "category": "codeswitch",
+    "reference_roman": "To be frank, initial prototype dekh kar stakeholders bohot impressed the.",
+    "reference_devanagari": "टू बी फ्रैंक, इनिशियल प्रोटोटाइप देख कर स्टेकहोल्डर्स बहुत इम्प्रेस्ड थे।",
+    "wav_path": "benchmark_data/audio/sentence_092.wav",
+    "duration_sec": 6.19,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:30"
+  },
+  {
+    "id": 93,
+    "category": "codeswitch",
+    "reference_roman": "You should take care ki memory usage threshold cross na kare under heavy load.",
+    "reference_devanagari": "यू शुड टेक केयर कि मेमोरी यूसेज थ्रेशोल्ड क्रॉस ना करे अंडर हैवी लोड।",
+    "wav_path": "benchmark_data/audio/sentence_093.wav",
+    "duration_sec": 6.17,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:32"
+  },
+  {
+    "id": 94,
+    "category": "codeswitch",
+    "reference_roman": "First of all, hume core user requirements identify karne padenge.",
+    "reference_devanagari": "फर्स्ट ऑफ ऑल, हमें कोर यूजर रिक्वायरमेंट्स आइडेंटिफाई करने पड़ेंगे।",
+    "wav_path": "benchmark_data/audio/sentence_094.wav",
+    "duration_sec": 6.24,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:34"
+  },
+  {
+    "id": 95,
+    "category": "codeswitch",
+    "reference_roman": "As far as I know, unka deployment schedule Friday evening fix hai.",
+    "reference_devanagari": "एज़ फार एज़ आई नो, उनका डिप्लॉयमेंट शेड्यूल फ्राइडे इवनिंग फिक्स है।",
+    "wav_path": "benchmark_data/audio/sentence_095.wav",
+    "duration_sec": 5.83,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:35"
+  },
+  {
+    "id": 96,
+    "category": "codeswitch",
+    "reference_roman": "Don't worry, hum root cause analysis conduct karke patch release kar denge.",
+    "reference_devanagari": "डोंट वरी, हम रूट कॉज़ एनालिसिस कंडक्ट करके पैच रिलीज़ कर देंगे।",
+    "wav_path": "benchmark_data/audio/sentence_096.wav",
+    "duration_sec": 6.1,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:37"
+  },
+  {
+    "id": 97,
+    "category": "codeswitch",
+    "reference_roman": "Keep in mind that user privacy aur data sovereignty compromise nahi honi chahiye.",
+    "reference_devanagari": "कीप इन माइंड दैट यूजर प्राइवेसी और डेटा सॉवरेन्टी कॉम्प्रोमाइज़ नहीं होनी चाहिए।",
+    "wav_path": "benchmark_data/audio/sentence_097.wav",
+    "duration_sec": 6.74,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:39"
+  },
+  {
+    "id": 98,
+    "category": "codeswitch",
+    "reference_roman": "In my opinion, edge inference cloud latency se far better user experience deta hai.",
+    "reference_devanagari": "इन माय ओपिनियन, एज इन्फरेंस क्लाउड लेटेंसी से फार बेटर यूजर एक्सपीरियंस देता है।",
+    "wav_path": "benchmark_data/audio/sentence_098.wav",
+    "duration_sec": 7.37,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:41"
+  },
+  {
+    "id": 99,
+    "category": "codeswitch",
+    "reference_roman": "Let's catch up tomorrow morning to align on the deliverables.",
+    "reference_devanagari": "लेट्स कैच अप टुमॉरो मॉर्निंग टू अलाइन ऑन द डिलिवरेबल्स।",
+    "wav_path": "benchmark_data/audio/sentence_099.wav",
+    "duration_sec": 5.21,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:43"
+  },
+  {
+    "id": 100,
+    "category": "codeswitch",
+    "reference_roman": "No matter what happens, hume hackathon deadline meet karni hi padegi.",
+    "reference_devanagari": "नो मैटर व्हॉट हैपन्स, हमें हैकाथॉन डेडलाइन मीट करनी ही पड़ेगी।",
+    "wav_path": "benchmark_data/audio/sentence_100.wav",
+    "duration_sec": 6.26,
+    "source": "edge_tts_hi-IN-SwaraNeural",
+    "generated_at": "2026-10-25 12:32:44"
+  }
+]
