@@ -92,3 +92,68 @@ def test_openai_transcription_end_to_end():
     data = response.json()
     assert "text" in data
     assert len(data["text"].strip()) > 0
+
+
+def test_openai_speech_wav_format(fake_edge_tts):
+    """Verify response_format='wav' returns audio/wav with RIFF header."""
+    payload = {
+        "model": "tts-1",
+        "input": "नमस्ते, WAV test.",
+        "voice": "swara",
+        "response_format": "wav",
+    }
+    response = client.post("/v1/audio/speech", json=payload)
+    assert response.status_code == 200
+    assert "audio/wav" in response.headers.get("content-type", "")
+    assert response.content[:4] == b"RIFF"
+
+
+def test_openai_speech_speed(fake_edge_tts):
+    """Verify speech endpoint honors speed parameter."""
+    payload = {
+        "model": "tts-1",
+        "input": "Testing speech speed.",
+        "voice": "neerja",
+        "speed": 1.25,
+    }
+    response = client.post("/v1/audio/speech", json=payload)
+    assert response.status_code == 200
+
+
+def test_openai_speech_input_validation():
+    """Verify input length limits and empty input rejection."""
+    # Empty input
+    resp_empty = client.post("/v1/audio/speech", json={"input": "   ", "model": "tts-1"})
+    assert resp_empty.status_code == 400
+
+    # Over 4,000 chars
+    long_input = "a" * 4001
+    resp_long = client.post("/v1/audio/speech", json={"input": long_input, "model": "tts-1"})
+    assert resp_long.status_code == 400
+    assert "4,000" in resp_long.json().get("detail", "")
+
+    # Unsupported format
+    resp_fmt = client.post("/v1/audio/speech", json={"input": "valid", "response_format": "flac"})
+    assert resp_fmt.status_code == 400
+    assert "Unsupported response_format" in resp_fmt.json().get("detail", "")
+
+
+def test_openai_speech_edge_tts_failure_502(monkeypatch):
+    """Verify clean 502 JSON error is returned if Edge-TTS fails (no bare 500)."""
+    import edge_tts
+
+    class FailingCommunicate:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def stream(self):
+            raise ConnectionError("Simulated Edge-TTS connection drop")
+
+    monkeypatch.setattr(edge_tts, "Communicate", FailingCommunicate)
+
+    response = client.post("/v1/audio/speech", json={"input": "test fail", "voice": "swara"})
+    assert response.status_code == 502
+    data = response.json()
+    assert "detail" in data
+    assert "Edge-TTS upstream synthesis failed" in str(data["detail"])
+

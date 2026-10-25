@@ -1,5 +1,8 @@
 # Bolna Voice Agent Integration with BolSamajh
 
+> **Integration Status:** **Implemented, not yet tested against a live Bolna agent.**  
+> The gateway endpoints (`/v1/audio/speech` and `/v1/audio/transcriptions`) strictly implement the OpenAI HTTP REST specification required by Bolna, but have not been exercised end-to-end against a live agent on the Bolna cloud/self-hosted orchestrator. See Section 4 below for steps to verify against a live Bolna agent.
+
 This guide explains how to connect an autonomous conversational voice agent built on [Bolna](https://github.com/bolna-ai/bolna) to **BolSamajh**'s open-source Indian voice gateway.
 
 ---
@@ -24,7 +27,7 @@ Bolna orchestrates voice agents using two distinct audio channels:
 
 | Component | Bolna Protocol | BolSamajh Support | Notes |
 |:---|:---|:---|:---|
-| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Supported** | Configured via `synthesizer_base_url` and `synthesizer_key`. Emits 24 kHz MP3 audio using Indian neural voices (`swara`, `neerja`, `dhwani`). |
+| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Implemented, not yet tested against a live Bolna agent** | Configured via `synthesizer_base_url` and `synthesizer_key`. Supports MP3 and WAV output using Indian neural voices (`swara`, `neerja`, `dhwani`). |
 | **Realtime Transcriber (STT)** | OpenAI Realtime WebSocket protocol (`REALTIME_TRANSCRIBER_URL`) | **Not Implemented** | Bolna's streaming conversational pipeline requires full-duplex WebSocket connections. BolSamajh provides standard batch REST STT (`/v1/audio/transcriptions`), not the realtime WebSocket server. For Bolna agents, use a supported realtime provider (e.g., Deepgram) for STT and BolSamajh for TTS. |
 
 ```
@@ -167,3 +170,64 @@ In Bolna's architecture, custom synthesizers are configured using `synthesizer_b
 ### Self-Hosted Realtime STT Status
 - **Status:** **Not Implemented**.
 - **Reason:** Bolna's streaming real-time transcription engine connects via WebSockets using `REALTIME_TRANSCRIBER_URL` and `REALTIME_TRANSCRIBER_KEY` conforming to the OpenAI Realtime protocol. BolSamajh implements the offline/batch HTTP REST transcription protocol (`/v1/audio/transcriptions`), but does not provide the OpenAI Realtime WebSocket server.
+
+---
+
+## 4. Live Verification Guide (For Developer / User)
+
+Follow these exact steps to test BolSamajh against a live Bolna agent:
+
+### Step 1: Start the BolSamajh Gateway with an API Key
+```bash
+# Terminal 1: Run BolSamajh with gateway security enabled
+export BOLSAMAJH_API_KEY="test-bolna-key-2026"
+python -m uvicorn bolsamajh.web.server:app --host 127.0.0.1 --port 8000
+```
+
+### Step 2: Expose the Gateway via Secure Tunnel
+Use either `cloudflared` (recommended, free, no account needed) or `ngrok`:
+
+**Option A (Cloudflare Tunnel):**
+```bash
+# Terminal 2:
+cloudflared tunnel --url http://127.0.0.1:8000
+```
+Copy the assigned tunnel URL (e.g., `https://random-words.trycloudflare.com`).
+
+**Option B (ngrok):**
+```bash
+# Terminal 2:
+ngrok http 8000
+```
+Copy the assigned forwarding URL (e.g., `https://xyz.ngrok-free.app`).
+
+### Step 3: Test Tunnel Connectivity
+Verify the tunnel forwards correctly:
+```bash
+curl -s https://<YOUR-TUNNEL-URL>/api/status
+```
+
+### Step 4: Configure the Agent on Bolna Platform
+1. Log in to your Bolna Dashboard (or local Bolna instance).
+2. Create or open an agent.
+3. In **Voice / Synthesizer Settings**, select **Custom OpenAI-Compatible Provider**.
+4. Set the following fields:
+   - **Base URL:** `https://<YOUR-TUNNEL-URL>/v1`
+   - **API Key:** `test-bolna-key-2026`
+   - **Model:** `tts-1`
+   - **Voice:** `swara` (for Hindi/Hinglish) or `neerja` (for Indian English)
+5. Save the agent configuration.
+
+### Step 5: Execute a Live Call & Verify
+Trigger a test call from the Bolna web simulator or dial the connected phone number.
+
+### 📋 Live Verification Checklist (Copy & Paste Back)
+```markdown
+### Bolna Live Verification Checklist
+- [ ] Tunnel connectivity verified: `curl https://<YOUR-TUNNEL-URL>/api/status` returns status "ready".
+- [ ] Manual endpoint test: `curl -X POST https://<YOUR-TUNNEL-URL>/v1/audio/speech ...` returns audio file.
+- [ ] Bolna agent dashboard accepts custom synthesizer base URL and API key without validation error.
+- [ ] Live call initiates speech synthesis request to `/v1/audio/speech`.
+- [ ] BolSamajh server logs show HTTP 200 on `POST /v1/audio/speech` during the conversation.
+- [ ] Synthesized audio plays back clearly in the Bolna call without clipping or silence.
+```

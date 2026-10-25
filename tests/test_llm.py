@@ -69,3 +69,15 @@ async def test_google_ai_headers_and_config():
 def test_ollama_num_ctx():
     adapter = OllamaAdapter(model="gemma3:4b", num_ctx=8192)
     assert adapter.num_ctx == 8192
+
+
+@pytest.mark.anyio
+async def test_google_ai_default_model_and_error_handling(monkeypatch):
+    # Verify default model is gemini-2.0-flash
+    adapter = GoogleAIAdapter()
+    assert adapter.model == "gemini-2.0-flash"
+    assert adapter.name == "google-ai/gemini-2.0-flash"
+
+    # Verify list_available_models returns empty list when no key is set
+    assert await adapter.list_available_models() == []
+

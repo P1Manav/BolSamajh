@@ -734,21 +734,63 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
     """OpenAI-compatible TTS endpoint for Bolna agent integration.
 
     Generates natural Indian neural speech (Swara/Neerja/Dhwani) compatible with Bolna agents.
-    Honors explicitly requested voice without text heuristics.
+    Honors explicitly requested voice, response_format (mp3, wav), and speed.
+    Enforces maximum input length of 4,000 characters and returns clean HTTP 502 on upstream failure.
     """
     import edge_tts
+
+    if not req.input or not req.input.strip():
+        raise HTTPException(status_code=400, detail="Input text cannot be empty.")
+
+    if len(req.input) > 4000:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Input text exceeds maximum allowed length of 4,000 characters (received {len(req.input)})."
+        )
+
+    fmt = (req.response_format or "mp3").strip().lower()
+    if fmt not in ("mp3", "wav"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported response_format '{req.response_format}'. Supported formats: 'mp3', 'wav'."
+        )
+
+    # Compute rate string from speed (OpenAI API accepts speed from 0.25 to 4.0)
+    clamped_speed = max(0.25, min(req.speed, 4.0))
+    speed_pct = int(round((clamped_speed - 1.0) * 100))
+    rate_str = f"+{speed_pct}%" if speed_pct >= 0 else f"{speed_pct}%"
 
     requested_voice = req.voice.strip().lower()
     voice = VOICE_MAP.get(requested_voice, config.tts.edge_voice_hi)
 
-    comm = edge_tts.Communicate(req.input, voice)
-    audio_buf = io.BytesIO()
-    async for chunk in comm.stream():
-        if chunk["type"] == "audio":
-            audio_buf.write(chunk["data"])
+    try:
+        comm = edge_tts.Communicate(req.input, voice, rate=rate_str)
+        audio_buf = io.BytesIO()
+        async for chunk in comm.stream():
+            if chunk["type"] == "audio":
+                audio_buf.write(chunk["data"])
+        mp3_bytes = audio_buf.getvalue()
+        if not mp3_bytes:
+            raise RuntimeError("Edge-TTS service returned empty audio data stream.")
+    except Exception as e:
+        log.error("Edge-TTS speech synthesis failed: %s", e)
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "Edge-TTS upstream synthesis failed", "message": str(e)}
+        )
 
-    audio_buf.seek(0)
-    return StreamingResponse(audio_buf, media_type="audio/mpeg")
+    if fmt == "wav":
+        try:
+            wav_bytes = await asyncio.to_thread(resample_audio_to_16k_mono, mp3_bytes)
+            return StreamingResponse(io.BytesIO(wav_bytes), media_type="audio/wav")
+        except Exception as e:
+            log.error("Failed to convert synthesized audio to WAV format: %s", e)
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "Audio format conversion to WAV failed", "message": str(e)}
+            )
+
+    return StreamingResponse(io.BytesIO(mp3_bytes), media_type="audio/mpeg")
 
 
 # --- Static Web Frontend ---

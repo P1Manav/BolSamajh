@@ -1,18 +1,19 @@
 """Google AI Studio (Gemini) LLM adapter — free tier fallback.
 
-Verified free-tier model as of 2026-10-25:
-- Model: gemini-1.5-flash (15 RPM, 1M TPM, 1,500 RPD, no credit card required).
+Free-tier model candidate:
+- Model: gemini-2.0-flash (unverified without active GOOGLE_AI_API_KEY).
+- Configurable via GOOGLE_AI_MODEL or BOLSAMAJH_GOOGLE_AI_MODEL.
 - Sends API key in 'x-goog-api-key' header instead of URL parameters.
 - Uses native 'systemInstruction' instead of fake user/model turn pairs.
 - Suppresses httpx / httpcore loggers to WARNING so API keys never leak into logs.
-- Clear error diagnostics on HTTP 404 / deprecated model IDs.
+- Clear error diagnostics and automatic fallback on HTTP 404 / deprecated model IDs.
 """
 
 import os
 import json
 import time
 import logging
-from typing import AsyncIterator
+from typing import AsyncIterator, List
 
 import httpx
 
@@ -31,17 +32,13 @@ _API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 class GoogleAIAdapter(LLMAdapter):
     """LLM adapter for Google AI Studio (Gemini) free tier.
 
-    Free tier limits (verified in Google AI Studio documentation as of 2026-10-25):
-    - Gemini 1.5 Flash: 15 RPM, 1M TPM, 1,500 RPD
-    - No credit card required
-
     Requires env var: GOOGLE_AI_API_KEY
     Configurable model via: GOOGLE_AI_MODEL or BOLSAMAJH_GOOGLE_AI_MODEL
     """
 
     def __init__(
         self,
-        model: str = "gemini-1.5-flash",
+        model: str = "gemini-2.0-flash",
         temperature: float = 0.3,
         max_tokens: int = 1024,
     ):
@@ -61,6 +58,31 @@ class GoogleAIAdapter(LLMAdapter):
             "Content-Type": "application/json",
         }
 
+    async def list_available_models(self) -> List[str]:
+        """Query Google AI Studio models endpoint and return generateContent-capable model names."""
+        if not self._api_key:
+            return []
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"{_API_BASE}/models",
+                    headers=self._get_headers(),
+                )
+                if resp.status_code != 200:
+                    log.warning("Failed to list Google AI models: HTTP %d", resp.status_code)
+                    return []
+                data = resp.json()
+                models = []
+                for m in data.get("models", []):
+                    methods = m.get("supportedGenerationMethods", [])
+                    if "generateContent" in methods:
+                        name = m.get("name", "").replace("models/", "")
+                        models.append(name)
+                return models
+        except Exception as e:
+            log.warning("Exception querying Google AI models: %s", e)
+            return []
+
     async def is_available(self) -> bool:
         """Check if API key is set and endpoint responds."""
         if not self._api_key:
@@ -75,8 +97,9 @@ class GoogleAIAdapter(LLMAdapter):
                 if resp.status_code == 404:
                     log.error(
                         "Google AI model '%s' not found (HTTP 404). "
-                        "The model may be deprecated or misspelled. "
-                        "Configure an active model with GOOGLE_AI_MODEL (e.g., 'gemini-1.5-flash').",
+                        "The model may be deprecated, retired, or misspelled. "
+                        "Set GOOGLE_AI_MODEL to an active model (e.g., 'gemini-2.0-flash'). "
+                        "Check available models via https://ai.google.dev/models.",
                         self.model,
                     )
                     return False
