@@ -4,7 +4,9 @@
 > **Tagline:** *"Bolo. Samjho."* — Speak to write and act in any app, talk to any document in your language.  
 > **Builder:** Manav (Solo Builder, Ahmedabad, India)  
 > **License:** MIT Open Source License  
+> **GitHub Repository:** https://github.com/P1Manav/BolSamajh  
 > **Codebase:** Fully functional desktop client + Web-Call mode + 100-sentence benchmark suite  
+
 
 ---
 

@@ -105,7 +105,7 @@ graph TD
 
 ### 1. Clone & Set Up Virtual Environment
 ```powershell
-git clone https://github.com/your-username/BolSamajh.git
+git clone https://github.com/P1Manav/BolSamajh.git
 cd BolSamajh
 python -m venv venv
 .\venv\Scripts\activate
