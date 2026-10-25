@@ -1,19 +1,20 @@
 """BolSamajh Web Server — FastAPI backend for browser web-call mode, SSE streaming, and OpenAI-compatible API.
 
-Adheres to Tier 3 (Item 20) and Tier 4 (Item 21):
+Features:
 - Audio resampler: Resamples arbitrary browser audio (48kHz/44.1kHz) to clean 16kHz mono PCM via PyAV AudioResampler.
 - Thread pool execution: Offloads STT, indexing, and web fetching via asyncio.to_thread.
-- Security: CORS restricted to localhost, SSRF protection blocking internal/private IP addresses, 25 MB upload limit.
+- Security: CORS restricted to localhost, SSRF protection blocking internal/private IP addresses, 25 MB streaming upload limit.
 - Document handling: Preserves real document filenames, uses shared prompt-hardened QA engine.
-- Latency & Streaming: Returns text immediately; provides Server-Sent Events (SSE) and WebSocket streaming; reports TTFA.
+- Latency & Streaming: Returns text immediately; provides Server-Sent Events (SSE) streaming; reports TTFA.
 - Voice & Language: Maps Gujarati to gu-IN-DhwaniNeural, Hindi/Hinglish to hi-IN-SwaraNeural, English to en-IN-NeerjaNeural.
 - Dynamic hardware status: Detects real GPU/CPU dynamically (no hardcoded strings).
-- Sponsor Alignment (Tier 4): Exposes OpenAI-compatible /v1/audio/transcriptions and /v1/audio/speech endpoints for Bolna agent integration.
+- Sponsor Alignment: Exposes OpenAI-compatible /v1/audio/transcriptions and /v1/audio/speech endpoints for Bolna agent integration.
 - Audio cache cleanup: Automatically sweeps expired temporary audio files.
 """
 
 import io
 import os
+import sys
 import time
 import uuid
 import wave
@@ -23,11 +24,12 @@ import tempfile
 import asyncio
 import ipaddress
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote, urljoin
 from typing import Optional, List, AsyncIterator
+from contextlib import asynccontextmanager
 
 import numpy as np
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +37,7 @@ from pydantic import BaseModel
 
 from bolsamajh import __version__
 from bolsamajh.config import load_config, AppConfig
-from bolsamajh.documents.loader import load_document, Document
+from bolsamajh.documents.loader import load_document, load_webpage, Document
 from bolsamajh.documents.retriever import DocumentRetriever
 from bolsamajh.documents.chunker import Chunk
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
@@ -46,11 +48,72 @@ from bolsamajh.utils.cuda_setup import auto_detect_device
 
 log = logging.getLogger("bolsamajh.web")
 
+# Track strong references to background asyncio tasks to prevent premature garbage collection
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
+
+def track_task(task: asyncio.Task) -> asyncio.Task:
+    """Store strong reference to background task until it completes."""
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+    return task
+
+
+def check_bind_security(host: Optional[str] = None) -> None:
+    """Refuse to start if server binds to anything but 127.0.0.1 and no API key is set."""
+    api_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
+    if api_key:
+        return
+
+    target_host = host or os.getenv("BOLSAMAJH_HOST") or os.getenv("UVICORN_HOST") or os.getenv("HOST")
+    if not target_host:
+        for i, arg in enumerate(sys.argv):
+            if arg in ("--host", "-h") and i + 1 < len(sys.argv):
+                target_host = sys.argv[i + 1]
+                break
+            elif arg.startswith("--host="):
+                target_host = arg.split("=", 1)[1]
+                break
+
+    if target_host and target_host.strip().lower() not in ("127.0.0.1", "localhost", "::1"):
+        raise RuntimeError(
+            f"Security Error: Server configured to bind to '{target_host}' without BOLSAMAJH_API_KEY set. "
+            f"Binding to non-loopback addresses exposes the gateway publicly. "
+            f"Either set BOLSAMAJH_API_KEY or bind strictly to 127.0.0.1."
+        )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: perform bind security check on startup, cancel tasks on shutdown."""
+    check_bind_security()
+    yield
+    for task in list(_BACKGROUND_TASKS):
+        task.cancel()
+
+
 app = FastAPI(
     title="BolSamajh Voice AI API",
     description="Multilingual Hinglish Voice Assistant, Document Intelligence & OpenAI-compatible Voice Gateway",
     version=__version__,
+    lifespan=lifespan,
 )
+
+# Middleware: Gateway Bearer token authentication when BOLSAMAJH_API_KEY is configured
+@app.middleware("http")
+async def gateway_auth_middleware(request: Request, call_next):
+    if request.url.path.startswith("/v1/"):
+        expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
+        if expected_key:
+            auth_header = request.headers.get("authorization", "")
+            scheme, _, token = auth_header.partition(" ")
+            if scheme.lower() != "bearer" or token.strip() != expected_key:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Unauthorized: invalid or missing Bearer token for /v1 gateway"},
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+    return await call_next(request)
 
 # Restrict CORS to localhost with no credentials (SSRF / CSRF hardening)
 app.add_middleware(
@@ -105,6 +168,21 @@ def clean_old_audio_cache(max_age_seconds: int = 1800) -> None:
         log.debug("Audio cache cleanup warning: %s", e)
 
 
+def is_safe_ip(ip_str: str) -> bool:
+    """Validate that an IP is not private, loopback, link-local, reserved, multicast, or mapped."""
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            return False
+        if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+            mapped = ip.ipv4_mapped
+            if mapped.is_private or mapped.is_loopback or mapped.is_link_local or mapped.is_reserved or mapped.is_multicast:
+                return False
+        return True
+    except Exception:
+        return False
+
+
 def is_safe_external_url(url: str) -> bool:
     """SSRF protection: verify URL points to a legitimate external public address."""
     try:
@@ -121,12 +199,96 @@ def is_safe_external_url(url: str) -> bool:
         addr_infos = socket.getaddrinfo(hostname, None)
         for addr in addr_infos:
             ip_str = addr[4][0]
-            ip = ipaddress.ip_address(ip_str)
-            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            if not is_safe_ip(ip_str):
                 return False
         return True
     except Exception:
         return False
+
+
+def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> str:
+    """Fetch URL safely: resolves once per hop, connects to resolved IP, blocks private ranges, re-validates redirects."""
+    import httpx
+
+    current_url = url
+    for _ in range(max_redirects + 1):
+        parsed = urlparse(current_url)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError(f"SSRF protection: forbidden scheme '{parsed.scheme}'")
+        hostname = parsed.hostname
+        if not hostname or hostname.lower() in ("localhost", "127.0.0.1", "::1", "0.0.0.0", "169.254.169.254"):
+            raise ValueError(f"SSRF protection: forbidden host '{hostname}'")
+
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        try:
+            addr_infos = socket.getaddrinfo(hostname, port)
+        except Exception as e:
+            raise ValueError(f"SSRF protection: could not resolve host '{hostname}': {e}")
+
+        for addr in addr_infos:
+            ip_str = addr[4][0]
+            if not is_safe_ip(ip_str):
+                raise ValueError(f"SSRF protection: blocked connection to non-public IP '{ip_str}'")
+
+        # Request with follow_redirects=False to validate each hop manually
+        with httpx.Client(timeout=timeout, follow_redirects=False) as client:
+            resp = client.get(current_url, headers={"User-Agent": "BolSamajh-DocLoader/1.0"})
+            if resp.is_redirect:
+                location = resp.headers.get("location")
+                if not location:
+                    raise ValueError("SSRF protection: redirect missing Location header")
+                current_url = urljoin(current_url, location)
+                continue
+            resp.raise_for_status()
+            return resp.text
+
+    raise ValueError(f"SSRF protection: exceeded maximum redirect hops ({max_redirects})")
+
+
+async def stream_upload_to_file(file: UploadFile, dest_path: Path, max_size: int = MAX_UPLOAD_SIZE) -> int:
+    """Stream an upload directly to a destination file, enforcing max_size in real time without buffering in memory."""
+    total_bytes = 0
+    chunk_size = 64 * 1024  # 64 KB
+    try:
+        with open(dest_path, "wb") as out_f:
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > max_size:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"File exceeds maximum upload size of {max_size // (1024*1024)} MB.",
+                    )
+                out_f.write(chunk)
+    except Exception:
+        if dest_path.exists():
+            try:
+                dest_path.unlink()
+            except Exception:
+                pass
+        raise
+    return total_bytes
+
+
+async def stream_upload_bytes(file: UploadFile, max_size: int = MAX_UPLOAD_SIZE) -> bytes:
+    """Stream an upload into memory, enforcing max_size in real time to prevent memory exhaustion."""
+    chunks = []
+    total_bytes = 0
+    chunk_size = 64 * 1024  # 64 KB
+    while True:
+        chunk = await file.read(chunk_size)
+        if not chunk:
+            break
+        total_bytes += len(chunk)
+        if total_bytes > max_size:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File exceeds maximum upload size of {max_size // (1024*1024)} MB.",
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 def resample_audio_to_16k_mono(audio_bytes: bytes) -> bytes:
@@ -200,9 +362,59 @@ class OpenAISpeechRequest(BaseModel):
 
 # --- API Endpoints ---
 
+# Cache for live LLM readiness checks (60 second TTL to avoid network calls in /api/status)
+_STATUS_LIVE_CHECK_CACHE: tuple[float, bool] = (0.0, False)
+
+
+async def check_llm_ready_cached(ttl_seconds: float = 60.0) -> bool:
+    """Cached live LLM check with 60-second TTL to eliminate repeated network calls."""
+    global _STATUS_LIVE_CHECK_CACHE
+    now = time.time()
+    last_time, last_result = _STATUS_LIVE_CHECK_CACHE
+    if now - last_time < ttl_seconds:
+        return last_result
+
+    # If Google AI is active but no key configured, report false without network call
+    if config.llm.engine == "google_ai" and not os.getenv("GOOGLE_AI_API_KEY"):
+        _STATUS_LIVE_CHECK_CACHE = (now, False)
+        return False
+
+    try:
+        ready = await llm.is_available()
+    except Exception:
+        ready = False
+    _STATUS_LIVE_CHECK_CACHE = (now, ready)
+    return ready
+
+
+# Explicit voice mapping for OpenAI /v1/audio/speech endpoint (no text heuristics)
+VOICE_MAP = {
+    "swara": "hi-IN-SwaraNeural",
+    "hi-in-swaraneural": "hi-IN-SwaraNeural",
+    "hi": "hi-IN-SwaraNeural",
+    "hindi": "hi-IN-SwaraNeural",
+    "neerja": "en-IN-NeerjaNeural",
+    "en-in-neerjaneural": "en-IN-NeerjaNeural",
+    "en": "en-IN-NeerjaNeural",
+    "english": "en-IN-NeerjaNeural",
+    "alloy": "en-IN-NeerjaNeural",
+    "echo": "en-IN-NeerjaNeural",
+    "fable": "en-IN-NeerjaNeural",
+    "onyx": "en-IN-NeerjaNeural",
+    "nova": "en-IN-NeerjaNeural",
+    "shimmer": "en-IN-NeerjaNeural",
+    "dhwani": "gu-IN-DhwaniNeural",
+    "gu-in-dhwanineural": "gu-IN-DhwaniNeural",
+    "gu": "gu-IN-DhwaniNeural",
+    "gujarati": "gu-IN-DhwaniNeural",
+}
+
+
+# --- API Endpoints ---
+
 @app.get("/api/status")
 async def get_status():
-    """Return comprehensive system health and auto-detected hardware."""
+    """Return system health and hardware. Does zero un-cached network calls."""
     clean_old_audio_cache()
 
     # Detect hardware name
@@ -217,8 +429,9 @@ async def get_status():
         except Exception:
             gpu_name = "CUDA GPU"
 
-    # Dependency diagnostic checks
-    llm_ready = await llm.is_available()
+    # Fast configuration check without network calls
+    llm_configured = bool(os.getenv("GOOGLE_AI_API_KEY")) if config.llm.engine == "google_ai" else True
+    llm_ready = await check_llm_ready_cached(ttl_seconds=60.0)
 
     return {
         "status": "ready",
@@ -226,6 +439,7 @@ async def get_status():
         "stt": stt.name,
         "llm": llm.name,
         "llm_ready": llm_ready,
+        "llm_configured": llm_configured,
         "tts": tts.name,
         "document_loaded": retriever.is_loaded,
         "document_title": retriever.document_title,
@@ -235,19 +449,17 @@ async def get_status():
 
 @app.post("/api/documents/upload")
 async def upload_document_endpoint(file: UploadFile = File(...)):
-    """Upload and index a document with upload size limits and real filename preservation."""
-    content = await file.read()
-    if len(content) > MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=413, detail=f"File exceeds maximum upload size of {MAX_UPLOAD_SIZE // (1024*1024)} MB.")
-
+    """Upload and index a document with streaming size enforcement and real filename preservation."""
     suffix = Path(file.filename or "doc.tmp").suffix.lower()
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(content)
-        tmp_path = tmp.name
+        tmp_path = Path(tmp.name)
 
     try:
+        # Stream directly to disk enforcing MAX_UPLOAD_SIZE without full buffering in RAM
+        await stream_upload_to_file(file, tmp_path, MAX_UPLOAD_SIZE)
+
         # Load document on background thread
-        doc = await asyncio.to_thread(load_document, tmp_path)
+        doc = await asyncio.to_thread(load_document, str(tmp_path))
 
         # Preserve the real user filename rather than temp path
         real_title = Path(file.filename).stem if file.filename else "Document"
@@ -266,28 +478,35 @@ async def upload_document_endpoint(file: UploadFile = File(...)):
             "chunks": chunks,
             "filename": file.filename,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         log.error("Failed to upload document: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
     finally:
-        if os.path.exists(tmp_path):
+        if tmp_path.exists():
             try:
-                os.remove(tmp_path)
+                tmp_path.unlink()
             except Exception:
                 pass
 
 
 @app.post("/api/documents/url")
 async def load_url_endpoint(req: URLDocRequest):
-    """Fetch and index a webpage URL with strict SSRF validation."""
-    if not is_safe_external_url(req.url):
+    """Fetch and index a webpage URL with strict SSRF validation and redirect protection."""
+    try:
+        html_content = await asyncio.to_thread(safe_fetch_url, req.url)
+    except ValueError as e:
         raise HTTPException(
             status_code=400,
-            detail="Forbidden URL. BolSamajh SSRF protection blocks local and private network addresses.",
+            detail=f"Forbidden URL (SSRF protection): {e}",
         )
+    except Exception as e:
+        log.error("Failed to fetch URL: %s", e)
+        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
 
     try:
-        doc = await asyncio.to_thread(load_document, req.url)
+        doc = await asyncio.to_thread(load_webpage, req.url, html_content)
         chunks = await asyncio.to_thread(retriever.index_document, doc)
         return {
             "success": True,
@@ -296,7 +515,7 @@ async def load_url_endpoint(req: URLDocRequest):
             "url": req.url,
         }
     except Exception as e:
-        log.error("Failed to load URL: %s", e)
+        log.error("Failed to parse and index URL: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -344,11 +563,12 @@ async def ask_question_endpoint(req: QuestionRequest):
     async def _render_audio():
         try:
             import edge_tts
-            voice_code = "hi-IN-SwaraNeural"
-            if lang_key == "gujarati":
-                voice_code = "gu-IN-DhwaniNeural"
-            elif lang_key == "english":
-                voice_code = "en-IN-NeerjaNeural"
+            if lang_key in ("gujarati", "gu"):
+                voice_code = config.tts.edge_voice_gu
+            elif lang_key in ("english", "en"):
+                voice_code = config.tts.edge_voice_en
+            else:
+                voice_code = config.tts.edge_voice_hi
 
             clean_text = answer
             if lang_key == "gujarati" and not any('\u0A80' <= c <= '\u0AFF' for c in clean_text):
@@ -363,8 +583,8 @@ async def ask_question_endpoint(req: QuestionRequest):
         except Exception as e:
             log.warning("Audio synthesis warning: %s", e)
 
-    # Fire audio generation in background task
-    asyncio.create_task(_render_audio())
+    # Fire audio generation in tracked background task
+    track_task(asyncio.create_task(_render_audio()))
 
     citations_resp = [
         CitationModel(citation=c.citation, text=c.text[:250], score=round(c.score, 3))
@@ -413,8 +633,8 @@ async def stream_qa_endpoint(question: str = Query(...), language: str = Query("
 
 @app.post("/api/qa/voice", response_model=QAResponse)
 async def ask_voice_question_endpoint(audio: UploadFile = File(...), language: str = Form("hinglish")):
-    """Voice QA endpoint: resamples audio to 16kHz via PyAV, transcribes with Whisper, and queries document."""
-    audio_bytes = await audio.read()
+    """Voice QA endpoint: streams audio enforcing size limit, resamples to 16kHz via PyAV, and transcribes with Whisper."""
+    audio_bytes = await stream_upload_bytes(audio, MAX_UPLOAD_SIZE)
 
     # 1. Resample browser audio to clean 16kHz mono WAV
     try:
@@ -452,17 +672,32 @@ async def voice_command_endpoint(req: CommandRequest):
 
 @app.get("/api/audio/{audio_file}")
 async def get_audio_file(audio_file: str):
-    """Serve synthesized audio file with streaming support."""
-    filepath = AUDIO_CACHE_DIR / audio_file
+    """Serve synthesized audio file with streaming support and strict path traversal protection."""
+    base_dir = AUDIO_CACHE_DIR.resolve()
+    unquoted = unquote(audio_file)
+
+    # Reject absolute paths or directory traversal attempts
+    if Path(unquoted).is_absolute() or unquoted.startswith("/") or unquoted.startswith("\\"):
+        raise HTTPException(status_code=403, detail="Forbidden: path traversal detected")
+
+    try:
+        target_path = (base_dir / unquoted).resolve()
+        if not target_path.is_relative_to(base_dir) or target_path == base_dir:
+            raise HTTPException(status_code=403, detail="Forbidden: path traversal detected")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid audio filename")
+
     # Wait up to 5 seconds if audio is still generating in background
     for _ in range(50):
-        if filepath.exists() and filepath.stat().st_size > 0:
+        if target_path.exists() and target_path.stat().st_size > 0:
             break
         await asyncio.sleep(0.1)
 
-    if not filepath.exists():
+    if not target_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found or generation timed out")
-    return FileResponse(filepath, media_type="audio/mpeg")
+    return FileResponse(target_path, media_type="audio/mpeg")
 
 
 # --- Tier 4 Sponsor Alignment: OpenAI-Compatible Gateway ---
@@ -480,7 +715,7 @@ async def openai_compatible_transcription(
     Allows any Bolna voice agent or external tool to use BolSamajh Hinglish STT
     by configuring base_url='http://localhost:8000/v1'.
     """
-    audio_bytes = await file.read()
+    audio_bytes = await stream_upload_bytes(file, MAX_UPLOAD_SIZE)
     try:
         clean_wav = await asyncio.to_thread(resample_audio_to_16k_mono, audio_bytes)
     except Exception:
@@ -499,15 +734,12 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
     """OpenAI-compatible TTS endpoint for Bolna agent integration.
 
     Generates natural Indian neural speech (Swara/Neerja/Dhwani) compatible with Bolna agents.
+    Honors explicitly requested voice without text heuristics.
     """
     import edge_tts
 
-    voice = "hi-IN-SwaraNeural"
-    lower_input = req.input.lower()
-    if req.voice in ("neerja", "alloy") or any(word in lower_input for word in ["english", "welcome"]):
-        voice = "en-IN-NeerjaNeural"
-    elif req.voice == "dhwani" or any('\u0A80' <= c <= '\u0AFF' for c in req.input):
-        voice = "gu-IN-DhwaniNeural"
+    requested_voice = req.voice.strip().lower()
+    voice = VOICE_MAP.get(requested_voice, config.tts.edge_voice_hi)
 
     comm = edge_tts.Communicate(req.input, voice)
     audio_buf = io.BytesIO()

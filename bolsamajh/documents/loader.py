@@ -174,12 +174,12 @@ def load_docx(file_path: str) -> Document:
     return result
 
 
-def load_webpage(url: str) -> Document:
+def load_webpage(url: str, html_content: str | None = None) -> Document:
     """Load a web page using trafilatura."""
     import trafilatura
 
     log.info("Loading web page: %s", url[:80])
-    downloaded = trafilatura.fetch_url(url)
+    downloaded = html_content if html_content is not None else trafilatura.fetch_url(url)
     if not downloaded:
         raise ValueError(f"Could not fetch URL: {url}")
 
