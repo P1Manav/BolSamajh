@@ -40,7 +40,7 @@ class LLMConfig:
     ollama_base_url: str = "http://localhost:11434"
     ollama_num_ctx: int = 8192                # 8k context window to prevent prompt truncation
     auto_fallback: bool = True                 # Automatically fallback between Ollama and Gemini
-    google_ai_model: str = "gemini-1.5-flash"  # Verified free-tier model (15 RPM, no card needed)
+    google_ai_model: str = "gemini-1.5-flash"  # Free-tier model verified as of 2026-10-25 (15 RPM, no card needed)
     # API key read from env var GOOGLE_AI_API_KEY
     temperature: float = 0.3
     max_tokens: int = 1024
@@ -121,6 +121,10 @@ def load_config() -> AppConfig:
 
     if os.getenv("BOLSAMAJH_LLM_ENGINE"):
         config.llm.engine = os.getenv("BOLSAMAJH_LLM_ENGINE")
+    if os.getenv("BOLSAMAJH_GOOGLE_AI_MODEL"):
+        config.llm.google_ai_model = os.getenv("BOLSAMAJH_GOOGLE_AI_MODEL")
+    elif os.getenv("GOOGLE_AI_MODEL"):
+        config.llm.google_ai_model = os.getenv("GOOGLE_AI_MODEL")
     if os.getenv("BOLSAMAJH_SCRIPT"):
         config.dictation.script = os.getenv("BOLSAMAJH_SCRIPT")
     if os.getenv("BOLSAMAJH_DEBUG"):

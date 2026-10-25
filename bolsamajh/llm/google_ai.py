@@ -1,10 +1,11 @@
 """Google AI Studio (Gemini) LLM adapter — free tier fallback.
 
-Adheres to Tier 2 Requirement 14:
-- Free tier verified model (gemini-1.5-flash: 15 RPM, 1M TPM, no card required).
+Verified free-tier model as of 2026-10-25:
+- Model: gemini-1.5-flash (15 RPM, 1M TPM, 1,500 RPD, no credit card required).
 - Sends API key in 'x-goog-api-key' header instead of URL parameters.
 - Uses native 'systemInstruction' instead of fake user/model turn pairs.
 - Suppresses httpx / httpcore loggers to WARNING so API keys never leak into logs.
+- Clear error diagnostics on HTTP 404 / deprecated model IDs.
 """
 
 import os
@@ -30,11 +31,12 @@ _API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 class GoogleAIAdapter(LLMAdapter):
     """LLM adapter for Google AI Studio (Gemini) free tier.
 
-    Free tier limits (as verified in Google AI Studio documentation):
+    Free tier limits (verified in Google AI Studio documentation as of 2026-10-25):
     - Gemini 1.5 Flash: 15 RPM, 1M TPM, 1,500 RPD
     - No credit card required
 
     Requires env var: GOOGLE_AI_API_KEY
+    Configurable model via: GOOGLE_AI_MODEL or BOLSAMAJH_GOOGLE_AI_MODEL
     """
 
     def __init__(
@@ -43,7 +45,7 @@ class GoogleAIAdapter(LLMAdapter):
         temperature: float = 0.3,
         max_tokens: int = 1024,
     ):
-        self.model = os.getenv("GOOGLE_AI_MODEL", model)
+        self.model = os.getenv("BOLSAMAJH_GOOGLE_AI_MODEL", os.getenv("GOOGLE_AI_MODEL", model))
         self.temperature = temperature
         self.max_tokens = max_tokens
         self._api_key = os.getenv("GOOGLE_AI_API_KEY", "")
@@ -70,9 +72,20 @@ class GoogleAIAdapter(LLMAdapter):
                     f"{_API_BASE}/models/{self.model}",
                     headers=self._get_headers(),
                 )
+                if resp.status_code == 404:
+                    log.error(
+                        "Google AI model '%s' not found (HTTP 404). "
+                        "The model may be deprecated or misspelled. "
+                        "Configure an active model with GOOGLE_AI_MODEL (e.g., 'gemini-1.5-flash').",
+                        self.model,
+                    )
+                    return False
                 available = resp.status_code == 200
-                log.info("Google AI Studio %s: %s",
-                         self.model, "available" if available else f"HTTP {resp.status_code}")
+                log.info(
+                    "Google AI Studio %s: %s",
+                    self.model,
+                    "available" if available else f"HTTP {resp.status_code}",
+                )
                 return available
         except Exception as e:
             log.debug("Google AI not reachable: %s", e)
@@ -98,6 +111,14 @@ class GoogleAIAdapter(LLMAdapter):
                 headers=self._get_headers(),
                 json=payload,
             )
+            if resp.status_code == 404:
+                err_msg = (
+                    f"Google AI model '{self.model}' returned HTTP 404 Not Found. "
+                    f"The model may be deprecated, retired, or misspelled. "
+                    f"Set GOOGLE_AI_MODEL in your environment to a currently available model."
+                )
+                log.error(err_msg)
+                raise RuntimeError(err_msg)
             resp.raise_for_status()
             data = resp.json()
 
@@ -131,6 +152,14 @@ class GoogleAIAdapter(LLMAdapter):
                 headers=self._get_headers(),
                 json=payload,
             ) as resp:
+                if resp.status_code == 404:
+                    err_msg = (
+                        f"Google AI model '{self.model}' returned HTTP 404 Not Found. "
+                        f"The model may be deprecated, retired, or misspelled. "
+                        f"Set GOOGLE_AI_MODEL in your environment to a currently available model."
+                    )
+                    log.error(err_msg)
+                    raise RuntimeError(err_msg)
                 resp.raise_for_status()
                 async for line in resp.aiter_lines():
                     line = line.strip()
