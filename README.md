@@ -132,43 +132,41 @@ python -m uvicorn bolsamajh.web.server:app --port 8000 --reload
 
 ## 📊 Measured Benchmark & Hardware Performance
 
-All performance metrics below are generated directly from executed test runs on the reference system (**NVIDIA RTX 3060 Ti 8GB**, Python 3.12, Windows 11).
+<!-- BENCHMARK_TABLE_START -->
 
-### Empirical Hardware Profile (`benchmark_data/hardware_measurements.json`)
-- **GPU:** NVIDIA GeForce RTX 3060 Ti (8,192 MB total VRAM)
-- **STT Model Allocation:** 1,076 MB VRAM delta (peak system VRAM: 2,437 MB, leaving ~5.75 GB free for concurrent LLM inference)
-- **STT Inference Latency (3.82s sentence):** Mean: **686.2 ms** | Min: **584.0 ms** | P95: **806.9 ms**
-- **Real-Time Factor (RTF):** **0.180x** *(processes audio ~5.5× faster than real-time)*
-- **Document Retrieval Latency:** **13.98 ms** mean across 20 indexed chunks via FAISS
-- **Time To First Audio (TTFA):** **644.6 ms** via streaming Edge-TTS
+### 1. Real-World Speech Benchmark (Public Open Datasets)
 
-### 100-Sentence Hinglish Synthetic Stress Benchmark (`benchmark_data/benchmark_summary.json`)
-Evaluated across **100 diverse Hinglish synthetic audio clips** with `faster-whisper medium` in mixed precision (`int8_float16`):
+> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical phonemic transliteration scoring.
 
-| Model | Device | Precision | Mean WER (%) | Mean CER (%) | Mean Latency | Real-Time Factor (RTF) | VRAM Usage |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **faster-whisper medium** | NVIDIA RTX 3060 Ti | `int8_float16` | **40.79%** | **20.83%** | **1,288 ms** | **0.234x** | **1,076 MB** |
+| Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **medium** | `int8_float16` | 27.39% | 78.13% | **52.84%** | 23.67% | **5307.8 ms** | **0.567x** |
+| **large-v3-turbo** | `int8_float16` | 24.15% | 70.01% | **121.51%** | 52.89% | **610.3 ms** | **0.076x** |
+| **whisper-hinglish-swift** | `int8_float16` | 72.98% | 108.73% | **129.93%** | 59.93% | **173.1 ms** | **0.02x** |
 
-#### Category Breakdown (Synthetic Stress Set)
-| Category | Clips | Mean WER (%) | Mean Latency | Observations |
-| :--- | :---: | :---: | :---: | :--- |
-| **Everyday Conversation** | 30 | **26.95%** | 1,375 ms | High accuracy on common colloquial phrases |
-| **Mid-sentence Code-switch** | 15 | **29.10%** | 814 ms | Recognizes alternating Hindi grammar and English vocabulary |
-| **Indian Names & Brands** | 15 | **36.92%** | 1,294 ms | Accurately parses tech brands (Zomato, Swiggy, TCS) & places |
-| **Technical & DevOps** | 20 | **43.51%** | 984 ms | Retains English technical terms (Kubernetes, PyTorch, Docker) |
-| **Numbers, Dates & Currency** | 20 | **70.48%** | 1,814 ms | Discrepancies between spelled words and digit transcriptions |
+### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
-To reproduce hardware measurements or benchmarks:
-```powershell
-# Measure hardware VRAM, latency, and TTFA
-python scripts/measure_hardware.py
+> 100 curated sentences covering technical terminology, currency amounts (₹), timestamps, and rapid code-switching with multi-voice rotation and automated audio degradations (speed change, additive noise, 8 kHz telephony filtering).
 
-# Run benchmark evaluation
-python -m bolsamajh.benchmark.evaluate --models medium
-```
+| Model | Precision | Overall WER | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **medium** | `int8_float16` | **66.12%** | 64.59% | 53.54% | 106.92% | 60.64% | 37.06% | **800.4 ms** | **0.142x** |
+| **large-v3-turbo** | `int8_float16` | **58.99%** | 68.55% | 48.27% | 82.09% | 58.85% | 23.52% | **486.2 ms** | **0.089x** |
+| **whisper-hinglish-swift** | `int8_float16` | **33.43%** | 23.79% | 33.26% | 70.72% | 24.16% | 12.48% | **108.5 ms** | **0.019x** |
 
----
+### 3. Empirical Hardware & Latency Measurements
 
+> Measured locally on **NVIDIA GPU** (VRAM: 8192 MB) via `scripts/measure_hardware.py`.
+
+| Pipeline Component | Metric | Measured Value | Target / Baseline | Status |
+| :--- | :--- | :---: | :---: | :---: |
+| **STT Latency (faster-whisper medium)** | Mean (warm run, 3.82s audio) | **686.2 ms** | < 1,000 ms | Passed |
+| **STT Real-Time Factor (RTF)** | Speed ratio (latency / duration) | **0.18x** | < 0.25x (4x realtime) | Passed |
+| **GPU VRAM Overhead** | STT Model Allocation Delta | **1076 MB** | < 2,048 MB (Fits 8GB) | Passed |
+| **Vector Retrieval Latency** | Cosine similarity across 20 chunks | **13.98 ms** | < 50 ms | Passed |
+| **TTS Time-to-First-Audio (TTFA)** | First audio packet delivered | **644.6 ms** | < 800 ms | Passed |
+
+<!-- BENCHMARK_TABLE_END -->
 ## ⌨️ Global Hotkeys Reference
 
 | Shortcut | Action | Description |

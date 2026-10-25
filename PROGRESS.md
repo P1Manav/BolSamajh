@@ -2,11 +2,43 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🔍 Tier 0 Complete — Truth & Reproducibility Audit Passed
+## Current Status: 🎯 Tier 1 Complete — Benchmark v2 on Real Speech & Canonical Scoring
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Tier 1 — Benchmark v2 on Real Speech & Canonical Normalization
+- [x] **Zero Manual Recording & Verified Permissive Licenses:**
+  - Evaluated on real public datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`) under **CC-BY-4.0** license.
+  - Documented sources, access terms, and license verification in `benchmark_data/DATASETS.md`.
+  - Extracted 60 real audio clips (20 HiACC code-switched Hinglish, 20 FLEURS read Hindi, 20 FLEURS read Gujarati) via `scripts/download_eval_datasets.py`.
+- [x] **Automated Synthetic Stress Test Generation (`bolsamajh/benchmark/record_tool.py`):**
+  - Explicitly labelled as Synthetic Stress Set.
+  - Multi-voice neural rotation (`hi-IN-SwaraNeural`, `hi-IN-MadhurNeural`, `gu-IN-DhwaniNeural`, `en-IN-NeerjaNeural`).
+  - Open-source DSP degradations implemented via `scipy.signal` and `numpy`:
+    * Speed variations (0.90x to 1.15x)
+    * Additive Gaussian noise (20–22 dB SNR)
+    * 8 kHz telephony phone-codec simulation (300 Hz – 3,400 Hz 4th order Butterworth bandpass filter).
+- [x] **Canonical Phonemic Normalization (`bolsamajh/benchmark/normalization.py`):**
+  - Unicode NFC normalization.
+  - Indic digit replacement (`०-९`, `૦-૯` -> ASCII `0-9`).
+  - Danda (`।`, `॥`) and punctuation stripping.
+  - Chandrabindu (`\u0901`, `\u0a81`) -> Anusvara (`\u0902`, `\u0a82`).
+  - Nukta stripping (`\u093c`, `\u0abc`) and zero-width character removal (ZWJ/ZWNJ).
+  - Transliteration to canonical Latin representation via `Aksharamukha` to prevent penalizing English loanword spelling variants.
+  - Dropped the unprincipled "best of two references" trick.
+- [x] **Multi-Engine Empirical Comparison on NVIDIA RTX 3060 Ti:**
+  - **Real Speech:**
+    * `medium`: 52.79% Mean WER, 23.67% CER, 5,307 ms latency (HiACC CS: 52.84%, FLEURS HI: 27.39%, FLEURS GU: 78.13%)
+    * `large-v3-turbo`: 71.89% Mean WER, 52.89% CER, 610.3 ms latency, 0.076x RTF (FLEURS HI: 24.15%, FLEURS GU: 70.01%)
+    * `whisper-hinglish-swift`: 103.88% Mean WER, 173.1 ms latency, 0.020x RTF
+  - **Synthetic Stress Set:**
+    * `whisper-hinglish-swift`: **33.43% Overall WER**, **18.77% CER**, **108.5 ms Latency**, **0.019x RTF** (Code-switching: **12.48% WER**, Everyday: **23.79% WER**)
+    * `large-v3-turbo`: 58.99% Overall WER, 26.43% CER, 486.2 ms Latency, 0.089x RTF (Code-switching: 23.52% WER)
+    * `medium`: 66.12% Overall WER, 32.97% CER, 800.4 ms Latency, 0.142x RTF (Code-switching: 37.06% WER)
+- [x] **Automated README Table Generation (`scripts/generate_readme_tables.py`):**
+  - Generated README tables directly from `benchmark_data/benchmark_results.json` and `hardware_measurements.json`.
 
 #### Tier 0 — Truth, Reproducibility & Performance Profile
 - [x] Conducted exhaustive audit across `README.md`, `PROGRESS.md`, `DECISIONS.md`, and `submission/*.md`.

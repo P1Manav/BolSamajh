@@ -69,3 +69,9 @@
 **Alternatives considered:** Relying on published theoretical benchmarks or unverified estimates.  
 **Reason:** Voice AI judges require reproducible, honest numbers measured on real hardware. All documented latencies and memory metrics must trace directly to `benchmark_data/hardware_measurements.json`.
 
+## D012: Benchmark v2 Architecture — Real Speech & Canonical Scoring
+**Date:** 2026-10-25  
+**Choice:** Separate evaluations into Real Speech (Google FLEURS `hi_in`/`gu_in`, HiACC `Trelis/hiacc-adult-test-eval`) and Synthetic Stress Set (100 sentences with multi-voice rotation and automated DSP degradations: noise injection, speed change, 8 kHz telephony bandpass filtering). Replace unprincipled 'best of two references' with canonical Devanagari normalization and phonemic transliteration via Aksharamukha.  
+**Alternatives considered:** Only synthetic evaluation; character-exact scoring without phonetic transliteration (penalizes loanword spelling variations).  
+**Reason:** Separating real human speech from synthetic stress gives voice-AI judges clear, reproducible evidence. Canonical phonemic transliteration accurately measures whether the speech recognition captured the right words rather than penalizing script mismatches (e.g. मीटिंग vs meeting).
+

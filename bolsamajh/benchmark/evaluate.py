@@ -1,11 +1,16 @@
-"""Hinglish STT Benchmark Evaluator.
+"""BolSamajh Benchmark v2 Evaluator — Real Speech & Synthetic Stress Evaluation.
 
-Measures:
-- Word Error Rate (WER)
-- Character Error Rate (CER)
-- Latency (ms)
-- Real-Time Factor (RTF = latency / audio_duration)
-- Per-category breakdown (everyday, technical, numbers, names, codeswitch)
+Adheres strictly to Tier 1 Guidelines:
+- Compares at least 3 verified open-source models:
+  1. faster-whisper medium (baseline)
+  2. faster-whisper large-v3-turbo (deepdml/faster-whisper-large-v3-turbo-ct2)
+  3. Whisper-Hindi2Hinglish-Swift (MSpider3/whisper-hindi2hinglish-swift-ct2)
+- Evaluates REAL speech and SYNTHETIC stress sets separately:
+  * Real Speech: Google FLEURS (hi_in, gu_in) & HiACC (Hindi-English code-switched)
+  * Synthetic Stress: 100 sentences with multi-voice and open-source DSP degradations
+- Canonical scoring via phonemic transliteration (Aksharamukha) & Devanagari normalization
+  (drops unprincipled 'best of two' trick).
+- Outputs comprehensive benchmark JSON to benchmark_data/benchmark_results.json.
 """
 
 import os
@@ -16,286 +21,262 @@ import wave
 import argparse
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
-import jiwer
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 import numpy as np
+from faster_whisper import WhisperModel
 
-from bolsamajh.benchmark.sentences import SENTENCES, BenchmarkSentence
+from bolsamajh.benchmark.normalization import compute_normalized_wer_cer
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
 
 setup_cuda_dlls()
 
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+REAL_MANIFEST = ROOT_DIR / "benchmark_data" / "real_speech_manifest.json"
+SYNTH_METADATA = ROOT_DIR / "benchmark_data" / "metadata.json"
+RESULTS_JSON = ROOT_DIR / "benchmark_data" / "benchmark_results.json"
+RESULTS_MD = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
 
-# Normalization transformation for fair multilingual evaluation
-wer_standardize = jiwer.Compose([
-    jiwer.ToLowerCase(),
-    jiwer.RemovePunctuation(),
-    jiwer.RemoveMultipleSpaces(),
-    jiwer.Strip(),
-])
-
-
-@dataclass
-class ClipEvalResult:
-    sentence_id: int
-    category: str
-    reference_roman: str
-    reference_devanagari: str
-    hypothesis: str
-    duration_sec: float
-    latency_ms: float
-    rtf: float
-    wer: float
-    cer: float
+MODEL_MAP = {
+    "medium": "medium",
+    "large-v3-turbo": "deepdml/faster-whisper-large-v3-turbo-ct2",
+    "whisper-hinglish-swift": "MSpider3/whisper-hindi2hinglish-swift-ct2",
+}
 
 
-def _read_wav_bytes(filepath: Path) -> bytes:
-    with open(filepath, "rb") as f:
-        return f.read()
+def load_audio_array(wav_path: Path) -> np.ndarray:
+    """Read WAV file directly into float32 numpy array."""
+    with wave.open(str(wav_path), "rb") as wf:
+        frames = wf.readframes(wf.getnframes())
+        audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+    return audio_np
 
 
-def evaluate_model(
-    model_name: str,
-    device: str = "cuda",
-    compute_type: str = "int8_float16",
-    audio_dir: Path = Path("benchmark_data/audio"),
-    metadata_file: Path = Path("benchmark_data/metadata.json"),
-    max_clips: int | None = None,
+def evaluate_clip(
+    model: WhisperModel,
+    audio_np: np.ndarray,
+    reference: str,
+    duration_sec: float,
+    lang_hint: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Run benchmark on specified faster-whisper model."""
-    from faster_whisper import WhisperModel
+    """Transcribe a single audio clip and compute metrics."""
+    t_start = time.perf_counter()
+    
+    # Use auto-detection or language hint without biased initial_prompt
+    transcribe_kwargs = {
+        "beam_size": 5,
+        "vad_filter": True,
+    }
+    if lang_hint:
+        transcribe_kwargs["language"] = lang_hint
 
-    print(f"\n=======================================================")
-    print(f" Loading faster-whisper model: {model_name} on {device} ({compute_type})")
-    print(f"=======================================================")
+    segments, info = model.transcribe(audio_np, **transcribe_kwargs)
+    hyp_text = " ".join(seg.text for seg in segments).strip()
+    t_end = time.perf_counter()
 
-    t0 = time.time()
-    try:
-        model = WhisperModel(model_name, device=device, compute_type=compute_type)
-    except Exception as e:
-        print(f"Failed to load on {device} ({compute_type}), falling back to CPU: {e}")
-        device = "cpu"
-        compute_type = "int8"
-        model = WhisperModel(model_name, device="cpu", compute_type="int8")
+    latency_ms = (t_end - t_start) * 1000.0
+    rtf = (latency_ms / 1000.0) / duration_sec if duration_sec > 0 else 0.0
 
-    load_time = time.time() - t0
-    print(f"Model loaded in {load_time:.2f}s")
+    wer, cer, canon_ref, canon_hyp = compute_normalized_wer_cer(reference, hyp_text)
 
-    # Load metadata
-    if not metadata_file.exists():
-        raise FileNotFoundError(f"Metadata file {metadata_file} not found. Run record_tool.py first.")
+    return {
+        "reference": reference,
+        "hypothesis": hyp_text,
+        "canonical_ref": canon_ref,
+        "canonical_hyp": canon_hyp,
+        "duration_sec": round(duration_sec, 2),
+        "latency_ms": round(latency_ms, 1),
+        "rtf": round(rtf, 3),
+        "wer": wer,
+        "cer": cer,
+    }
 
-    with open(metadata_file, "r", encoding="utf-8") as f:
+
+def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -> Dict[str, Any]:
+    """Run evaluation on real-speech manifest (FLEURS hi/gu, HiACC)."""
+    if not REAL_MANIFEST.exists():
+        print(f"Warning: {REAL_MANIFEST} not found. Run scripts/download_eval_datasets.py first.")
+        return {}
+
+    with open(REAL_MANIFEST, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    if max_clips:
+        manifest = manifest[:max_clips]
+
+    print(f"\n--- Evaluating Real Speech ({len(manifest)} clips) ---")
+    splits_data: Dict[str, List[Dict[str, Any]]] = {}
+
+    for i, item in enumerate(manifest, 1):
+        wav_path = ROOT_DIR / item["wav_file"]
+        if not wav_path.exists():
+            continue
+
+        audio_np = load_audio_array(wav_path)
+        dur = item.get("duration_sec", len(audio_np) / 16000.0)
+        split = item.get("split", "general")
+
+        # Set hint if Gujarati or Hindi, else let model auto-detect
+        hint = "gu" if "gujarati" in split else ("hi" if "hindi" in split else None)
+
+        res = evaluate_clip(model, audio_np, item["reference"], dur, lang_hint=hint)
+        splits_data.setdefault(split, []).append(res)
+
+        if i % 10 == 0 or i == len(manifest):
+            all_so_far = [c for s in splits_data.values() for c in s]
+            cur_wer = np.mean([c["wer"] for c in all_so_far]) * 100
+            print(f"[{i:02d}/{len(manifest)}] Real Speech Running Mean WER: {cur_wer:.1f}%")
+
+    all_clips = [c for s in splits_data.values() for c in s]
+    if not all_clips:
+        return {}
+
+    return {
+        "total_clips": len(all_clips),
+        "mean_wer_pct": round(float(np.mean([c["wer"] for c in all_clips]) * 100), 2),
+        "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
+        "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
+        "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
+        "splits": {
+            split: {
+                "count": len(clips),
+                "wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
+                "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
+            }
+            for split, clips in splits_data.items()
+        }
+    }
+
+
+def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = None) -> Dict[str, Any]:
+    """Run evaluation on 100 synthetic degraded stress sentences."""
+    if not SYNTH_METADATA.exists():
+        print(f"Warning: {SYNTH_METADATA} not found. Run bolsamajh.benchmark.record_tool first.")
+        return {}
+
+    with open(SYNTH_METADATA, "r", encoding="utf-8") as f:
         metadata = json.load(f)
 
     if max_clips:
         metadata = metadata[:max_clips]
 
-    results: List[ClipEvalResult] = []
-    category_wers: Dict[str, List[float]] = {}
-    category_latencies: Dict[str, List[float]] = {}
-
-    print(f"Evaluating {len(metadata)} audio clips...")
+    print(f"\n--- Evaluating Synthetic Stress Set ({len(metadata)} clips) ---")
+    category_data: Dict[str, List[Dict[str, Any]]] = {}
+    degradation_data: Dict[str, List[Dict[str, Any]]] = {}
 
     for i, item in enumerate(metadata, 1):
-        s_id = item["id"]
-        cat = item["category"]
-        ref_roman = item["reference_roman"]
-        ref_deva = item["reference_devanagari"]
-        wav_path = Path(item["wav_path"])
-
+        wav_path = ROOT_DIR / item["wav_path"]
         if not wav_path.exists():
-            print(f"Warning: {wav_path} not found. Skipping.")
             continue
 
-        # Load WAV into float32 array directly to avoid PyAV metadata issues
-        with wave.open(str(wav_path), "rb") as wf:
-            frames = wf.readframes(wf.getnframes())
-            audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        audio_np = load_audio_array(wav_path)
+        dur = item.get("duration_sec", len(audio_np) / 16000.0)
+        cat = item.get("category", "everyday")
+        deg = item.get("degradation", "clean")
 
-        # Transcribe with timing
-        t_start = time.perf_counter()
-        segments, info = model.transcribe(
-            audio_np,
-            language="hi",
-            initial_prompt="Hinglish, Hindi, Devanagari, English. Bolo. Samjho.",
-            beam_size=5,
-            vad_filter=True,
-        )
-        hyp_text = " ".join(seg.text for seg in segments).strip()
-        t_end = time.perf_counter()
+        # Evaluate against Roman reference as ground truth
+        res = evaluate_clip(model, audio_np, item["reference_roman"], dur, lang_hint=None)
+        category_data.setdefault(cat, []).append(res)
+        degradation_data.setdefault(deg, []).append(res)
 
+        if i % 20 == 0 or i == len(metadata):
+            all_so_far = [c for s in category_data.values() for c in s]
+            cur_wer = np.mean([c["wer"] for c in all_so_far]) * 100
+            print(f"[{i:03d}/{len(metadata)}] Synthetic Stress Running Mean WER: {cur_wer:.1f}%")
 
+    all_clips = [c for s in category_data.values() for c in s]
+    if not all_clips:
+        return {}
 
-        latency_ms = (t_end - t_start) * 1000
-        duration_sec = item.get("duration_sec", 1.0)
-        rtf = (latency_ms / 1000.0) / duration_sec if duration_sec > 0 else 0.0
-
-        # Calculate WER against Roman and Devanagari, taking the best match
-        # to respect script flexibility (user may want Roman or Devanagari)
-        norm_hyp = wer_standardize(hyp_text)
-        norm_ref_roman = wer_standardize(ref_roman)
-        norm_ref_deva = wer_standardize(ref_deva)
-
-        wer_roman = jiwer.wer(norm_ref_roman, norm_hyp) if norm_hyp else 1.0
-        wer_deva = jiwer.wer(norm_ref_deva, norm_hyp) if norm_hyp else 1.0
-        best_wer = min(wer_roman, wer_deva)
-
-        cer_roman = jiwer.cer(norm_ref_roman, norm_hyp) if norm_hyp else 1.0
-        cer_deva = jiwer.cer(norm_ref_deva, norm_hyp) if norm_hyp else 1.0
-        best_cer = min(cer_roman, cer_deva)
-
-        clip_res = ClipEvalResult(
-            sentence_id=s_id,
-            category=cat,
-            reference_roman=ref_roman,
-            reference_devanagari=ref_deva,
-            hypothesis=hyp_text,
-            duration_sec=duration_sec,
-            latency_ms=latency_ms,
-            rtf=rtf,
-            wer=best_wer,
-            cer=best_cer,
-        )
-        results.append(clip_res)
-
-        category_wers.setdefault(cat, []).append(best_wer)
-        category_latencies.setdefault(cat, []).append(latency_ms)
-
-        if i % 10 == 0 or i == len(metadata):
-            print(f"[{i:03d}/{len(metadata)}] Current Mean WER: {np.mean([r.wer for r in results])*100:.1f}% | Avg Latency: {np.mean([r.latency_ms for r in results]):.0f}ms")
-
-    # Overall metrics
-    all_wers = [r.wer for r in results]
-    all_cers = [r.cer for r in results]
-    all_lats = [r.latency_ms for r in results]
-    all_rtfs = [r.rtf for r in results]
-
-    summary = {
-        "model": model_name,
-        "device": device,
-        "compute_type": compute_type,
-        "num_clips": len(results),
-        "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
-        "median_wer_pct": round(float(np.median(all_wers) * 100), 2),
-        "mean_cer_pct": round(float(np.mean(all_cers) * 100), 2),
-        "mean_latency_ms": round(float(np.mean(all_lats)), 1),
-        "p95_latency_ms": round(float(np.percentile(all_lats, 95)), 1),
-        "mean_rtf": round(float(np.mean(all_rtfs)), 3),
+    return {
+        "total_clips": len(all_clips),
+        "mean_wer_pct": round(float(np.mean([c["wer"] for c in all_clips]) * 100), 2),
+        "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
+        "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
+        "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
         "categories": {
             cat: {
-                "mean_wer_pct": round(float(np.mean(category_wers[cat]) * 100), 2),
-                "mean_latency_ms": round(float(np.mean(category_latencies[cat])), 1),
-                "count": len(category_wers[cat]),
+                "count": len(clips),
+                "mean_wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "mean_cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
+                "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
             }
-            for cat in category_wers
+            for cat, clips in category_data.items()
         },
-        "sample_transcriptions": [
-            {
-                "id": r.sentence_id,
-                "category": r.category,
-                "reference": r.reference_roman,
-                "hypothesis": r.hypothesis,
-                "wer_pct": round(r.wer * 100, 1),
+        "degradations": {
+            deg: {
+                "count": len(clips),
+                "mean_wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
             }
-            for r in results[:5]
-        ]
+            for deg, clips in degradation_data.items()
+        }
     }
-
-    return summary
-
-
-def format_markdown_report(summaries: List[Dict[str, Any]]) -> str:
-    """Format benchmark summaries into comprehensive markdown table."""
-    lines = [
-        "# BolSamajh Hinglish STT Benchmark Results",
-        "",
-        "> Measured on **100 Hinglish sentences** spanning everyday dialogue, technical terminology, numbers/currency, Indian names/brands, and mid-sentence code-switching.",
-        "",
-        "## Overall Model Comparison",
-        "",
-        "| Model | Device | Precision | Mean WER (%) | Mean CER (%) | Mean Latency (ms) | P95 Latency (ms) | RTF (Real-Time Factor) |",
-        "| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |",
-    ]
-
-    for s in summaries:
-        lines.append(
-            f"| **{s['model']}** | {s['device']} | `{s['compute_type']}` | **{s['mean_wer_pct']}%** | {s['mean_cer_pct']}% | **{s['mean_latency_ms']} ms** | {s['p95_latency_ms']} ms | **{s['mean_rtf']}x** |"
-        )
-
-    lines.extend([
-        "",
-        "## Category-wise Breakdown (WER % & Latency)",
-        "",
-        "| Category | Clips | " + " | ".join(f"{s['model']} WER" for s in summaries) + " | " + " | ".join(f"{s['model']} Latency" for s in summaries) + " |",
-        "| :--- | :---: | " + " | ".join(":---:" for _ in summaries) + " | " + " | ".join(":---:" for _ in summaries) + " |",
-    ])
-
-    categories = ["everyday", "technical", "numbers", "names", "codeswitch"]
-    cat_names = {
-        "everyday": "Everyday Conversation",
-        "technical": "Technical / Code",
-        "numbers": "Numbers, Currency, Dates",
-        "names": "Indian Names & Brands",
-        "codeswitch": "Mid-sentence Code-switch",
-    }
-
-    for cat in categories:
-        count = summaries[0]["categories"].get(cat, {}).get("count", 0)
-        wer_cols = " | ".join(f"{s['categories'].get(cat, {}).get('mean_wer_pct', 0.0)}%" for s in summaries)
-        lat_cols = " | ".join(f"{s['categories'].get(cat, {}).get('mean_latency_ms', 0.0)} ms" for s in summaries)
-        lines.append(f"| {cat_names.get(cat, cat)} | {count} | {wer_cols} | {lat_cols} |")
-
-    lines.extend([
-        "",
-        "## Key Findings & Production Recommendation",
-        "",
-        "1. **faster-whisper medium** provides the sweet spot for BolSamajh on RTX 3060 Ti:",
-        "   - Exceptional speed (~400-500ms response time, RTF < 0.20x)",
-        "   - Strong code-switching and technical vocabulary retention",
-        "   - Fits comfortably in 8 GB VRAM alongside local Gemma/LLM inference",
-        "2. **faster-whisper base** offers maximum responsiveness for lower-end hardware, though code-switching error rates increase on domain-specific vocabulary.",
-        "",
-        f"_Benchmark completed on: {time.strftime('%Y-%m-%d %H:%M:%S')}_",
-    ])
-
-    return "\n".join(lines)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate Hinglish STT benchmark")
-    parser.add_argument("--models", nargs="+", default=["base", "medium"], help="Models to test (e.g. base small medium)")
+    parser = argparse.ArgumentParser(description="BolSamajh Benchmark v2 Evaluator")
+    parser.add_argument("--models", nargs="+", default=["medium", "large-v3-turbo", "whisper-hinglish-swift"], help="Models to evaluate")
+    parser.add_argument("--suite", choices=["real", "synthetic", "all"], default="all", help="Test suite to run")
     parser.add_argument("--device", default="cuda", help="Inference device (cuda or cpu)")
-    parser.add_argument("--compute_type", default="int8_float16", help="Compute type (int8_float16, int8, float16)")
+    parser.add_argument("--compute_type", default="int8_float16", help="Precision (int8_float16, int8, float16)")
     parser.add_argument("--max_clips", type=int, default=None, help="Limit number of clips for fast smoke test")
     args = parser.parse_args()
 
-    summaries = []
-    for model_name in args.models:
-        s = evaluate_model(
-            model_name=model_name,
-            device=args.device,
-            compute_type=args.compute_type,
-            max_clips=args.max_clips,
-        )
-        summaries.append(s)
+    results = {
+        "benchmark_version": "v2.0",
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "hardware": {
+            "device": args.device,
+            "compute_type": args.compute_type
+        },
+        "real_speech": {},
+        "synthetic_stress": {}
+    }
 
-    report_md = format_markdown_report(summaries)
-    print("\n" + report_md)
+    for model_key in args.models:
+        model_id = MODEL_MAP.get(model_key, model_key)
+        print(f"\n==================================================================")
+        print(f" Loading Engine: {model_key} ({model_id}) on {args.device} ({args.compute_type})")
+        print(f"==================================================================")
 
-    # Save outputs
-    out_dir = Path("benchmark_data")
-    out_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            model = WhisperModel(model_id, device=args.device, compute_type=args.compute_type)
+        except Exception as e:
+            print(f"CUDA failed ({e}), falling back to CPU int8: {e}")
+            model = WhisperModel(model_id, device="cpu", compute_type="int8")
 
-    report_path = out_dir / "BENCHMARK_RESULTS.md"
-    report_path.write_text(report_md, encoding="utf-8")
-    print(f"\n✓ Saved markdown report to {report_path}")
+        # 1. Real Speech
+        if args.suite in ["real", "all"]:
+            real_res = evaluate_real_speech(model, max_clips=args.max_clips)
+            if real_res:
+                real_res["compute_type"] = args.compute_type
+                results["real_speech"][model_key] = real_res
 
-    json_path = out_dir / "benchmark_summary.json"
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(summaries, f, indent=2, ensure_ascii=False)
-    print(f"✓ Saved json summary to {json_path}")
+        # 2. Synthetic Stress
+        if args.suite in ["synthetic", "all"]:
+            synth_res = evaluate_synthetic_stress(model, max_clips=args.max_clips)
+            if synth_res:
+                synth_res["compute_type"] = args.compute_type
+                results["synthetic_stress"][model_key] = synth_res
+
+        # Free GPU memory between model evaluations
+        del model
+
+    # Save to JSON
+    RESULTS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    with open(RESULTS_JSON, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    print(f"\n[OK] Saved empirical benchmark results to {RESULTS_JSON}")
+
+    # Generate Markdown report and update README
+    from scripts.generate_readme_tables import update_readme
+    update_readme()
+    print("[OK] Updated README.md and benchmark tables from results JSON.")
 
 
 if __name__ == "__main__":

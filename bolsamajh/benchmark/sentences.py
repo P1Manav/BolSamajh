@@ -1,4 +1,8 @@
-"""100 Hinglish benchmark sentences categorized for speech-to-text evaluation.
+"""100 Hinglish Benchmark Sentences — SYNTHETIC STRESS TEST SET.
+
+NOTE: This dataset represents a synthetic stress set generated with edge cases
+(technical terminology, code-switching, currency amounts, times, entity names).
+Real-speech benchmarks are evaluated separately using public corpora (FLEURS, HiACC).
 
 Categories:
 1. Everyday conversation (30)
@@ -61,7 +65,7 @@ SENTENCES: List[BenchmarkSentence] = [
     BenchmarkSentence(34, "technical", "Database queries ko optimize karne ke liye proper indexing lagao.", "डेटाबेस क्वेरीज़ को ऑप्टिमाइज़ करने के लिए प्रॉपर इंडेक्सिंग लगाओ।", "DB optimization"),
     BenchmarkSentence(35, "technical", "FastAPI backend WebSocket connection handle kar raha hai.", "फास्टएपीआई बैकएंड वेबसॉकेट कनेक्शन हैंडल कर रहा है।", "FastAPI architecture"),
     BenchmarkSentence(36, "technical", "React state update directly mutate mat karo, setter function use karo.", "रिएक्ट स्टेट अपडेट डायरेक्टली म्यूटेट मत करो, सेटर फंक्शन यूज़ करो।", "React best practice"),
-    BenchmarkSentence(37, "technical", "PyTorch model inference RTX 3060 Ti GPU par 40ms me run hota hai.", "पायटॉर्च मॉडल इन्फरेंस आरटीएक्स 3060 टीआई जीपीयू पर 40 मिलीसेकंड में रन होता है।", "GPU performance"),
+    BenchmarkSentence(37, "technical", "PyTorch model inference RTX 3060 Ti GPU par 40 ms me run hota hai.", "पायटॉर्च मॉडल इन्फरेंस आरटीएक्स 3060 टीआई जीपीयू पर 40 एमएस में रन होता है।", "GPU performance"),
     BenchmarkSentence(38, "technical", "REST API endpoint me rate limiting aur JWT authentication implement karo.", "रेस्ट एपीआई एंडपॉइंट में रेट लिमिटिंग और जेडब्ल्यूटी ऑथेंटिकेशन इम्प्लीमेंट करो।", "API security"),
     BenchmarkSentence(39, "technical", "FAISS vector store me cosine similarity search fast perform karti hai.", "फैस वेक्टर स्टोर में कोसाइन सिमिलैरिटी सर्च फास्ट परफॉर्म करती है।", "Vector search"),
     BenchmarkSentence(40, "technical", "Microservices communication ke liye gRPC ya RabbitMQ select kar sakte hain.", "माइक्रोसर्विस कम्युनिकेशन के लिए जीआरपीसी या रैबिटएमक्यू सेलेक्ट कर सकते हैं।", "Distributed systems"),
@@ -78,14 +82,14 @@ SENTENCES: List[BenchmarkSentence] = [
 
     # ── Category 3: Numbers, Currency, Dates & Phone numbers (20) ──
     BenchmarkSentence(51, "numbers", "Total invoice amount ₹4,500 hai with 18% GST included.", "टोटल इनवॉइस अमाउंट ₹4,500 है विथ 18% जीएसटी इनक्लूडेड।", "Invoice & GST"),
-    BenchmarkSentence(52, "numbers", "Flight 15th August ko subah 6:30 AM par depart hogi.", "फ्लाइट 15 अगस्त को सुबह 6:30 बजे डिपार्ट होगी।", "Date & time"),
+    BenchmarkSentence(52, "numbers", "Flight 15th August ko subah 6:30 baje depart hogi.", "फ्लाइट 15 अगस्त को सुबह 6:30 बजे डिपार्ट होगी।", "Date & time"),
     BenchmarkSentence(53, "numbers", "Please mujhe 9876543210 par call back kar lena sham 5 baje.", "प्लीज मुझे 9876543210 पर कॉल बैक कर लेना शाम 5 बजे।", "Phone number"),
     BenchmarkSentence(54, "numbers", "Monthly flat rent ₹28,000 hai plus ₹2,500 maintenance charge.", "मंथली फ्लैट रेंट ₹28,000 है प्लस ₹2,500 मेंटेनेंस चार्ज।", "Rent breakdown"),
-    BenchmarkSentence(55, "numbers", "Project deadline 31st October 2026 ko midnight 11:59 PM par hai.", "प्रोजेक्ट डेडलाइन 31 अक्टूबर 2026 को मिडनाइट 11:59 बजे पर है।", "Hackathon deadline"),
+    BenchmarkSentence(55, "numbers", "Project deadline 31st October 2026 ko midnight 11:59 baje par hai.", "प्रोजेक्ट डेडलाइन 31 अक्टूबर 2026 को मिडनाइट 11:59 बजे पर है।", "Hackathon deadline"),
     BenchmarkSentence(56, "numbers", "Petrol rate kal se ₹1.50 per litre increase ho gaya hai.", "पेट्रोल रेट कल से ₹1.50 पर लीटर इनक्रीज़ हो गया है।", "Price change"),
     BenchmarkSentence(57, "numbers", "Account number 451298762341 me ₹50,000 transfer kar diye hain.", "अकाउंट नंबर 451298762341 में ₹50,000 ट्रांसफर कर दिए हैं।", "Banking transfer"),
     BenchmarkSentence(58, "numbers", "Discount coupon apply karne ke baad cart total ₹1,299 ban raha hai.", "डिस्काउंट कूपन अप्लाई करने के बाद कार्ट टोटल ₹1,299 बन रहा है।", "E-commerce price"),
-    BenchmarkSentence(59, "numbers", "Meeting 3:45 PM par start hogi aur duration lagbhag 45 minutes rahegi.", "मीटिंग 3:45 बजे स्टार्ट होगी और ड्यूरेशन लगभग 45 मिनट्स रहेगी।", "Meeting schedule"),
+    BenchmarkSentence(59, "numbers", "Meeting 3:45 baje start hogi aur duration lagbhag 45 minutes rahegi.", "मीटिंग 3:45 बजे स्टार्ट होगी और ड्यूरेशन लगभग 45 मिनट्स रहेगी।", "Meeting schedule"),
     BenchmarkSentence(60, "numbers", "Humara office temperature 24.5 degrees Celsius set hai.", "हमारा ऑफिस टेम्परेचर 24.5 डिग्री सेल्सियस सेट है।", "Measurement"),
     BenchmarkSentence(61, "numbers", "Train PNR number 2458910243 confirm ho gaya coach B4 seat 23 par.", "ट्रेन पीएनआर नंबर 2458910243 कन्फर्म हो गया कोच बी4 सीट 23 पर।", "Railway booking"),
     BenchmarkSentence(62, "numbers", "Car speedometer 80 km per hour cross kar chuka tha highway par.", "कार स्पीडोमीटर 80 किलोमीटर पर ऑवर क्रॉस कर चुका था हाईवे पर।", "Speed limit"),
