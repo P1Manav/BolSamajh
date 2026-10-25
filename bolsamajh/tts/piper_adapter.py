@@ -127,11 +127,16 @@ class PiperTTSAdapter(TextToSpeech):
             self._load_voice()
 
             # Piper Hindi voice expects Devanagari script.
-            # If Roman Hinglish text is provided, transliterate to Devanagari.
+            # Only transliterate if the text is in another Indic script (e.g. Gujarati).
+            # Do not run ISO transliteration on Roman Hinglish.
             has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
-            if not has_devanagari:
-                from aksharamukha import transliterate
-                text = transliterate.process("ISO", "Devanagari", text)
+            has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
+            if has_gujarati and not has_devanagari:
+                try:
+                    from aksharamukha import transliterate
+                    text = transliterate.process("Gujarati", "Devanagari", text)
+                except Exception as e:
+                    log.debug("Transliteration to Devanagari skipped: %s", e)
 
             wav_io = io.BytesIO()
 

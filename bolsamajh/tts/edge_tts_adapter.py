@@ -60,19 +60,21 @@ class EdgeTTSAdapter(TextToSpeech):
         self._speaking = True
 
         # Pre-process text according to voice requirements:
-        # 1. hi-IN-SwaraNeural expects Devanagari script for Hindi/Hinglish phonetics
-        if lang == "hi" and not any('\u0900' <= c <= '\u097F' for c in text):
+        # Do not run ISO transliteration on Roman Hinglish. Only transliterate
+        # if the text is already in a different Indic script, otherwise synthesize as-is.
+        has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
+        has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
+
+        if lang == "hi" and has_gujarati and not has_devanagari:
             try:
                 from aksharamukha import transliterate
-                text = transliterate.process("ISO", "Devanagari", text)
+                text = transliterate.process("Gujarati", "Devanagari", text)
             except Exception as e:
                 log.debug("Transliteration to Devanagari skipped: %s", e)
-
-        # 2. gu-IN-DhwaniNeural requires Gujarati script
-        elif lang == "gu" and not any('\u0A80' <= c <= '\u0AFF' for c in text):
+        elif lang == "gu" and has_devanagari and not has_gujarati:
             try:
                 from aksharamukha import transliterate
-                text = transliterate.process("ISO", "Gujarati", text)
+                text = transliterate.process("Devanagari", "Gujarati", text)
             except Exception as e:
                 log.debug("Transliteration to Gujarati skipped: %s", e)
 

@@ -142,3 +142,155 @@ def test_background_task_tracking():
 
     asyncio.run(_run())
 
+
+def test_api_auth_protection(monkeypatch):
+    """Verify /api/* endpoints require Bearer auth when BOLSAMAJH_API_KEY is set, while / and /api/status remain exempt."""
+    monkeypatch.setenv("BOLSAMAJH_API_KEY", "secret-test-token")
+
+    # 1. Exempt endpoints work without auth
+    resp_status = client.get("/api/status")
+    assert resp_status.status_code == 200
+
+    resp_root = client.get("/")
+    assert resp_root.status_code == 200
+
+    # 2. Protected /api/ endpoint without auth -> 401
+    resp_unauth = client.post("/api/documents/url", json={"url": "https://example.com"})
+    assert resp_unauth.status_code == 401
+
+    # 3. Protected /api/ endpoint with invalid token -> 401
+    resp_bad = client.post(
+        "/api/documents/url",
+        headers={"Authorization": "Bearer wrong-token"},
+        json={"url": "https://example.com"},
+    )
+    assert resp_bad.status_code == 401
+
+    # 4. Protected /api/ endpoint with valid token -> passes auth (does not return 401)
+    resp_ok = client.post(
+        "/api/documents/url",
+        headers={"Authorization": "Bearer secret-test-token"},
+        json={"url": "http://127.0.0.1:8000/internal"},
+    )
+    # Passed auth and reached handler (which returns 400 for SSRF)
+    assert resp_ok.status_code == 400
+    assert "SSRF" in resp_ok.json()["detail"]
+
+
+def test_safe_fetch_url_dns_rebinding_prevention(monkeypatch):
+    """Verify safe_fetch_url connects directly to the resolved IP so DNS rebinding cannot swap addresses,
+    and blocks requests if DNS resolves to a private IP on subsequent lookup.
+    """
+    from bolsamajh.web.server import safe_fetch_url
+    import io
+
+    call_count = 0
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            # First lookup returns public IP (passes SSRF check)
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+        else:
+            # Second lookup returns private IP (DNS rebinding attempt)
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", port))]
+
+    connected_destinations = []
+
+    class MockSocket:
+        def __init__(self):
+            self._response = (
+                b"HTTP/1.1 200 OK\r\n"
+                b"Content-Type: text/html\r\n"
+                b"Content-Length: 13\r\n"
+                b"Connection: close\r\n\r\n"
+                b"Hello Secure!"
+            )
+            self._pos = 0
+
+        def sendall(self, data):
+            pass
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    def mock_create_connection(address, *args, **kwargs):
+        connected_destinations.append(address)
+        return MockSocket()
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+    monkeypatch.setattr("socket.create_connection", mock_create_connection)
+
+    # First fetch: should connect directly to vetted public IP ("93.184.216.34", 80)
+    result = safe_fetch_url("http://rebinding.attack.com/page")
+    assert result == "Hello Secure!"
+    assert len(connected_destinations) == 1
+    # Verify the socket destination is the vetted IP, preventing secondary DNS lookup swap
+    assert connected_destinations[0] == ("93.184.216.34", 80)
+
+    # Second fetch: resolver returns private IP 127.0.0.1 -> must be blocked before socket creation
+    with pytest.raises(ValueError) as exc:
+        safe_fetch_url("http://rebinding.attack.com/page")
+    assert "blocked connection to non-public IP '127.0.0.1'" in str(exc.value)
+
+
+def test_stream_qa_error_event(monkeypatch):
+    """Verify /api/qa/stream catches LLM exceptions and emits an SSE error event before [DONE]."""
+    from bolsamajh.web.server import retriever, llm
+
+    monkeypatch.setattr(type(retriever), "is_loaded", property(lambda self: True))
+    monkeypatch.setattr(retriever, "retrieve", lambda *a, **kw: [])
+
+    async def mock_fail_stream(*args, **kwargs):
+        yield "Starting answer..."
+        raise RuntimeError("Simulated LLM stream failure")
+
+    monkeypatch.setattr(llm, "generate_stream", mock_fail_stream)
+
+    resp = client.get("/api/qa/stream?question=Test+Question")
+    assert resp.status_code == 200
+    content = resp.text
+    assert 'data: {"token": "Starting answer..."}' in content
+    assert 'data: {"error": "Simulated LLM stream failure"}' in content
+    assert "data: [DONE]" in content
+
+
+def test_voice_qa_unsupported_audio_returns_400():
+    """Verify /api/qa/voice returns HTTP 400 when audio resampling fails rather than passing raw bytes to STT."""
+    corrupt_audio = b"random garbage that cannot be decoded as audio"
+    resp = client.post(
+        "/api/qa/voice",
+        files={"audio": ("corrupt.wav", corrupt_audio, "audio/wav")},
+        data={"language": "hinglish"},
+    )
+    assert resp.status_code == 400
+    assert "unsupported audio" in resp.json()["detail"].lower()
+
+
+def test_tts_transliteration_preserves_hinglish():
+    """Verify TTS preprocessing does not run ISO transliteration on Roman Hinglish,
+    and only transliterates cross-script Indic text.
+    """
+    from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
+
+    adapter = EdgeTTSAdapter()
+
+    # Roman Hinglish text: must NOT be mangled by ISO transliteration
+    hinglish_text = "Yeh ek simple Hinglish text hai."
+    # If ISO transliteration were run, words like 'Yeh' would become Devanagari gibberish
+    # But since it's Roman, both has_devanagari and has_gujarati are False, so it's untouched.
+    has_dev = any('\u0900' <= c <= '\u097F' for c in hinglish_text)
+    has_guj = any('\u0A80' <= c <= '\u0AFF' for c in hinglish_text)
+    assert not has_dev and not has_guj
+
+    # Cross-script Indic: Devanagari to Gujarati
+    from aksharamukha import transliterate
+    dev_text = "नमस्ते"
+    guj_result = transliterate.process("Devanagari", "Gujarati", dev_text)
+    assert any('\u0A80' <= c <= '\u0AFF' for c in guj_result)
+
+

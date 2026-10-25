@@ -23,6 +23,7 @@ import logging
 import tempfile
 import asyncio
 import ipaddress
+import hmac
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin
 from typing import Optional, List, AsyncIterator
@@ -99,18 +100,25 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware: Gateway Bearer token authentication when BOLSAMAJH_API_KEY is configured
+# Middleware: Bearer token authentication when BOLSAMAJH_API_KEY is configured
 @app.middleware("http")
 async def gateway_auth_middleware(request: Request, call_next):
-    if request.url.path.startswith("/v1/"):
-        expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
-        if expected_key:
+    expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
+    if expected_key:
+        path = request.url.path
+        is_exempt = (
+            path == "/"
+            or path.startswith("/static")
+            or path == "/api/status"
+        )
+        if not is_exempt and (path.startswith("/api/") or path.startswith("/v1/")):
             auth_header = request.headers.get("authorization", "")
             scheme, _, token = auth_header.partition(" ")
-            if scheme.lower() != "bearer" or token.strip() != expected_key:
+            token = token.strip()
+            if scheme.lower() != "bearer" or not token or not hmac.compare_digest(token, expected_key):
                 return JSONResponse(
                     status_code=401,
-                    content={"detail": "Unauthorized: invalid or missing Bearer token for /v1 gateway"},
+                    content={"detail": "Unauthorized: invalid or missing Bearer token"},
                     headers={"WWW-Authenticate": "Bearer"},
                 )
     return await call_next(request)
@@ -207,8 +215,12 @@ def is_safe_external_url(url: str) -> bool:
 
 
 def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> str:
-    """Fetch URL safely: resolves once per hop, connects to resolved IP, blocks private ranges, re-validates redirects."""
-    import httpx
+    """Fetch URL safely: resolves hostname to IP, verifies IP is public/safe against SSRF,
+    connects socket directly to the vetted IP (preserving Host header and TLS SNI) to prevent
+    DNS rebinding, and validates redirect hops.
+    """
+    import ssl
+    import http.client
 
     current_url = url
     for _ in range(max_redirects + 1):
@@ -221,26 +233,66 @@ def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> s
 
         port = parsed.port or (443 if parsed.scheme == "https" else 80)
         try:
-            addr_infos = socket.getaddrinfo(hostname, port)
+            addr_infos = socket.getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP)
         except Exception as e:
             raise ValueError(f"SSRF protection: could not resolve host '{hostname}': {e}")
 
+        vetted_ip = None
         for addr in addr_infos:
             ip_str = addr[4][0]
             if not is_safe_ip(ip_str):
                 raise ValueError(f"SSRF protection: blocked connection to non-public IP '{ip_str}'")
+            if vetted_ip is None:
+                vetted_ip = ip_str
 
-        # Request with follow_redirects=False to validate each hop manually
-        with httpx.Client(timeout=timeout, follow_redirects=False) as client:
-            resp = client.get(current_url, headers={"User-Agent": "BolSamajh-DocLoader/1.0"})
-            if resp.is_redirect:
-                location = resp.headers.get("location")
+        if not vetted_ip:
+            raise ValueError(f"SSRF protection: no valid IP addresses resolved for host '{hostname}'")
+
+        # Connect socket directly to vetted IP address to eliminate DNS rebinding risks
+        sock = socket.create_connection((vetted_ip, port), timeout=timeout)
+        try:
+            if parsed.scheme == "https":
+                ctx = ssl.create_default_context()
+                sock = ctx.wrap_socket(sock, server_hostname=hostname)
+
+            path = parsed.path or "/"
+            if parsed.query:
+                path += f"?{parsed.query}"
+
+            req_msg = (
+                f"GET {path} HTTP/1.1\r\n"
+                f"Host: {hostname}\r\n"
+                f"User-Agent: BolSamajh-DocLoader/1.0\r\n"
+                f"Accept-Encoding: gzip, deflate\r\n"
+                f"Connection: close\r\n\r\n"
+            )
+            sock.sendall(req_msg.encode("utf-8"))
+
+            resp = http.client.HTTPResponse(sock)
+            resp.begin()
+
+            if resp.status in (301, 302, 303, 307, 308):
+                location = resp.getheader("location")
                 if not location:
                     raise ValueError("SSRF protection: redirect missing Location header")
                 current_url = urljoin(current_url, location)
                 continue
-            resp.raise_for_status()
-            return resp.text
+
+            if resp.status < 200 or resp.status >= 400:
+                raise ValueError(f"HTTP error {resp.status} {resp.reason}")
+
+            body_bytes = resp.read()
+            encoding = resp.getheader("content-encoding", "").lower()
+            if encoding == "gzip":
+                import gzip
+                body_bytes = gzip.decompress(body_bytes)
+            elif encoding == "deflate":
+                import zlib
+                body_bytes = zlib.decompress(body_bytes)
+
+            return body_bytes.decode("utf-8", errors="replace")
+        finally:
+            sock.close()
 
     raise ValueError(f"SSRF protection: exceeded maximum redirect hops ({max_redirects})")
 
@@ -414,7 +466,7 @@ VOICE_MAP = {
 
 @app.get("/api/status")
 async def get_status():
-    """Return system health and hardware. Does zero un-cached network calls."""
+    """Return system health and hardware. The live LLM readiness check is cached (60s TTL) to prevent repeated network calls."""
     clean_old_audio_cache()
 
     # Detect hardware name
@@ -571,12 +623,25 @@ async def ask_question_endpoint(req: QuestionRequest):
                 voice_code = config.tts.edge_voice_hi
 
             clean_text = answer
-            if lang_key == "gujarati" and not any('\u0A80' <= c <= '\u0AFF' for c in clean_text):
-                from aksharamukha import transliterate
-                clean_text = transliterate.process("ISO", "Gujarati", clean_text)
-            elif lang_key == "hindi" and not any('\u0900' <= c <= '\u097F' for c in clean_text):
-                from aksharamukha import transliterate
-                clean_text = transliterate.process("ISO", "Devanagari", clean_text)
+            has_devanagari = any('\u0900' <= c <= '\u097F' for c in clean_text)
+            has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in clean_text)
+
+            # Do not run ISO transliteration on Roman Hinglish. Only transliterate
+            # if the text is already in a different Indic script.
+            if lang_key in ("gujarati", "gu"):
+                if has_devanagari and not has_gujarati:
+                    try:
+                        from aksharamukha import transliterate
+                        clean_text = transliterate.process("Devanagari", "Gujarati", clean_text)
+                    except Exception as e:
+                        log.debug("Transliteration to Gujarati skipped: %s", e)
+            elif lang_key in ("hindi", "hi"):
+                if has_gujarati and not has_devanagari:
+                    try:
+                        from aksharamukha import transliterate
+                        clean_text = transliterate.process("Gujarati", "Devanagari", clean_text)
+                    except Exception as e:
+                        log.debug("Transliteration to Devanagari skipped: %s", e)
 
             comm = edge_tts.Communicate(clean_text, voice_code)
             await comm.save(str(audio_path))
@@ -621,12 +686,17 @@ async def stream_qa_endpoint(question: str = Query(...), language: str = Query("
 
     async def event_generator() -> AsyncIterator[str]:
         import json
-        async for token in llm.generate_stream(question, system=system_prompt):
-            yield f"data: {json.dumps({'token': token})}\n\n"
+        try:
+            async for token in llm.generate_stream(question, system=system_prompt):
+                yield f"data: {json.dumps({'token': token})}\n\n"
 
-        citations = [{"citation": c.citation, "score": round(c.score, 3)} for c in chunks]
-        yield f"data: {json.dumps({'citations': citations})}\n\n"
-        yield "data: [DONE]\n\n"
+            citations = [{"citation": c.citation, "score": round(c.score, 3)} for c in chunks]
+            yield f"data: {json.dumps({'citations': citations})}\n\n"
+        except Exception as e:
+            log.error("Streaming LLM error: %s", e)
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -640,8 +710,11 @@ async def ask_voice_question_endpoint(audio: UploadFile = File(...), language: s
     try:
         clean_wav_bytes = await asyncio.to_thread(resample_audio_to_16k_mono, audio_bytes)
     except Exception as e:
-        log.warning("Audio resampling fallback: %s", e)
-        clean_wav_bytes = audio_bytes
+        log.warning("Audio resampling failed: %s", e)
+        raise HTTPException(
+            status_code=400,
+            detail=f"unsupported audio: could not decode or resample audio ({e})"
+        )
 
     # 2. STT Transcription on thread pool
     transcription = await asyncio.to_thread(stt.transcribe, clean_wav_bytes)
