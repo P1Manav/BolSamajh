@@ -43,11 +43,13 @@ All metrics originate from reproducible scripts in `benchmark_data/`:
 - **Document Retrieval (`retrieval_benchmark.json`):** **89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5** on Google XQuAD Hindi validation split with **22.31 ms mean latency** and calibrated refusal threshold of **0.785** (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
 - **Time-To-First-Audio (`hardware_measurements.json`):** **626.4 ms** Edge-TTS first-packet latency; **1,715.7 ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
 - **Real Speech Benchmark (`benchmark_results.json`):**
-  - Read Hindi (FLEURS `hi_in`): **24.15% WER** (large-v3-turbo), **27.39% WER** (medium).
-  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **52.84% WER** (medium).
-- **Synthetic Stress Benchmark (100 sentences with noise & 8kHz phone filter):**
-  - Rapid Code-switching: **12.48% WER** (`whisper-hinglish-swift`), **23.52% WER** (`large-v3-turbo`).
-  - Overall Synthetic Stress Set: **33.43% WER** (`whisper-hinglish-swift`).
+  - Read Hindi (FLEURS `hi_in`): **26.0% WER** (95% CI: [22.92, 29.63%]) on `large-v3-turbo`; **34.25% WER** (95% CI: [31.01, 37.45%]) on `medium`.
+  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **38.59% WER** (95% CI: [32.75, 44.65%]) on `large-v3-turbo`; **50.41% WER** (95% CI: [44.68, 56.41%]) on `medium`.
+  - Read Gujarati (FLEURS `gu_in`): **65.10% WER** on `large-v3-turbo`; **76.96% WER** on `medium`.
+- **Synthetic Stress Benchmark (`benchmark_results.json`, 100 sentences with noise & 8kHz phone filter):**
+  - Rapid Code-switching: **30.70% WER** (`whisper-hinglish-swift`), **37.89% WER** (`large-v3-turbo`).
+  - Everyday Dialogue: **22.90% WER** (`whisper-hinglish-swift`), **64.88% WER** (`large-v3-turbo`).
+  - Overall Synthetic Stress Set: **36.31% WER** (95% CI: [31.19, 42.32%]) on `whisper-hinglish-swift` at **92.9 ms latency** and **0.017x RTF**.
 
 ### 8. How does BolSamajh align with the Bolna ecosystem?
 BolSamajh directly supports Bolna's vision of autonomous voice agents:
@@ -64,6 +66,6 @@ BolSamajh directly supports Bolna's vision of autonomous voice agents:
 
 ### 10. Links & Verification
 - **GitHub Repository:** https://github.com/P1Manav/BolSamajh
-- **CI Status:** GitHub Actions multi-OS CPU workflow runs unit tests passing 22/22 non-slow tests on Ubuntu & Windows, with full 23/23 tests passing locally and via manual workflow.
+- **CI Status:** GitHub Actions multi-OS CPU workflow runs unit tests across Ubuntu & Windows (40 non-slow tests passing in CI, with all 41/41 tests passing locally and in the manual slow-test workflow).
 - **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
 - **Architectural Decision Records:** 17 ADRs documented in [`DECISIONS.md`](DECISIONS.md)

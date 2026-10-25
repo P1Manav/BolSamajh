@@ -8,7 +8,35 @@
 [![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#-privacy--architecture-transparency)
 [![Buildathon: Bolna x Symphony](https://img.shields.io/badge/Buildathon-Bolna_%C3%97_Symphony-orange.svg)](https://bolna.ai)
 
-BolSamajh is an open-source, local-first voice AI companion built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any application, document intelligence with verifiable page citations, and in-place voice editing — running natively on your hardware with zero subscription fees.
+BolSamajh is an open-source, local-first voice AI companion built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable page citations and sentence-streaming audio, and in-place voice editing — running natively on your hardware with optional cloud fallbacks and zero mandatory subscription fees.
+
+<div align="center">
+
+![BolSamajh Desktop App & Overlay HUD](assets/bolsamajh_app_demo.jpg)
+
+</div>
+
+### ⚡ One-Command Quickstart
+
+```powershell
+git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh && python -m venv venv && .\venv\Scripts\activate && pip install -r requirements.txt && python -m bolsamajh
+```
+
+---
+
+## 🔍 Honest Capabilities: What Works vs What Does Not
+
+To maintain absolute credibility for judges and users, here is a transparent breakdown of current capabilities and known boundaries:
+
+| Feature / Component | Status | What Works | What Does Not / Known Limitations |
+| :--- | :---: | :--- | :--- |
+| **Push-to-Talk Dictation** | ✅ Production Ready | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; 706 ms inference on RTX 3060 Ti. | Rapid colloquial code-switching from diverse regional accents has higher error rate (50.4% WER on HiACC) than read speech (26.0% on FLEURS). |
+| **Talk-to-Document (RAG)** | ✅ Production Ready | Indexes PDFs, Word docs, web pages; 22.3 ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio; Silero VAD barge-in. | Scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
+| **In-Place Voice Editing** | ✅ Production Ready | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
+| **Voice Barge-In Interruption** | ✅ Production Ready | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode. | Laptop built-in speakers at maximum volume can occasionally cause echo false-positives; headphone mode recommended for noisy rooms. |
+| **Bolna Agent Voice Gateway** | ✅ Production Ready | Exposes OpenAI-compatible `/v1/audio/speech` (TTS) and `/v1/audio/transcriptions` (STT) for Bolna voice agents; Bearer token auth; bind security checks. | Real-time WebSocket streaming STT protocol (`REALTIME_TRANSCRIBER_URL`) is not implemented; Bolna uses batch transcription endpoints. |
+| **100% Offline Air-Gapped Mode** | ✅ Fully Functional | Complete zero-cloud execution with Piper TTS (ONNX) + Ollama (Gemma 3) + faster-whisper. | Edge-TTS and Google AI Studio fallbacks require internet; Piper TTS requires initial one-time model download (with pinned SHA-256). |
+| **Script Normalization** | ✅ Calibrated | Bridges Devanagari, Gujarati, and Roman character sets; unifies digits, nuktas, dandas. | Does not phonemically collapse loanword spelling variants (e.g. *meeting* vs *mitinga*), which is reported honestly as script-normalized WER. |
 
 ---
 

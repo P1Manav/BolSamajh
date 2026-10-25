@@ -9,7 +9,7 @@
 ### ✅ Completed Milestones
 
 #### Tier 5 — Quality, CI/CD & Submission Readiness
-- [x] **Complete Test Suite:** 22/22 non-slow unit tests passing in automated CI (`pytest -v -m "not slow" tests/`), with full 23/23 unit tests passing locally and in dedicated workflow, covering text cleanup, transliteration, DocumentRetriever, LLM fallback, clipboard sentinel logic, and web server endpoints with SSRF protection.
+- [x] **Complete Test Suite:** 40/40 non-slow unit tests passing in automated CI (`pytest -v -m "not slow" tests/`), with full 41/41 unit tests passing locally and in dedicated workflow, covering sentence splitting, barge-in echo, interrupt generation ID, worker lifecycle, text cleanup, transliteration, DocumentRetriever, LLM fallback, clipboard sentinel logic, and web server endpoints with SSRF protection.
 - [x] **GitHub Actions Workflow (`.github/workflows/ci.yml`):** Multi-OS (Ubuntu + Windows) and multi-version (Python 3.11, 3.12) CPU test runner.
 - [x] **Pinned & Split Dependencies:** Clean separation into `requirements.txt` (CPU / platform independent) and `requirements-gpu.txt` (NVIDIA CUDA 12 runtime wheels).
 - [x] **README Rewrite (`README.md`):** Step-by-step setup instructions for Ollama, GPU vs CPU execution, model download notes (~1.5 GB cached locally), and automated results tables.
