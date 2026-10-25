@@ -105,13 +105,13 @@
     * Speed variations (0.90x to 1.15x)
     * Additive Gaussian noise (20–22 dB SNR)
     * 8 kHz telephony phone-codec simulation (300 Hz – 3,400 Hz 4th order Butterworth bandpass filter).
-- [x] **Canonical Phonemic Normalization (`bolsamajh/benchmark/normalization.py`):**
+- [x] **Canonical Script Normalization (`bolsamajh/benchmark/normalization.py`):**
   - Unicode NFC normalization.
   - Indic digit replacement (`०-९`, `૦-૯` -> ASCII `0-9`).
   - Danda (`।`, `॥`) and punctuation stripping.
   - Chandrabindu (`\u0901`, `\u0a81`) -> Anusvara (`\u0902`, `\u0a82`).
   - Nukta stripping (`\u093c`, `\u0abc`) and zero-width character removal (ZWJ/ZWNJ).
-  - Transliteration to canonical Latin representation via `Aksharamukha` to prevent penalizing English loanword spelling variants.
+  - Transliteration to canonical Latin representation via `Aksharamukha` (script-normalized evaluation across Devanagari and Latin scripts).
   - Dropped the unprincipled "best of two references" trick.
 - [x] **Multi-Engine Empirical Comparison on NVIDIA RTX 3060 Ti:**
   - **Real Speech:**

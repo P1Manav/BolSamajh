@@ -8,7 +8,7 @@ Adheres strictly to Tier 1 Guidelines:
 - Evaluates REAL speech and SYNTHETIC stress sets separately:
   * Real Speech: Google FLEURS (hi_in, gu_in) & HiACC (Hindi-English code-switched)
   * Synthetic Stress: 100 sentences with multi-voice and open-source DSP degradations
-- Canonical scoring via phonemic transliteration (Aksharamukha) & Devanagari normalization
+- Canonical scoring via script-normalized transliteration (Aksharamukha) & Devanagari normalization
   (drops unprincipled 'best of two' trick).
 - Outputs comprehensive benchmark JSON to benchmark_data/benchmark_results.json.
 """
@@ -44,7 +44,22 @@ MODEL_MAP = {
     "medium": "medium",
     "large-v3-turbo": "deepdml/faster-whisper-large-v3-turbo-ct2",
     "whisper-hinglish-swift": "MSpider3/whisper-hindi2hinglish-swift-ct2",
+    "whisper-hindi2hinglish-prime": "models/whisper-hindi2hinglish-prime-ct2",
 }
+
+
+def compute_bootstrap_ci(data: List[float], n_bootstrap: int = 1000, ci: float = 0.95, seed: int = 42) -> List[float]:
+    """Calculate non-parametric bootstrap 95% confidence interval for mean metric (percentage)."""
+    if not data:
+        return [0.0, 0.0]
+    rng = np.random.default_rng(seed)
+    n = len(data)
+    indices = rng.integers(0, n, size=(n_bootstrap, n))
+    boot_means = np.mean(np.array(data)[indices], axis=1) * 100.0
+    alpha = (1.0 - ci) / 2.0
+    low = float(np.percentile(boot_means, alpha * 100.0))
+    high = float(np.percentile(boot_means, (1.0 - alpha) * 100.0))
+    return [round(low, 2), round(high, 2)]
 
 
 def load_audio_array(wav_path: Path) -> np.ndarray:
@@ -62,13 +77,18 @@ def evaluate_clip(
     duration_sec: float,
     lang_hint: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Transcribe a single audio clip and compute metrics."""
+    """Transcribe a single audio clip with anti-repetition guards and compute script-normalized metrics."""
     t_start = time.perf_counter()
-    
-    # Use auto-detection or language hint without biased initial_prompt
+
+    # Guarded transcription parameters to prevent hallucination loops and Urdu misclassification
     transcribe_kwargs = {
         "beam_size": 5,
         "vad_filter": True,
+        "vad_parameters": dict(min_silence_duration_ms=500),
+        "condition_on_previous_text": False,
+        "compression_ratio_threshold": 2.4,
+        "no_speech_threshold": 0.6,
+        "repetition_penalty": 1.1,
     }
     if lang_hint:
         transcribe_kwargs["language"] = lang_hint
@@ -95,10 +115,10 @@ def evaluate_clip(
     }
 
 
-def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -> Dict[str, Any]:
-    """Run evaluation on real-speech manifest (FLEURS hi/gu, HiACC)."""
+def evaluate_real_speech(model: WhisperModel, model_key: str = "medium", max_clips: Optional[int] = None) -> Dict[str, Any]:
+    """Run evaluation on real-speech manifest (FLEURS hi/gu, HiACC) with bootstrap confidence intervals."""
     if not REAL_MANIFEST.exists():
-        print(f"Warning: {REAL_MANIFEST} not found. Run scripts/download_eval_datasets.py first.")
+        print(f"Warning: {REAL_MANIFEST} not found. Run scripts/fetch_benchmark_data.py first.")
         return {}
 
     with open(REAL_MANIFEST, "r", encoding="utf-8") as f:
@@ -107,7 +127,7 @@ def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -
     if max_clips:
         manifest = manifest[:max_clips]
 
-    print(f"\n--- Evaluating Real Speech ({len(manifest)} clips) ---")
+    print(f"\n--- Evaluating Real Speech ({len(manifest)} clips) for {model_key} ---")
     splits_data: Dict[str, List[Dict[str, Any]]] = {}
 
     for i, item in enumerate(manifest, 1):
@@ -119,24 +139,30 @@ def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -
         dur = item.get("duration_sec", len(audio_np) / 16000.0)
         split = item.get("split", "general")
 
-        # Set hint if Gujarati or Hindi, else let model auto-detect
-        hint = "gu" if "gujarati" in split else ("hi" if "hindi" in split else None)
+        # Swift model was trained to emit Roman Hinglish when language='en'
+        if model_key == "whisper-hinglish-swift":
+            hint = "en"
+        else:
+            hint = "gu" if "gujarati" in split else ("hi" if ("hindi" in split or "code_switched" in split) else None)
 
         res = evaluate_clip(model, audio_np, item["reference"], dur, lang_hint=hint)
         splits_data.setdefault(split, []).append(res)
 
-        if i % 10 == 0 or i == len(manifest):
+        if i % 25 == 0 or i == len(manifest):
             all_so_far = [c for s in splits_data.values() for c in s]
             cur_wer = np.mean([c["wer"] for c in all_so_far]) * 100
-            print(f"[{i:02d}/{len(manifest)}] Real Speech Running Mean WER: {cur_wer:.1f}%")
+            print(f"[{i:03d}/{len(manifest)}] Real Speech Running Mean WER: {cur_wer:.1f}%")
 
     all_clips = [c for s in splits_data.values() for c in s]
     if not all_clips:
         return {}
 
+    all_wers = [c["wer"] for c in all_clips]
+
     return {
         "total_clips": len(all_clips),
-        "mean_wer_pct": round(float(np.mean([c["wer"] for c in all_clips]) * 100), 2),
+        "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
+        "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
         "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
@@ -144,6 +170,7 @@ def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -
             split: {
                 "count": len(clips),
                 "wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
             }
@@ -152,10 +179,10 @@ def evaluate_real_speech(model: WhisperModel, max_clips: Optional[int] = None) -
     }
 
 
-def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = None) -> Dict[str, Any]:
-    """Run evaluation on 100 synthetic degraded stress sentences."""
+def evaluate_synthetic_stress(model: WhisperModel, model_key: str = "medium", max_clips: Optional[int] = None) -> Dict[str, Any]:
+    """Run evaluation on 100 synthetic degraded stress sentences with bootstrap confidence intervals."""
     if not SYNTH_METADATA.exists():
-        print(f"Warning: {SYNTH_METADATA} not found. Run bolsamajh.benchmark.record_tool first.")
+        print(f"Warning: {SYNTH_METADATA} not found. Run scripts/fetch_benchmark_data.py first.")
         return {}
 
     with open(SYNTH_METADATA, "r", encoding="utf-8") as f:
@@ -164,9 +191,11 @@ def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = No
     if max_clips:
         metadata = metadata[:max_clips]
 
-    print(f"\n--- Evaluating Synthetic Stress Set ({len(metadata)} clips) ---")
+    print(f"\n--- Evaluating Synthetic Stress Set ({len(metadata)} clips) for {model_key} ---")
     category_data: Dict[str, List[Dict[str, Any]]] = {}
     degradation_data: Dict[str, List[Dict[str, Any]]] = {}
+
+    hint = "en" if model_key == "whisper-hinglish-swift" else "hi"
 
     for i, item in enumerate(metadata, 1):
         wav_path = ROOT_DIR / item["wav_path"]
@@ -179,11 +208,11 @@ def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = No
         deg = item.get("degradation", "clean")
 
         # Evaluate against Roman reference as ground truth
-        res = evaluate_clip(model, audio_np, item["reference_roman"], dur, lang_hint=None)
+        res = evaluate_clip(model, audio_np, item["reference_roman"], dur, lang_hint=hint)
         category_data.setdefault(cat, []).append(res)
         degradation_data.setdefault(deg, []).append(res)
 
-        if i % 20 == 0 or i == len(metadata):
+        if i % 25 == 0 or i == len(metadata):
             all_so_far = [c for s in category_data.values() for c in s]
             cur_wer = np.mean([c["wer"] for c in all_so_far]) * 100
             print(f"[{i:03d}/{len(metadata)}] Synthetic Stress Running Mean WER: {cur_wer:.1f}%")
@@ -192,9 +221,12 @@ def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = No
     if not all_clips:
         return {}
 
+    all_wers = [c["wer"] for c in all_clips]
+
     return {
         "total_clips": len(all_clips),
-        "mean_wer_pct": round(float(np.mean([c["wer"] for c in all_clips]) * 100), 2),
+        "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
+        "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
         "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
@@ -202,6 +234,7 @@ def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = No
             cat: {
                 "count": len(clips),
                 "mean_wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "mean_cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
             }
@@ -211,6 +244,7 @@ def evaluate_synthetic_stress(model: WhisperModel, max_clips: Optional[int] = No
             deg: {
                 "count": len(clips),
                 "mean_wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+                "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
             }
             for deg, clips in degradation_data.items()
@@ -261,7 +295,7 @@ def main():
 
         # 1. Real Speech
         if args.suite in ["real", "all"]:
-            real_res = evaluate_real_speech(model, max_clips=args.max_clips)
+            real_res = evaluate_real_speech(model, model_key=model_key, max_clips=args.max_clips)
             if real_res:
                 real_res["device"] = actual_device
                 real_res["compute_type"] = actual_compute
@@ -269,7 +303,7 @@ def main():
 
         # 2. Synthetic Stress
         if args.suite in ["synthetic", "all"]:
-            synth_res = evaluate_synthetic_stress(model, max_clips=args.max_clips)
+            synth_res = evaluate_synthetic_stress(model, model_key=model_key, max_clips=args.max_clips)
             if synth_res:
                 synth_res["device"] = actual_device
                 synth_res["compute_type"] = actual_compute

@@ -68,17 +68,17 @@
 **Alternatives considered:** Relying on published theoretical benchmarks or unverified estimates.  
 **Reason:** Voice AI judges require reproducible, honest numbers measured on real hardware. All documented latencies and memory metrics must trace directly to `benchmark_data/hardware_measurements.json`.
 
-## D012: Benchmark v2 Architecture — Real Speech & Canonical Scoring
+## D012: Benchmark v2 Architecture — Real Speech & Canonical Script Normalization
 **Date:** 2026-10-25  
-**Choice:** Separate evaluations into Real Speech (Google FLEURS `hi_in`/`gu_in`, HiACC `Trelis/hiacc-adult-test-eval`) and Synthetic Stress Set (100 sentences with multi-voice rotation and automated DSP degradations: noise injection, speed change, 8 kHz telephony bandpass filtering). Replace unprincipled 'best of two references' with canonical Devanagari normalization and phonemic transliteration via Aksharamukha.  
-**Alternatives considered:** Only synthetic evaluation; character-exact scoring without phonetic transliteration (penalizes loanword spelling variations).  
-**Reason:** Separating real human speech from synthetic stress gives voice-AI judges clear, reproducible evidence. Canonical phonemic transliteration accurately measures whether the speech recognition captured the right words rather than penalizing script mismatches (e.g. मीटिंग vs meeting).
+**Choice:** Separate evaluations into Real Speech (Google FLEURS `hi_in`/`gu_in`, HiACC `Trelis/hiacc-adult-test-eval`) and Synthetic Stress Set (100 sentences with multi-voice rotation and automated DSP degradations: noise injection, speed change, 8 kHz telephony bandpass filtering). Replace unprincipled 'best of two references' with canonical Devanagari normalization and script-normalized transliteration via Aksharamukha.  
+**Alternatives considered:** Only synthetic evaluation; character-exact scoring without transliteration (penalizes script mismatches); claiming full phonemic unification when English loanwords (e.g. *meeting* vs *mitinga*) are not orthographically merged.  
+**Reason:** Separating real human speech from synthetic stress provides reproducible, honest empirical evidence. Canonical script-normalized transliteration accurately measures whether speech recognition captured the right words across Devanagari and Latin scripts without penalizing character set mismatches.
 
 ## D013: Long-Context Multilingual Embeddings (`intfloat/multilingual-e5-base`) & Refusal Calibration
 **Date:** 2026-10-25  
-**Choice:** Replace 128-token MiniLM with `intfloat/multilingual-e5-base` (512 token max sequence length, explicit `passage: ` and `query: ` prefixes). Calibrate cosine similarity refusal threshold on Google XQuAD Hindi validation split.  
+**Choice:** Replace 128-token MiniLM with `intfloat/multilingual-e5-base` (512 token max sequence length, explicit `passage: ` and `query: ` prefixes). Calibrate cosine similarity refusal threshold on 200 Google XQuAD Hindi validation questions and 200 unanswerable queries.  
 **Alternatives considered:** `paraphrase-multilingual-MiniLM-L12-v2` (truncates 500-token chunks after 128 tokens), `BGE-M3` (heavier VRAM footprint).  
-**Reason:** XQuAD Hindi empirical evaluation achieved 93.33% Hit@1, 100.0% Hit@3, 100.0% Hit@5 at 21.38 ms latency. Calibrated refusal threshold of 0.76 cleanly rejects out-of-domain queries (irrelevant max: 0.756) while retaining true relevant passages (relevant mean: 0.809).
+**Reason:** 200-question XQuAD Hindi empirical evaluation achieved 89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5 at 22.31 ms latency. Optimal F1-maximizing refusal threshold of 0.785 cleanly separates relevant from irrelevant queries (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
 
 ## D014: Prompt-Injection Guardrails & Conversational Memory
 **Date:** 2026-10-25  

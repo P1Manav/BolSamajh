@@ -161,19 +161,19 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 27.39% | 78.13% | **52.84%** | 23.67% | **5307.8 ms** | **0.567x** |
-| **large-v3-turbo** | `int8_float16` | 24.15% | 70.01% | **121.51%** | 52.89% | **610.3 ms** | **0.076x** |
-| **whisper-hinglish-swift** | `int8_float16` | 72.98% | 108.73% | **129.93%** | 59.93% | **173.1 ms** | **0.02x** |
+| **medium** | `int8_float16` | 34.25% <br><sub>[31.01–37.45%]</sub> | 76.96% <br><sub>[73.74–80.3%]</sub> | **50.41% <br><sub>[44.68–56.41%]</sub>** | 20.37% | **1489.7 ms** | **0.192x** |
+| **large-v3-turbo** | `int8_float16` | 26.0% <br><sub>[22.92–29.63%]</sub> | 65.1% <br><sub>[61.32–68.88%]</sub> | **38.59% <br><sub>[32.75–44.65%]</sub>** | 18.26% | **608.3 ms** | **0.085x** |
+| **whisper-hinglish-swift** | `int8_float16` | 73.8% <br><sub>[71.22–76.62%]</sub> | 111.48% <br><sub>[108.45–114.53%]</sub> | **52.8% <br><sub>[48.47–57.96%]</sub>** | 29.08% | **158.2 ms** | **0.021x** |
 
 ### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
-> 100 curated sentences covering technical terminology, currency amounts (₹), timestamps, and rapid code-switching with multi-voice rotation and automated audio degradations (speed change, additive noise, 8 kHz telephony filtering).
+> 100 curated sentences covering technical terminology, currency amounts (₹), timestamps, and rapid code-switching with multi-voice rotation and automated audio degradations (speed change, additive noise, 8 kHz telephony filtering). Evaluated using canonical script-normalized transliteration scoring.
 
-| Model | Precision | Overall WER | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
+| Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | **66.12%** | 64.59% | 53.54% | 106.92% | 60.64% | 37.06% | **800.4 ms** | **0.142x** |
-| **large-v3-turbo** | `int8_float16` | **58.99%** | 68.55% | 48.27% | 82.09% | 58.85% | 23.52% | **486.2 ms** | **0.089x** |
-| **whisper-hinglish-swift** | `int8_float16` | **33.43%** | 23.79% | 33.26% | 70.72% | 24.16% | 12.48% | **108.5 ms** | **0.019x** |
+| **medium** | `int8_float16` | **63.12%**<br><sub>[57.31–69.53%]</sub> | 65.4% | 56.02% | 78.62% | 65.5% | 44.97% | **692.3 ms** | **0.131x** |
+| **large-v3-turbo** | `int8_float16` | **56.76%**<br><sub>[50.56–62.89%]</sub> | 64.88% | 46.15% | 68.39% | 58.05% | 37.89% | **323.8 ms** | **0.06x** |
+| **whisper-hinglish-swift** | `int8_float16` | **36.31%**<br><sub>[31.19–42.32%]</sub> | 22.9% | 34.03% | 68.76% | 28.52% | 30.7% | **92.9 ms** | **0.017x** |
 
 ### 3. Empirical Hardware & Latency Measurements
 
@@ -206,6 +206,29 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 | **Calibrated Refusal Threshold** | **0.785** | F1: **0.8685** (Precision: **81.86%**, Recall: **92.5%**) |
 
 <!-- BENCHMARK_TABLE_END -->
+
+### 🔬 How to Reproduce Benchmark Results
+
+All benchmark data, real-speech audio manifests, synthetic audio generation, and evaluations are 100% deterministic and script-driven using public, ungated CC-BY-4.0 datasets:
+
+```powershell
+# 1. Fetch public datasets (FLEURS, HiACC) and generate synthetic degraded clips deterministically
+python scripts/fetch_benchmark_data.py
+
+# 2. Run the evaluation across models on GPU or CPU
+python -m bolsamajh.benchmark.evaluate --models medium large-v3-turbo whisper-hinglish-swift --suite all --device cuda --compute_type int8_float16
+
+# 3. Measure hardware latencies and document retrieval speeds
+python scripts/measure_hardware.py
+
+# 4. Re-generate README benchmark tables directly from the verified result JSONs
+python scripts/generate_readme_tables.py
+```
+
+See [benchmark_data/BENCHMARK_RESULTS.md](benchmark_data/BENCHMARK_RESULTS.md) for full per-clip diagnostic logs, WER outlier root cause analysis, and before/after comparisons.
+
+---
+
 ## ⌨️ Global Hotkeys Reference
 
 | Shortcut | Action | Description |
@@ -258,7 +281,7 @@ When configured with these flags:
 
 1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus still exhibits 52.84% WER on Whisper medium due to diverse Indian regional accents and colloquial loanwords.
 2. **Numerical Digit Variations:** ASR output alternates between written Hindi words (*"पंद्रह"*) and ASCII digits (*"15"*), which increases raw word error rates on numerical test sets.
-3. **Phonetic Spelling Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"*), which is why BolSamajh uses canonical phonemic transliteration for fair scoring.
+3. **Orthographic vs Phonetic Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"* vs *"मीटिंग"*). While BolSamajh uses canonical script-normalized transliteration to bridge Devanagari and Latin scripts without penalizing alphabet mismatches, it does not phonemically collapse loanword spelling variants, which contributes to higher measured WER on code-switched splits.
 4. **Hardware Requirements:** Real-time GPU execution (RTF ~0.18x) requires an NVIDIA GPU (RTX 3060 Ti tested). CPU execution is functional using int8 quantization, but latency increases to 1.5–2.5 seconds per sentence.
 5. **TTS Script Routing:** Edge-TTS Hindi voices require Devanagari text; Roman Hinglish must be transliterated before synthesis to avoid pronunciation artifacts.
 

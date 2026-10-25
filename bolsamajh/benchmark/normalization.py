@@ -1,12 +1,14 @@
-"""Canonical Indic text normalization and transliteration scoring.
+"""Canonical Indic text normalization and script-normalized transliteration scoring.
 
-Adheres to Tier 1 Requirement 6:
+Adheres strictly to benchmark credibility standards:
 - Normalizes Devanagari/Gujarati: nuktas, chandrabindu/anusvara, dandas, digit forms.
 - Eliminates zero-width formatting characters (ZWJ, ZWNJ).
-- Transliterates into a canonical phonemic script (ISO/ITRANS) using Aksharamukha,
-  so spelling variants of English loanwords and code-switching are evaluated
-  on phonetic fidelity rather than character-set mismatches.
-- Drops the unprincipled 'best of two references' trick in favor of a single canonical evaluation.
+- Transliterates Indic scripts (Devanagari/Gujarati) into canonical ASCII-Roman (ISO transliteration
+  with diacritic stripping via Aksharamukha). Note: this bridges cross-script representation
+  (Devanagari vs Roman), but is designated as 'script-normalized WER' rather than 'phonemic'
+  because loanword orthography differences (e.g. English 'meeting' vs transliterated 'mitinga')
+  are not phonemically merged.
+- Drops the unprincipled 'best of two references' trick in favor of single canonical evaluation.
 """
 
 import re
@@ -66,11 +68,11 @@ def normalize_indic(text: str) -> str:
 
 
 def to_canonical_script(text: str) -> str:
-    """Convert mixed Indic/Latin text to a canonical Romanized phonemic representation.
+    """Convert mixed Indic/Latin text to a canonical Romanized script representation.
     
-    This ensures that English words transcribed into Devanagari (e.g. मीटिंग)
-    and English words in Latin script (e.g. meeting) are evaluated fairly
-    in a canonical phonemic script.
+    This provides script-normalized evaluation by mapping Devanagari and Gujarati
+    text to Roman ISO transliteration with diacritics stripped, ensuring cross-script
+    comparability without claiming full phonemic loanword unification.
     """
     text = normalize_indic(text)
     if not text:

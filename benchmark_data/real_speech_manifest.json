@@ -14,9 +14,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_002.wav",
-    "reference": "ये मेरे सारे favourite foods फूड्स हैं and",
-    "duration_sec": 3.19,
-    "code_switch_points": 3.0,
+    "reference": "and ये यूपी में आता है",
+    "duration_sec": 2.53,
+    "code_switch_points": 1.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -24,8 +24,8 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_003.wav",
-    "reference": "वीर बड़े भाई known for his curiosity and दीया छोटी बहन admired for her creativity.",
-    "duration_sec": 6.64,
+    "reference": "ये मेरे सारे favourite foods फूड्स हैं and",
+    "duration_sec": 3.19,
     "code_switch_points": 3.0,
     "license": "CC-BY-4.0"
   },
@@ -34,9 +34,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_004.wav",
-    "reference": "Dusty book मिली old book मिली filled with mysterious symbol and ancient drawing. Excited by their discovery they spent hours",
-    "duration_sec": 9.57,
-    "code_switch_points": 4.0,
+    "reference": "वीर बड़े भाई known for his curiosity and दीया छोटी बहन admired for her creativity.",
+    "duration_sec": 6.64,
+    "code_switch_points": 3.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -44,9 +44,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_005.wav",
-    "reference": "that's a barren land Barren पड़ी है ऐसा लगता है कि ये desert है एक और there are small small Mountains are there जो mountains है and that are short heighted mountain जिससे की साफ नजर आता है कि ये एक desert का part है",
-    "duration_sec": 16.0,
-    "code_switch_points": 13.0,
+    "reference": "Dusty book मिली old book मिली filled with mysterious symbol and ancient drawing. Excited by their discovery they spent hours",
+    "duration_sec": 9.57,
+    "code_switch_points": 4.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -54,9 +54,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_006.wav",
-    "reference": "परेशानी की वजह से वो ऐसी जगह है ताकि उसे थोड़ा peace मिल सके",
-    "duration_sec": 5.15,
-    "code_switch_points": 2.0,
+    "reference": "that's a barren land Barren पड़ी है ऐसा लगता है कि ये desert है एक और there are small small Mountains are there जो mountains है and that are short heighted mountain जिससे की साफ नजर आता है कि ये एक desert का part है",
+    "duration_sec": 16.0,
+    "code_switch_points": 13.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -64,9 +64,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_007.wav",
-    "reference": "next image",
-    "duration_sec": 14.41,
-    "code_switch_points": 10.0,
+    "reference": "परेशानी की वजह से वो ऐसी जगह है ताकि उसे थोड़ा peace मिल सके",
+    "duration_sec": 5.15,
+    "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -74,9 +74,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_008.wav",
-    "reference": "So मेरा favourite festival है Diwali",
-    "duration_sec": 3.02,
-    "code_switch_points": 4.0,
+    "reference": "वो खाली है and he is jumping with joy",
+    "duration_sec": 3.03,
+    "code_switch_points": 1.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -84,9 +84,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_009.wav",
-    "reference": "Stranger Things की बात करू Stranger Things काफी अच्छा लगा है",
-    "duration_sec": 3.17,
-    "code_switch_points": 3.0,
+    "reference": "So मेरा favourite festival है Diwali",
+    "duration_sec": 3.02,
+    "code_switch_points": 4.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -94,9 +94,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_010.wav",
-    "reference": "आगे challenges आते हैं वो सब चीज़े उसके अंदर दिखाई गई है",
-    "duration_sec": 3.07,
-    "code_switch_points": 2.0,
+    "reference": "Stranger Things की बात करू Stranger Things काफी अच्छा लगा है",
+    "duration_sec": 3.17,
+    "code_switch_points": 3.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -104,8 +104,8 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_011.wav",
-    "reference": "dishes राजमा चावल राजमा चावल काफी पसंद है and apart from that I like sweets also",
-    "duration_sec": 9.45,
+    "reference": "आगे challenges आते हैं वो सब चीज़े उसके अंदर दिखाई गई है",
+    "duration_sec": 3.07,
     "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
@@ -114,9 +114,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_012.wav",
-    "reference": "इसे सुनके दोनों ने सोचा कि ये उनका next adventure spot हो सकता है So चिंटू और राजू ने अपने झोलो में कुछ snacks और पानी pack किया और गुफा की तरफ चल दिये",
-    "duration_sec": 13.77,
-    "code_switch_points": 8.0,
+    "reference": "dishes राजमा चावल राजमा चावल काफी पसंद है and apart from that I like sweets also",
+    "duration_sec": 9.45,
+    "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -124,9 +124,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_013.wav",
-    "reference": "एक दूसरी image है अब मेरे सामने उसमें दो बच्चे हैं दोनों बच्चे खाना खा रहे हैं एक बच्चा रो रहा है और एक बच्चा शांत बैठा है",
-    "duration_sec": 9.11,
-    "code_switch_points": 2.0,
+    "reference": "इसे सुनके दोनों ने सोचा कि ये उनका next adventure spot हो सकता है So चिंटू और राजू ने अपने झोलो में कुछ snacks और पानी pack किया और गुफा की तरफ चल दिये",
+    "duration_sec": 13.77,
+    "code_switch_points": 8.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -134,9 +134,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_014.wav",
-    "reference": "या उसका आज birthday है तो काफी खुश है वो बच्चा काफी खुश नजर आ रहा है",
-    "duration_sec": 3.97,
-    "code_switch_points": 2.0,
+    "reference": "may be वो सोच रहा है कि वह कैसे रेगिस्तान के अंदर आ गया और अब वह क्या करेगा जिससे वह इस रेगिस्तान से बाहर निकल सके और अपने",
+    "duration_sec": 11.36,
+    "code_switch_points": 1.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -144,8 +144,8 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_015.wav",
-    "reference": "अपनापन जो Friends के बीच में होता है",
-    "duration_sec": 2.5,
+    "reference": "एक दूसरी image है अब मेरे सामने उसमें दो बच्चे हैं दोनों बच्चे खाना खा रहे हैं एक बच्चा रो रहा है और एक बच्चा शांत बैठा है",
+    "duration_sec": 9.11,
     "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
@@ -154,8 +154,8 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_016.wav",
-    "reference": "Romantic part भी है मतलब  it is very beautiful show",
-    "duration_sec": 3.31,
+    "reference": "या उसका आज birthday है तो काफी खुश है वो बच्चा काफी खुश नजर आ रहा है",
+    "duration_sec": 3.97,
     "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
@@ -164,9 +164,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_017.wav",
-    "reference": "अब आप ने मैयूर shooting and shirtings अगर सुना हैं तो सारे जितने भी Yanes हो गए या फिर shooting, shirting, कपड़े,",
-    "duration_sec": 9.17,
-    "code_switch_points": 6.0,
+    "reference": "अपनापन जो Friends के बीच में होता है",
+    "duration_sec": 2.5,
+    "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -174,8 +174,8 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_018.wav",
-    "reference": "इसे सुनके दोनों ने सोचा कि ये उनका next adventure spot हो सकता है।",
-    "duration_sec": 4.94,
+    "reference": "Romantic part भी है मतलब  it is very beautiful show",
+    "duration_sec": 3.31,
     "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
@@ -184,9 +184,9 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_019.wav",
-    "reference": "दो sibling रहते थे",
-    "duration_sec": 1.68,
-    "code_switch_points": 2.0,
+    "reference": "अब आप ने मैयूर shooting and shirtings अगर सुना हैं तो सारे जितने भी Yanes हो गए या फिर shooting, shirting, कपड़े,",
+    "duration_sec": 9.17,
+    "code_switch_points": 6.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -194,9 +194,809 @@
     "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
     "split": "code_switched_hinglish",
     "wav_file": "benchmark_data/real_speech/hiacc_cs_020.wav",
+    "reference": "I would recommend कि वहाँ से ये ख़रीद सकते है",
+    "duration_sec": 3.89,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_021",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_021.wav",
+    "reference": "इसे सुनके दोनों ने सोचा कि ये उनका next adventure spot हो सकता है।",
+    "duration_sec": 4.94,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_022",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_022.wav",
+    "reference": "दो sibling रहते थे",
+    "duration_sec": 1.68,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_023",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_023.wav",
     "reference": "veer and diya veer बड़े भाई known for for his curosity and diya छोटी बहन admired for her creativity",
     "duration_sec": 8.69,
     "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_024",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_024.wav",
+    "reference": "After searching high and low, उन्हें city के किनारे एक old abandoned house खोज निकाला।  ,,",
+    "duration_sec": 5.66,
+    "code_switch_points": 5.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_025",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_025.wav",
+    "reference": "sad सी  image लग रही है",
+    "duration_sec": 1.68,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_026",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_026.wav",
+    "reference": "In this image, दो cute से  kids है . They are having their food.,,",
+    "duration_sec": 5.9,
+    "code_switch_points": 6.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_027",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_027.wav",
+    "reference": "pleading कि मेरे को कुछ अच्छा सा खाने का दो चटपटा सा क्योंकि जो भी अपने plate मे दिया है  It is not good i am not liking it so यह picture  उसको depic कर रही है",
+    "duration_sec": 10.46,
+    "code_switch_points": 9.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_028",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_028.wav",
+    "reference": "किसी को airport पर लेने आया है शायद और वो",
+    "duration_sec": 3.6,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_029",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_029.wav",
+    "reference": "और joy, happeniess, खुशियाँ, बहुत सारे relative",
+    "duration_sec": 8.11,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_030",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_030.wav",
+    "reference": "मेरा favourite festivel diwali है",
+    "duration_sec": 2.98,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_031",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_031.wav",
+    "reference": "family time spend करने के लिए ज़्यादा मिलता है",
+    "duration_sec": 3.12,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_032",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_032.wav",
+    "reference": "yes, तो मेरा home town है Farrukhabad,,",
+    "duration_sec": 3.12,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_033",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_033.wav",
+    "reference": "इसलिए अच्छा लगता है कि हम लोग जैसे कि dehradun में रहते हैं, mussorrie  पास में हैं, mountains बहुत हैं और and i love mountain,",
+    "duration_sec": 9.26,
+    "code_switch_points": 7.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_034",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_034.wav",
+    "reference": "As they walked through the jungle they felt as if someone was watching them. पर उन्होंने हिम्मत नहीं हारी.",
+    "duration_sec": 7.06,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_035",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_035.wav",
+    "reference": "चिंटू और राजू ने guardian",
+    "duration_sec": 1.78,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_036",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_036.wav",
+    "reference": "I think उसको पानी चाहिए और",
+    "duration_sec": 2.26,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_037",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_037.wav",
+    "reference": "अरे मैं भी तो cute हूं, मेरा भी phto लेलो कोई,,",
+    "duration_sec": 3.89,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_038",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_038.wav",
+    "reference": "और ऐसा लग रहा है कि शायद ये christmas night  का है और next day",
+    "duration_sec": 7.3,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_039",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_039.wav",
+    "reference": "better की hometown पर रहो और बाकी फिल करो तो फैमिली वगैरह के साथ थोड़ा अपने मन का खाना बना देती है mummy तो वो better रहता है",
+    "duration_sec": 8.41,
+    "code_switch_points": 11.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_040",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_040.wav",
+    "reference": "जैसे अभी लास्ट मैंने सीरीज देखा है",
+    "duration_sec": 2.51,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_041",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_041.wav",
+    "reference": "punjabi menu so उसमें paneer की dishes अगर कोई है तो better है",
+    "duration_sec": 5.25,
+    "code_switch_points": 7.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_042",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_042.wav",
+    "reference": "why do you like that place i generally like to hike around तो थोड़ा सा मतलब मेरे को outskirts में रहना",
+    "duration_sec": 6.37,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_043",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_043.wav",
+    "reference": "So चिंटू और राजू ने अपने झोलों में कुछ snacks और पानी pack किया और गुफा की तरफ चल दिये।",
+    "duration_sec": 7.36,
+    "code_switch_points": 5.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_044",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_044.wav",
+    "reference": "known for his curiosity and Diya छोटी बहन",
+    "duration_sec": 2.97,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_045",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_045.wav",
+    "reference": "एक गर्मी के दिन के दोपहर में while exploring the attic of their old house",
+    "duration_sec": 4.91,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_046",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_046.wav",
+    "reference": "उन्हें city के किनारे एक old abandoned house खोजा",
+    "duration_sec": 3.23,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_047",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_047.wav",
+    "reference": "and How do you celebrate your last festival? I celebrated my last holi festival with",
+    "duration_sec": 5.44,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_048",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_048.wav",
+    "reference": "colors के साथ मेरे को खेलना पसंद है",
+    "duration_sec": 1.9,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_049",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_049.wav",
+    "reference": "एक छोटे से गाँव में दो friends रहते थे चिंटू और राजू। दोनों ही बच्चे बहुत मस्ती करते थे और उनकी friendship बिल्कुल चुटकियों की तरह थी - हमेशा पास हमेशा साथ।",
+    "duration_sec": 10.49,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_050",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_050.wav",
+    "reference": "So चिंटू और राजू ने अपने",
+    "duration_sec": 2.59,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_051",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_051.wav",
+    "reference": "चिंटू और राजू ने guardian के दिए गए task complete कर लिए और हर एक task के बाद उन्हें गुफा का secret थोड़ा समझ आ गया।",
+    "duration_sec": 9.6,
+    "code_switch_points": 8.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_052",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_052.wav",
+    "reference": "Veer and Diya. Veer बड़े भाई",
+    "duration_sec": 2.59,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_053",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_053.wav",
+    "reference": "उन्हें city के किनारे एक old abandoned house खोज निकाला।",
+    "duration_sec": 4.14,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_054",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_054.wav",
+    "reference": "अपना खाना देख के क्यूँकि एक को कम मिला एक को जादा मिला तब  भी वो unsatisfied है उसके dressing sense और वो सब चीजे भी अच्छी है।",
+    "duration_sec": 7.11,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_055",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_055.wav",
+    "reference": "वो बेचारा satisfied अपनी life से खुश है।",
+    "duration_sec": 2.67,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_056",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_056.wav",
+    "reference": "और उनकी friendship बिल्कुल चुटकियों की तरह थी",
+    "duration_sec": 3.27,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_057",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_057.wav",
+    "reference": "Welcome चिंटू और राजू!",
+    "duration_sec": 1.67,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_058",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_058.wav",
+    "reference": "After searching high and low उन्होंने",
+    "duration_sec": 2.25,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_059",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_059.wav",
+    "reference": "behind a bookshelf. जैसे",
+    "duration_sec": 1.5,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_060",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_060.wav",
+    "reference": "और एक image दो बच्चे बैठे हैं",
+    "duration_sec": 2.52,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_061",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_061.wav",
+    "reference": "favourite festival दीपावली है",
+    "duration_sec": 2.01,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_062",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_062.wav",
+    "reference": "इस सीरीज में dialogue delivery है और उसका जो",
+    "duration_sec": 2.18,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_063",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_063.wav",
+    "reference": "तो मेरा hometown is shahjahapur",
+    "duration_sec": 3.21,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_064",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_064.wav",
+    "reference": "spoke of a hidden portal to a magical world. सूरज अस्त होने पर वीर और दीया",
+    "duration_sec": 3.44,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_065",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_065.wav",
+    "reference": "उन्हें city के किनारे एक old abandoned house खोज निकाला।",
+    "duration_sec": 3.29,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_066",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_066.wav",
+    "reference": "इस image में एक आदमी खड़ा हुआ है और एक सुनसान से इलाके में खड़े हुए",
+    "duration_sec": 4.68,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_067",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_067.wav",
+    "reference": "मुझे लगता है वो अपने घर को बहुत miss करता है",
+    "duration_sec": 2.12,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_068",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_068.wav",
+    "reference": "इस image में दो बच्चे",
+    "duration_sec": 1.2,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_069",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_069.wav",
+    "reference": "उन्हें गुफा का secret थोड़ा और समझ आ गया।",
+    "duration_sec": 2.33,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_070",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_070.wav",
+    "reference": "दो siblings रहते थे",
+    "duration_sec": 1.14,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_071",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_071.wav",
+    "reference": "and काफी सारे पटाखे फोडे पूजा करी लक्ष्मी माता की and enjoy किया",
+    "duration_sec": 4.76,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_072",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_072.wav",
+    "reference": "मथुरा बहुत ही special place है specially",
+    "duration_sec": 2.89,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_073",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_073.wav",
+    "reference": "जन्मभूमि के अंदर मिलता है पूरी information",
+    "duration_sec": 2.84,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_074",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_074.wav",
+    "reference": "so ये मेरा favourite dish है",
+    "duration_sec": 1.59,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_075",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_075.wav",
+    "reference": "इसे सुनके दोनों ने सोचा कि ये उनका next",
+    "duration_sec": 2.29,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_076",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_076.wav",
+    "reference": "Veer, बड़े भाई, known for his curiosity, and Diya",
+    "duration_sec": 2.52,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_077",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_077.wav",
+    "reference": "एक गर्मी के दिन के दोपहर में, while exploring the,,",
+    "duration_sec": 2.67,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_078",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_078.wav",
+    "reference": "we sit down and हम लोग सेवइयां खाते हैं",
+    "duration_sec": 2.82,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_079",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_079.wav",
+    "reference": "watching series i like watching series but not always पहले मैं देखता हूं कि कौन सी series",
+    "duration_sec": 5.58,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_080",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_080.wav",
+    "reference": "about my hometowm so i belong from varanasi up जैसे सबको पता है up",
+    "duration_sec": 5.49,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_081",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_081.wav",
+    "reference": "food के बारे में तो basically मैं बिरयानी पसंद करता हूं",
+    "duration_sec": 3.59,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_082",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_082.wav",
+    "reference": "known for his curiosity and Diya छोटी बहन",
+    "duration_sec": 3.14,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_083",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_083.wav",
+    "reference": "के दोपहर में while exploring the",
+    "duration_sec": 2.1,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_084",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_084.wav",
+    "reference": "After searching high and low उन्हें city के किनारे एक old",
+    "duration_sec": 4.53,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_085",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_085.wav",
+    "reference": "इस image में मुझे यह लग रहा है कि एक आदमी है जो",
+    "duration_sec": 4.72,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_086",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_086.wav",
+    "reference": "and दूसरा वाला काफी enjoy कर रहा है",
+    "duration_sec": 1.88,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_087",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_087.wav",
+    "reference": "एक बच्चा है जो काफी happy mood में है",
+    "duration_sec": 1.75,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_088",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_088.wav",
+    "reference": "वह smile भी कर रहा है i think वह किसी के सामने",
+    "duration_sec": 3.23,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_089",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_089.wav",
+    "reference": "कुछ इसी mood में बच्चा लग रहा है",
+    "duration_sec": 1.59,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_090",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_090.wav",
+    "reference": "जैसे होता है ना yahoo कह कर fly करना कुछ वैसा ही कर रहा है यह",
+    "duration_sec": 3.63,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_091",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_091.wav",
+    "reference": "so उस time पे we celebrate this",
+    "duration_sec": 1.99,
+    "code_switch_points": 4.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_092",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_092.wav",
+    "reference": "तो इसीलिए उन्होंने उसको develop करा था",
+    "duration_sec": 1.8,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_093",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_093.wav",
+    "reference": "हम रात को गए थे shopping करने फिर उसके बाद हमने राखी वगैरह लेकर आए",
+    "duration_sec": 4.85,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_094",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_094.wav",
+    "reference": "fathers day वैसे तो सारे दिन ही families के होते हैं",
+    "duration_sec": 2.44,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_095",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_095.wav",
+    "reference": "वह साइंस को लेकर बहुत ज्यादा couriousity है उसमें कि मैं देखूं क्या चीज हो रही है क्या नहीं हो रही है",
+    "duration_sec": 6.38,
+    "code_switch_points": 2.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_096",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_096.wav",
+    "reference": "तो that's why i",
+    "duration_sec": 1.05,
+    "code_switch_points": 1.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_097",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_097.wav",
+    "reference": "ok so मेरा hometown new delhi है",
+    "duration_sec": 2.67,
+    "code_switch_points": 3.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_098",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_098.wav",
+    "reference": "graduation post graduation दोनों वहां से हुई है तो एक different bond है मेरा new delhi के साथ",
+    "duration_sec": 7.27,
+    "code_switch_points": 5.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_099",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_099.wav",
+    "reference": "I like all food like Indian Chinese मेरे को सब तरह के food पसंद है actually मैं एक foodie हूं so i like all the food but मेरा comfort food है",
+    "duration_sec": 8.7,
+    "code_switch_points": 11.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "hiacc_100",
+    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+    "split": "code_switched_hinglish",
+    "wav_file": "benchmark_data/real_speech/hiacc_cs_100.wav",
+    "reference": "तो मुझे अच्छा लगेगा अगर मेरे friends मेरे साथ होंगे तो मुझे पसंद आएगा",
+    "duration_sec": 4.7,
+    "code_switch_points": 2.0,
     "license": "CC-BY-4.0"
   },
   {
@@ -380,6 +1180,726 @@
     "license": "CC-BY-4.0"
   },
   {
+    "id": "fleurs_hi_in_021",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_021.wav",
+    "reference": "मीट्रिक प्रणाली के इस्तेमाल निरपेक्षवाद से गणतंत्रवाद राष्ट्रवाद में बदलाव और देश का भरोसा लोगों से है किसी एक शासक से नहीं ऐसी बातों का बहुत ज़्यादा सामाजिक और राजनैतिक असर होता है",
+    "duration_sec": 15.72,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_022",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_022.wav",
+    "reference": "ज़्यादातर जिलों में छोटी जापानी कोस्टर बसें चलती हैं जो आरामदायक और मज़बूत होती हैं",
+    "duration_sec": 5.94,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_023",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_023.wav",
+    "reference": "प्रथम विश्व युद्ध के दौरान युद्ध की भयानकता और अत्याचारों को देखने के बाद राष्ट्र भविष्य में ऐसी स्थिति से बचने के लिए कामना करता है",
+    "duration_sec": 13.86,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_024",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_024.wav",
+    "reference": "चूंकि छात्र अक्सर सबसे आलोचनात्मक दर्शक होते हैं इसलिए ब्लॉग लेखक आलोचना या समीक्षा से बचने के लिए लेखन में सुधार करने का प्रयास करना शुरू कर देता/देती है।",
+    "duration_sec": 18.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_025",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_025.wav",
+    "reference": "स्पेन के लोगों ने उपनिवेश काल की शुरुआत की जो तीन शताब्दियों तक जारी रहा",
+    "duration_sec": 5.28,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_026",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_026.wav",
+    "reference": "हज़ारों साल पहले एरिस्टार्चस नामक एक व्यक्ति ने कहा था कि सौर मंडल सूर्य के चारों ओर घूमता है",
+    "duration_sec": 14.52,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_027",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_027.wav",
+    "reference": "उसका पहला स्लैलम था जहाँ उसने अपने पहले चक्र मे दौड़ को पूरा ना कर सका ।इस दौड़ में 116 प्रतियोगियों में से 36 खिलाड़ियों ने एक ही स्थान प्राप्त किया ।",
+    "duration_sec": 14.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_028",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_028.wav",
+    "reference": "साथ ही संयुक्त राष्ट्र संघ वैश्विक तापवृद्धि ग्लोबल वार्मिंग से प्रभावित देशों को इसके प्रभावों से निपटने में सहायता करने के लिए एक निधि को एकत्र करने की आशा करता है।",
+    "duration_sec": 16.8,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_029",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_029.wav",
+    "reference": "यह चेतावनी देता है कि कोई भी इस बात की गारंटी नहीं दे सकता कि इस स्थिति में इराक में किसी भी तरह की कार्रवाई से सांप्रदायिक युद्ध बढ़ती हिंसा या अराजकता पर लगाम लगेगी",
+    "duration_sec": 11.58,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_030",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_030.wav",
+    "reference": "चूंकि बिशकेक की गलियों में कानून लागू करने वाले अधिकारी मौजूद नहीं थे तो पूरी रात बड़े पैमाने पर लूट जारी रहने की सूचना मिली है",
+    "duration_sec": 13.92,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_031",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_031.wav",
+    "reference": "इससे पहले रिंग के सीईओ जेमी सिमिनॉफ ने बताया था कि कंपनी तब शुरू हुई जब उसके दरवाज़े की घंटी उसके गेराज में स्थित दुकान से सुनाई नहीं देती थी",
+    "duration_sec": 15.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_032",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_032.wav",
+    "reference": "मुझे नहीं पता आपने इसपर ध्यान दिया है कि नहीं लेकिन सेंट्रल अमेरिका से इस देश में आए ज़्यादातर प्रोडक्ट पर टैक्स नहीं लगाया जाता",
+    "duration_sec": 9.3,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_033",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_033.wav",
+    "reference": "डॉ मॉल का मानना है कि कुछ रोगियों का अस्पताल में ही संक्रमण हुआ होगा और इन में कम से कम दो अस्पताल स्वास्थ्य कार्यकर्ता थे",
+    "duration_sec": 10.56,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_034",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_034.wav",
+    "reference": "कुतूहल गांव में आधे घंटे टहलना समय की हानि नहीं है",
+    "duration_sec": 4.86,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_035",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_035.wav",
+    "reference": "प्लॉटिंग एनालिसिस का परिणाम पब्लिक वेबसाइट पर पोस्ट करना होगा",
+    "duration_sec": 5.94,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_036",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_036.wav",
+    "reference": "आख़िरकार लोहे के पहियों ने लकड़ी के पहियों की जगह ले ली 1767 में पूरी तरह लोहे से बनी रेल की शुरुआत हो गई",
+    "duration_sec": 10.44,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_037",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_037.wav",
+    "reference": "मुख्य लोकल बियर number one है यह एक काम्प्लेक्स बियर नहीं है बल्कि यह आपको ताजगी देती है अन्य लोकल बियर को manta कहा जाता है",
+    "duration_sec": 10.56,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_038",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_038.wav",
+    "reference": "उदाहरण के लिए  लर्निंग” और  सोशलाइजेशन” को इंटरनेट इस्तेमाल करने की अहम वजह के तौर पर बताया गया है जेम्स एट अल. 1995",
+    "duration_sec": 10.2,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_039",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_039.wav",
+    "reference": "इस गतिशील परिवहन शटल में हर कोई किसी न किसी तरह से जुड़ा हुआ है और निजी कारों पर आधारित परिवहन प्रणाली का समर्थन करता है",
+    "duration_sec": 11.52,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_040",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_040.wav",
+    "reference": "चूंकि छात्र अक्सर सबसे आलोचनात्मक दर्शक होते हैं इसलिए ब्लॉग लेखक आलोचना या समीक्षा से बचने के लिए लेखन में सुधार करने का प्रयास करना शुरू कर देता/देती है।",
+    "duration_sec": 11.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_041",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_041.wav",
+    "reference": "जब टिप्पणी के लिए कहा गया तो मिलर ने कहा माइक सुनते समय बहुत सारी बातें करता है मैं तैयार हो रहा था इसलिए वह जो कह रहा था मैं वास्तव में उसे सुन नहीं रहा था",
+    "duration_sec": 16.32,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_042",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_042.wav",
+    "reference": "डॉ मॉल का मानना है कि कुछ रोगियों का अस्पताल में ही संक्रमण हुआ होगा और इन में कम से कम दो अस्पताल स्वास्थ्य कार्यकर्ता थे",
+    "duration_sec": 9.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_043",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_043.wav",
+    "reference": "वैसे तो इसका व्यापक रूप से इस्तेमाल किया जाता है खास कर गैर-रोमनी लोगों में लेकिन नकारात्मक स्टीरियोटाइप और रोमनी लोगों की ग़लत धारणाओं की वजह से जिप्सी शब्द को अक्सर आपत्तिजनक माना जाता है",
+    "duration_sec": 15.6,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_044",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_044.wav",
+    "reference": "दो घंटों में सरकारी इमारतों के पास दो बम विस्फोट हुए",
+    "duration_sec": 4.2,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_045",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_045.wav",
+    "reference": "पुलिस ने कहा कि शव लगभग एक दिन पुराना है",
+    "duration_sec": 4.98,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_046",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_046.wav",
+    "reference": "कनान देश में बड़े जंगलो के न होने के चलते वहां लकड़ियां बहुत महंगी थी",
+    "duration_sec": 10.08,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_047",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_047.wav",
+    "reference": "मोल्दोवा में प्रमुख धर्म रूढ़िवादी ईसाई धर्म है",
+    "duration_sec": 9.24,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_048",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_048.wav",
+    "reference": "ज़्यादातर जिलों में छोटी जापानी कोस्टर बसें चलती हैं जो आरामदायक और मज़बूत होती हैं",
+    "duration_sec": 6.24,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_049",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_049.wav",
+    "reference": "प्रकृतिवादियों और दार्शनिकों ने शास्त्रीय ग्रंथों पर और विशेष रूप से लैटिन में लिखे बाइबिल पर ध्यान दिया",
+    "duration_sec": 11.4,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_050",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_050.wav",
+    "reference": "इसकी सर्वव्यापी शक्ति ने राजा से लेकर आम तक सभी को प्रभावित किया",
+    "duration_sec": 5.52,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_051",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_051.wav",
+    "reference": "बाबा श्याम को छप्पन भोग हिंदू धर्म में 56 अलग-अलग खाद्य पदार्थ जैसे मिठाई फल मेवा व्यंजन आदि जो देवता को चढ़ाए जाते हैं की 108 थाली परोसी गईं",
+    "duration_sec": 14.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_052",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_052.wav",
+    "reference": "इन सिद्धांतों से संकेत मिलता है कि लोगों की कुछ ऐसी ज़रूरतें और/या इच्छाएँ थीं जो उनके वयस्क होते-होते उनके भीतर निहित हो गयी",
+    "duration_sec": 15.84,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_053",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_053.wav",
+    "reference": "पोलैंड निवासी नेत्रहीन पुरुष मैकीज क्रेज़ेल और उनकी गाइड ऐना ऑगर्ज़िनस्का ने सुपर-जी मुकाबले में तेरहवां स्थान हासिल किया इसके अलावा दक्षिण कोरिया के जोंग सिऑर्क पार्क इस मुकाबले में चौबीसवें स्थान पर रहे",
+    "duration_sec": 17.28,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_054",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_054.wav",
+    "reference": "पुलिस के मुताबिक फ़ोटोग्राफर को टक्कर मारने वाले वाहन चालक पर आपराधिक आरोप लगने की संभावना बहुत कम है",
+    "duration_sec": 10.62,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_055",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_055.wav",
+    "reference": "हज़ारों साल पहले एरिस्टार्चस नामक एक व्यक्ति ने कहा था कि सौर मंडल सूर्य के चारों ओर घूमता है",
+    "duration_sec": 10.56,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_056",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_056.wav",
+    "reference": "शुरुआत में पोशाक पूर्व में बीजान्टिन संस्कृति से काफी प्रभावित थी",
+    "duration_sec": 5.4,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_057",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_057.wav",
+    "reference": "एक अंतर-वर्ष की योजना बनाने वालों के लिए अधिक लोकप्रिय विकल्प यात्रा करना और सीखना है",
+    "duration_sec": 8.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_058",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_058.wav",
+    "reference": "सफ़ारी शायद अफ्रीका में सबसे बड़े पर्यटन केंद्र हैं और ये कई आगंतुकों को आकर्षित करते है",
+    "duration_sec": 9.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_059",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_059.wav",
+    "reference": "खारे पानी के मगरमच्छ समुद्र में आम तौर पर नहीं रहते हैं ये अक्सर रॉकम्प्टन के उत्तर में नदी के मुहाने पर देखे जा सकते हैं",
+    "duration_sec": 10.02,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_060",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_060.wav",
+    "reference": "दिखाए गए दृष्टिकोण हर कहीं उपलब्ध ज़्यादा विस्तृत जानकारी की तुलना में अक्सर सतही सामान्य और अति-साधारण होते हैं",
+    "duration_sec": 12.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_061",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_061.wav",
+    "reference": "कुछ रिपोर्ट आधिकारिक मृत्यु दर आठ बताती हैं और आधिकारिक रिपोर्टों से पुष्टि होती है कि 30 तक घायल हुए हैं लेकिन अंतिम संख्या अभी तक ज्ञात नहीं हैं",
+    "duration_sec": 13.02,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_062",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_062.wav",
+    "reference": "स्कीइंग कई उत्साही लोगों के लिए एक प्रमुख यात्रा गतिविधि है जिसे कभी-कभी स्की बम्स कहा जाता है जिसमें विशेष स्थान पर स्कीइंग के इर्दगिर्द पूरी छुट्टियों की योजना बनाते हैं",
+    "duration_sec": 13.92,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_063",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_063.wav",
+    "reference": "इरान में हवाई दुर्घटनाएं सामान्य हैं जिसके पास बरसों पुराने हवाई जहाज़ हैं जिनका सिविल और मिलिट्री ऑपरेशन्स में सही तरीके से मेनटेन नहीं किया गया",
+    "duration_sec": 11.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_064",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_064.wav",
+    "reference": "कुछ फ़ेस्टिवल में छोटे बच्चों के साथ आने वाले परिवारों के लिए कैंप लगाने के ख़ास इलाके होते हैं",
+    "duration_sec": 6.72,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_065",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_065.wav",
+    "reference": "न्यू किंगडम प्राचीन मिस्रवासी अपने पूर्ववर्तियों के स्मारकों से आश्चर्यचकित थे जो तब एक हज़ार वर्ष से अधिक पुराने थे",
+    "duration_sec": 12.36,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_066",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_066.wav",
+    "reference": "फिलीपींस की विजय में अमेरिकी साम्राज्यवाद के युद्ध व्यय का भुगतान फिलिपिनो के लोगों ने खुद किया था",
+    "duration_sec": 11.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_067",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_067.wav",
+    "reference": "आप पिरामिड को शो शुरू होने से पहले अंधेरे में शांति से देख सकते हैं",
+    "duration_sec": 5.58,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_068",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_068.wav",
+    "reference": "कई सामान्य प्रारूप उदाहरण के लिए प्रारूप का aps परिवार इस अभिमुखता अनुपात के लगभग बराबर या उसके आस-पास हैं",
+    "duration_sec": 8.88,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_069",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_069.wav",
+    "reference": "पूर्वी अफ्रीकी द्वीप अफ्रीका के पूर्वी तट के परे हिंद महासागर में हैं",
+    "duration_sec": 7.2,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_070",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_070.wav",
+    "reference": "वे गुण जो किसी उप-संस्कृति को अलग बनाते हैं जैसे कि भाषा सौंदर्य धर्म राजनीति यौन भूगोल या कई सारे कारकों का मिश्रण हो सकते हैं",
+    "duration_sec": 14.28,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_071",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_071.wav",
+    "reference": "सर्दी का मौसम भ्रामक तौर से ठंडा हो सकता है तापमान शायद ही कभी बर्फीला हो लेकिन हवा और नमी के गठबंधन से थर्मामीटर के तापमान से अधिक ठंड महसूस हो सकती है",
+    "duration_sec": 18.06,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_072",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_072.wav",
+    "reference": "खुली बहस और मध्य पूर्व की ओर नीति के बारे में संयुक्त राज्य अमेरिका में आम सहमति बनाने के लिए रिपोर्ट एक याचिका के साथ खुलती है",
+    "duration_sec": 10.62,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_073",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_073.wav",
+    "reference": "ऐसी चीजें अलग-अलग अनुशासन बन गई हैं जो वास्तविक जीवन की समस्याओं के समाधान प्रदान करने पर ध्यान देती हैं",
+    "duration_sec": 8.4,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_074",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_074.wav",
+    "reference": "ऐसी चीजें अलग-अलग अनुशासन बन गई हैं जो वास्तविक जीवन की समस्याओं के समाधान प्रदान करने पर ध्यान देती हैं",
+    "duration_sec": 9.3,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_075",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_075.wav",
+    "reference": "मुख्य लोकल बियर number one है यह एक काम्प्लेक्स बियर नहीं है बल्कि यह आपको ताजगी देती है अन्य लोकल बियर को manta कहा जाता है",
+    "duration_sec": 11.76,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_076",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_076.wav",
+    "reference": "विज्ञान अब यह संकेत देता है कि इस विशाल कार्बन अर्थव्यवस्था ने जीवमंडल को उसकी स्थिर स्थितियों में से एक से हटा दिया है जिसने पिछले बीस लाख सालों में मानव विकास में सहायता की है",
+    "duration_sec": 13.44,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_077",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_077.wav",
+    "reference": "इसकी सापेक्ष अगम्यता के कारण टिम्बकटू का उपयोग दूर स्थित भूमि के रूपक के रूप में किया जाने लगा है",
+    "duration_sec": 12.24,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_078",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_078.wav",
+    "reference": "फिलीपींस की विजय में अमेरिकी साम्राज्यवाद के युद्ध व्यय का भुगतान फिलिपिनो के लोगों ने खुद किया था",
+    "duration_sec": 8.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_079",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_079.wav",
+    "reference": "इतालवी भाषा में उच्चारण करना तुलनात्मक रूप से आसान है क्योंकि ज़्यादातर शब्दों का उच्चारण वैसे ही किया जाता है जैसे उन्हें लिखा जाता है",
+    "duration_sec": 10.62,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_080",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_080.wav",
+    "reference": "हाथी और जिराफ़ जैसे कुछ जानवर कारों के बहुत करीब चले आते हैं और मानक उपकरण से अच्छा नज़ारा दिखाई देगा",
+    "duration_sec": 9.9,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_081",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_081.wav",
+    "reference": "आख़िरकार लोहे के पहियों ने लकड़ी के पहियों की जगह ले ली 1767 में पूरी तरह लोहे से बनी रेल की शुरुआत हो गई",
+    "duration_sec": 9.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_082",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_082.wav",
+    "reference": "मोल्दोवा में प्रमुख धर्म रूढ़िवादी ईसाई धर्म है",
+    "duration_sec": 4.44,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_083",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_083.wav",
+    "reference": "आम तौर पर सैटेलाइट फोन को मोबाइल फोन के स्थान पर उपयोग नहीं किया जा सकता है क्योंकि सैटेलाइट फोन से कॉल करने के लिए आपको उपग्रह की रेखा पर घर के बाहर रहना पड़ेगा",
+    "duration_sec": 22.68,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_084",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_084.wav",
+    "reference": "कृपया इस जगह का सम्मान करें अपने व्यवहार में गंभीरता रखें और इससे वही सम्मान दें जिसकी यह हकदार है होलोकास्ट या नाज़ी लोगों के बारे में मज़ाक न करें",
+    "duration_sec": 12.96,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_085",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_085.wav",
+    "reference": "देशभर के लोकप्रिय गायक श्री श्याम के चरणों में भजन या भक्तिगीत पेश करते हैं",
+    "duration_sec": 6.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_086",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_086.wav",
+    "reference": "स्थानीय अधिकारी संयंत्र के आस-पास के क्षेत्र में निवासियों को चेतावनी दे रहे हैं कि वे घर के अंदर रहें एयर-कंडीशनर बंद कर दें और नल का पानी न पिएं",
+    "duration_sec": 16.08,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_087",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_087.wav",
+    "reference": "तरलता के आधार पर एक करी सूखी या गीली हो सकती है",
+    "duration_sec": 7.5,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_088",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_088.wav",
+    "reference": "इसके राज्यों के बीच कर कानूनों और शुल्कों को ओवरराइड करने का भी कोई अधिकार नहीं था",
+    "duration_sec": 9.12,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_089",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_089.wav",
+    "reference": "पूर्व हाउस स्पीकर न्यूट गिंग्रिच टेक्सास के गर्वनर रिक पैरी और कांग्रेसवुमन मिशेल बैचमैन ने क्रमश चौथा पांचवां और छठा स्थान हासिल किया",
+    "duration_sec": 10.68,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_090",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_090.wav",
+    "reference": "हालांकि जंगल का अर्थ केवल मैंग्रोव दलदल नहीं हैं वे कुछ अंतिम शक्तिशाली जंगलों में से हैं जो कभी गंगा पठार को कवर करते थे",
+    "duration_sec": 11.28,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_091",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_091.wav",
+    "reference": "जैसे ही आप धारा से निकल आते हैं पीछे की ओर तैरने में कोई खास मुश्किल नहीं होती है",
+    "duration_sec": 7.8,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_092",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_092.wav",
+    "reference": "हाथी और जिराफ़ जैसे कुछ जानवर कारों के बहुत करीब चले आते हैं और मानक उपकरण से अच्छा नज़ारा दिखाई देगा",
+    "duration_sec": 8.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_093",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_093.wav",
+    "reference": "अमेरिकी राष्ट्रपति जॉर्ज डब्ल्यू बुश ने घोषणा का स्वागत किया",
+    "duration_sec": 11.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_094",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_094.wav",
+    "reference": "एनएसए के रूप में उन्होंने कूटनीतिक रूप से विश्व मामलों को संभालने में कार्टर की सहायता की जैसे कि कैंप डेविड एकॉर्ड्स 1978 1970 के दशक के अंत में अमेरिका-चीन संबंधों को सामान्य बनाना ईरानी क्रांति जो ईरान बंधक संकट का कारण बनी 1979 और अफ़गानिस्तान में सोवियत आक्रमण 1979",
+    "duration_sec": 26.28,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_095",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_095.wav",
+    "reference": "मुझे नहीं पता आपने इसपर ध्यान दिया है कि नहीं लेकिन सेंट्रल अमेरिका से इस देश में आए ज़्यादातर प्रोडक्ट पर टैक्स नहीं लगाया जाता",
+    "duration_sec": 11.58,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_096",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_096.wav",
+    "reference": "इसकी सर्वव्यापी शक्ति ने राजा से लेकर आम तक सभी को प्रभावित किया",
+    "duration_sec": 6.78,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_097",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_097.wav",
+    "reference": "दो घंटों में सरकारी इमारतों के पास दो बम विस्फोट हुए",
+    "duration_sec": 3.96,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_098",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_098.wav",
+    "reference": "जैसे ही आप धारा से निकल आते हैं पीछे की ओर तैरने में कोई खास मुश्किल नहीं होती है",
+    "duration_sec": 6.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_099",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_099.wav",
+    "reference": "इस नई जगह में अलग-अलग संसाधन और प्रतियोगी हैं इसलिए नई आबादी को पहले के मुकाबले एक मजबूत प्रतियोगी बनने के लिए अलग-अलग खासियत या बदलाव अपनाने की ज़रूरत होगी",
+    "duration_sec": 19.86,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_hi_in_100",
+    "dataset": "Google FLEURS (hi_in)",
+    "split": "read_hindi",
+    "wav_file": "benchmark_data/real_speech/fleurs_hi_in_100.wav",
+    "reference": "फिर लक्खा सिंह ने भजन गायकी की कमान संभाली",
+    "duration_sec": 5.76,
+    "license": "CC-BY-4.0"
+  },
+  {
     "id": "fleurs_gu_in_001",
     "dataset": "Google FLEURS (gu_in)",
     "split": "read_gujarati",
@@ -557,6 +2077,726 @@
     "wav_file": "benchmark_data/real_speech/fleurs_gu_in_020.wav",
     "reference": "\"તેમની 1,000મી ટિકિટ હતી \"મહાન કાર્યો દ્વારા સ્વીડીશ રાજાઓ\" ડેવિડ કોલ્કર એહરેન્સટ્રોમે 2000માં લખ્યું હતું જે ગિનિસ બુક ઓફ વર્લ્ડ રેકોર્ડ્સમાં સૂચિબદ્ધ હતું.",
     "duration_sec": 14.52,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_021",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_021.wav",
+    "reference": "ઓલિમ્પિક સુવર્ણચંદ્રક મેળવનાર 100 મીટર અને 200 મીટર ફ્રી સ્ટાઇલમાં અને કોમનવેલ્થ ગેમ્સમાં ત્રણ રિલેમાં ભાગ લેવાનો છે પરંતુ તેની ફરિયાદોને કારણે તેની ફિટનેસ માટે શંકા છે",
+    "duration_sec": 14.1,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_022",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_022.wav",
+    "reference": "તેઓ હજી સુધી એ નક્કી કરી રહ્યાં છે કે ક્રૅશ કેટલો મોટો હતો અને પૃથ્વીને કઈ રીતે અસર થશે",
+    "duration_sec": 8.1,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_023",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_023.wav",
+    "reference": "પોલીસે કહ્યું કે શરીર લગભગ એક દિવસથી ત્યાં પડી રહ્યું હોવાનું દેખાય છે",
+    "duration_sec": 6.3,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_024",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_024.wav",
+    "reference": "હસ્તકલાના ઉત્પાદનોને પ્રાચીન માની શકાય છે જોકે તે વિપુલ માત્રામાં ઉત્પાદિત આવા સામાન કરતાં પ્રારંભિક અવસ્થાનાં છે",
+    "duration_sec": 9.6,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_025",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_025.wav",
+    "reference": "2010 ના ફેડરલ ચૂંટણી ના પહેલા થયેલી 1,400 મતદારોની મતગણતરીમાં ઓસ્ટ્રેલિયામાં પ્રજાસત્તા લાવવાનો વિરોધ કરાવવાળાઓ ની સંખ્યા 2008 પછી 8% વધી હતી",
+    "duration_sec": 14.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_026",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_026.wav",
+    "reference": "સફારી એ આફ્રિકામાં પ્રવાસનું કદાચ સૌથી મોટું આકર્ષણ અને ઘણાં મુલાકાતીઓ માટે મુખ્ય મુસાફરી છે",
+    "duration_sec": 7.68,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_027",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_027.wav",
+    "reference": "અમેરિકાના રાષ્ટ્રપતિ જ્યોર્જ ડબલ્યુ બુશે આ જાહેરાતને આવકારી હતી",
+    "duration_sec": 6.42,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_028",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_028.wav",
+    "reference": "કુરિયર કંપનીઓને વસ્તુઓ ઝડપથી પહોંચાડવા માટે સારી રકમ ચૂકવવામાં આવે છે વારંવાર તાત્કાલિક સમારકામ માટે વ્યાવસાયિક દસ્તાવેજો માલ કે વધારાના પાર્ટ્સ માટે સમય ખૂબ જ મહત્વપૂર્ણ હોય છે",
+    "duration_sec": 14.04,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_029",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_029.wav",
+    "reference": "જ્યારે તમે તમારાથી હજારો માઇલ દૂર રહેતી વ્યક્તિને કૉલ કરો ત્યારે તમે સૅટેલાઇટનો ઉપયોગ કરો છો",
+    "duration_sec": 6.24,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_030",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_030.wav",
+    "reference": "પૂર્વ ફિલિપિનો પોલિસમેને ફિલિપાઇન્સની રાજધાની મનિલામાં હોંગકોંગના પ્રવાસીઓની બસ હાઇજૅક કરીને તેમને બંદી બનાવી રાખ્યા છે",
+    "duration_sec": 8.22,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_031",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_031.wav",
+    "reference": "\"બુશ સ્પોકમેન ગોર્ડન જોનડ્રો એ ઉત્તર કોરિયા ની પ્રતિજ્ઞા ને \"કોરિયન દ્વિપકલ્પ નો પરમાણુ મુક્ત ચકાસી શકાય તેવો હેતુ પ્રાપ્ત કરવા તરફ એક મોટુ પગલું કહ્યું.  ",
+    "duration_sec": 13.02,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_032",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_032.wav",
+    "reference": "મોલ્ડોવામાં મુખ્ય ધર્મ રૂઢિચુસ્ત ખ્રિસ્તીધર્મ છે",
+    "duration_sec": 5.1,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_033",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_033.wav",
+    "reference": "જંતુઓ હવામાંના સૌથી પહેલા પ્રાણીઓ હતા તેમની ઊડવાની ક્ષમતાએ તેમને વધુ સરળતાથી દુશ્મનોથી બચવામાં અને ખોરાક તથા સાથીદારો વધુ કાર્યક્ષમ રીતે શોધવામાં મદદ કરી",
+    "duration_sec": 13.44,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_034",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_034.wav",
+    "reference": "ઘાયલોને દવાખાને લઈ જવાયા પછી જ્યારે લડાઈ બંધ થઈ ત્યારે બાકી રહેલા લગભગ 40 સહનિવાસીઓ યાર્ડમાં રહ્યા અને તેમણે તેમની કોટડીઓમાં પાછા ફરવાનું નકાર્યું",
+    "duration_sec": 10.2,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_035",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_035.wav",
+    "reference": "આરબો ઇસ્લામને પણ વિવિધ પ્રદેશોમાં લઈ ગયા અને કોમોરોસ તથા મૅયોટમાં તે કાર્ય વિશાળ પાયે થયું",
+    "duration_sec": 8.88,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_036",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_036.wav",
+    "reference": "પૂર્વ હાઉસ સ્પીકર ન્યૂટ ગિંગ્રિચ ટેક્સાસના ગવર્નર રિક પેરી અને કૉંગ્રેસવુમન મિશેલ બૅકમૅનને અંતે અનુક્રમે ચોથો પાંચમો અને છઠ્ઠો ક્ર્મ મળ્યો",
+    "duration_sec": 10.56,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_037",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_037.wav",
+    "reference": "તેણીની પ્રથમ સ્લેલોમ હતી જ્યાં તેણે કમાણી કરી હતી પરંતુ તેણી પ્રથમ દોડમાં પૂરી ન થઈ 116 માંથી 36 સ્પર્ધકોનું આ રેસમાં એક સમાન પરિણામ આવ્યું હતું",
+    "duration_sec": 14.4,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_038",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_038.wav",
+    "reference": "તે મને સમજાતું નહોતું તે અચૂકપણે વાજબી નહોતું",
+    "duration_sec": 3.66,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_039",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_039.wav",
+    "reference": "સેતુના 100 ફૂટ પહોળા વિભાગમાં પાણી છલકાઈ રહ્યું છે",
+    "duration_sec": 4.26,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_040",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_040.wav",
+    "reference": "મોટાભાગના જિલ્લાઓમાં નાની જાપાની કોસ્ટર બસો દ્વારા સેવા આપવામાં આવે છે જે આરામદાયક અને મજબૂત હોય છે",
+    "duration_sec": 9.6,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_041",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_041.wav",
+    "reference": "રાષ્ટ્રીય સુરક્ષા સલાહકાર તરીકે તેમણે કાર્ટરને વૈશ્વિક ઘટનાઓનો રાજકીય કુનેહથી કારભાર કરવામાં સહાય કરી જેમ કે 1978ની કૅમ્પ ડેવિડ સંધિ 1970ના દશકના પાછલા વર્ષોમાં અમેરિકા-ચીનના સંબંધો સામાન્ય બનાવવા ઇરાનિયન ક્રાંતિ જેના કારણે ઇરાનના જામીનનું સંકટ ઉદ્ભવ્યું અને 1979માં સોવિયેતનું અફઘાનિસ્તાનમાં આક્રમણ",
+    "duration_sec": 26.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_042",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_042.wav",
+    "reference": "આ મોસમમાં રોગનો પ્રથમ કિસ્સો જૂલાઈના અંતમાં નોંધાયો હતો",
+    "duration_sec": 6.18,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_043",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_043.wav",
+    "reference": "હાથીઓ અને જિરાફ જેવા કેટલાક પ્રાણીઓ લગભગ કાર ની નજીક આવી જવાનું વલણ દર્શાવે છે આ સમયે માનક ઉપકરણો સારી રીતે જોવા દેવામાં સરળ બનાવશે",
+    "duration_sec": 9.84,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_044",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_044.wav",
+    "reference": "સફારી એ આફ્રિકામાં પ્રવાસનું કદાચ સૌથી મોટું આકર્ષણ અને ઘણાં મુલાકાતીઓ માટે મુખ્ય મુસાફરી છે",
+    "duration_sec": 9.42,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_045",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_045.wav",
+    "reference": "તેમણે વાઈફાઈડોર બેલ બનાવ્યો હતો એમ તેમણે કહ્યું હતું",
+    "duration_sec": 5.16,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_046",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_046.wav",
+    "reference": "હજારો વર્ષ પહેલા એરીસ્ટારકસ નામના એક વ્યક્તિએ કહયું હતું કે સૂર્યમંડળ સૂર્યની આસપાસ ફરતું હતું",
+    "duration_sec": 12.36,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_047",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_047.wav",
+    "reference": "તરત જ રમખાણ સમયે પહેરાતા સાધનોથી સજ્જ અધિકારીઓએ પ્રાંગણમાં પ્રવેશ કર્યો અને કેદીઓ પર અશ્રુ વાયુનો મારો કરીને ખૂણામાં ધકેલી દીધા",
+    "duration_sec": 9.06,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_048",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_048.wav",
+    "reference": "સ્થાનિક સત્તાધારીઓ પ્લાન્ટની નજીકના રહેવાસીઓને ઘરની અંદર રહેવાની એર-કન્ડિશનરો બંધ કરવાની અને નળનું પાણી ન પીવાની ચેતવણી આપી રહ્યાં છે",
+    "duration_sec": 11.4,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_049",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_049.wav",
+    "reference": "વર્ષની સૌથી મોટી ટૂર્નામેન્ટ લાસ કેનિટાસના પોલો ફિલ્ડમાં ડિસેમ્બરમાં યોજાય છે",
+    "duration_sec": 7.74,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_050",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_050.wav",
+    "reference": "સેટેલાઇટ ફોન સામાન્ય રીતે મોબાઇલ ફોનનો પૂરક નથી કારણ કે તમારે ફોન કોલ કરવા માટે સેટેલાઇટને સ્પષ્ટ પણે દેખાય એ રીતે દૂર ઘરની બહાર રહેવું પડે છે",
+    "duration_sec": 12.0,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_051",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_051.wav",
+    "reference": "આ નવા પર્યાવરણમાં ભિન્ન સ્રોતો અને ભિન્ન સ્પર્ધકો છે તેથી નવી પેઢીને મજબૂત સ્પર્ધક બનવા માટે તેમને પહેલાં જરૂર હતી તે કરતાં ભિન્ન સુવિધાઓ અથવા અનુકૂલનની જરૂર પડશે",
+    "duration_sec": 12.66,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_052",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_052.wav",
+    "reference": "કોઈ પણ સુધારા કે વિનંતીને પહેલા ટ્રાવેલ એજન્ટ મારફતે કોર્સ કરવો જોઈએ અને હોટેલ સાથે સીધો નહીં",
+    "duration_sec": 8.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_053",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_053.wav",
+    "reference": "આંતરિક જળમાર્ગો રજાઓ ગાળવાની પ્રવૃત્તિ માટે સારી થીમ બની શકે",
+    "duration_sec": 5.88,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_054",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_054.wav",
+    "reference": "સંયુક્ત રાષ્ટ્ર પણ ગ્લોબલ વોર્મિંગથી પ્રભાવિત દેશોને તેની અસરોનો સામનો કરવામાં સહાય માટે ભંડોળ ફાઇનલ કરવાની આશા રાખે છે",
+    "duration_sec": 9.18,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_055",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_055.wav",
+    "reference": "બર્ફીલા અને બર્ફીલા રોડ વે પર ઘર્ષણ ઓછું હોય છે અને તમે ખુલ્લા ડામર પર હોય તે રીતે વાહન ચલાવી શકતા નથી",
+    "duration_sec": 7.98,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_056",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_056.wav",
+    "reference": "આ ગતિશીલ પરિવહન શટલમાં દરેક વ્યક્તિ ગમે તેમ કરીને ખાનગી કાર પર આધારિત પરિવહન વ્યવસ્થા સાથે જોડાયેલી છે અને તેને ટેકો આપે",
+    "duration_sec": 12.24,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_057",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_057.wav",
+    "reference": "યહુદી પરિવાર ના જીવન નો મોટો ભાગ ખુલ્લી હવામાં વીત્યો",
+    "duration_sec": 5.04,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_058",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_058.wav",
+    "reference": "ચાર વર્ષમાં માર્ટેલની આ પાંચમી cep છે",
+    "duration_sec": 4.08,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_059",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_059.wav",
+    "reference": "ગેપ-યરનું આયોજન કરનારાઓ માટે વધુને વધુ લોકપ્રિય વિકલ્પ મુસાફરી અને શીખવાનો છે",
+    "duration_sec": 7.86,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_060",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_060.wav",
+    "reference": "\"ઉદાહરણ તરીકે \"લર્નિંગ\" અને \"સોશિયલાઇઝેશન\" ને ઇન્ટરનેટના ઉપયોગ માટે મહત્ત્વપૂર્ણ પ્રેરણાઓ જેમ્સ વગેરે 1995 તરીકે સૂચવવામાં આવે.",
+    "duration_sec": 12.48,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_061",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_061.wav",
+    "reference": "એનપીડબલ્યુએસ અને સ્પોર્ટિંગ શૂટર્સ એસોસિએશન ઓફ ઓસ્ટ્રેલિયાએનએસડબ્લ્યુની ભાગીદારીમાં સ્પોર્ટિંગ શૂટર્સ એસોસિએશનના શિકાર કાર્યક્રમ હેઠળ લાયક સ્વયંસેવકોની ભરતી કરવામાં આવી હતી",
+    "duration_sec": 15.54,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_062",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_062.wav",
+    "reference": "કોઈ પણ સુધારા કે વિનંતીને પહેલા ટ્રાવેલ એજન્ટ મારફતે કોર્સ કરવો જોઈએ અને હોટેલ સાથે સીધો નહીં",
+    "duration_sec": 8.22,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_063",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_063.wav",
+    "reference": "તેમણે વાઈફાઈડોર બેલ બનાવ્યો હતો એમ તેમણે કહ્યું હતું",
+    "duration_sec": 6.84,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_064",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_064.wav",
+    "reference": "ટેક્નોલોજી આભાસી ફીલ્ડ ટ્રિપ ધરાવતા ઉકેલો આપે છે વિદ્યાર્થીઓ તેમના વર્ગમાં બેસીને સંગ્રહાલયની ચીજો જોઈ શકે છે ઍક્વેરિયમની મુલાકાત લઈ શકે છે અથવા સુંદર કળાની પ્રશંસા કરી શકે છે",
+    "duration_sec": 13.92,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_065",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_065.wav",
+    "reference": "\"કઢી પ્રવાહીના જથ્થા પર આધાર રાખીને કઢી \"સુકકી\" અથવા \"ભીની\" હોઈ શકે છે.",
+    "duration_sec": 6.6,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_066",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_066.wav",
+    "reference": "એમેઝોન પૃથ્વી પરની સૌથી પહોળી નદી પણ છે કેટલીકવાર છ માઇલ પહોળી છે",
+    "duration_sec": 6.84,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_067",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_067.wav",
+    "reference": "કેનાન ની જમીનમાં કોઈ પ્રમાણમાં મોટા જંગલો ના હતા તેથી ત્યાં લાકડું ખુબજ મોંઘું હતું",
+    "duration_sec": 8.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_068",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_068.wav",
+    "reference": "પ્રાચીન રોમન ભોજનમાં અમેરિકાથી યુરોપ આવતા ખોરાકનો સમાવેશ ન થયો હોય અથવા પછીની સદીઓમાં એશિયાથી",
+    "duration_sec": 9.6,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_069",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_069.wav",
+    "reference": "ડો મોલ ને લાગે છે કે કેટલાક દર્દીઓ હોસ્પિટલ માં જંતુ ના સંપર્કમાં આવ્યા હોય શકે છે અને એમાંથી ઓછામાં ઓછા બે હોસ્પિટલ ના આરોગ્ય કર્મચારીઓ હતા",
+    "duration_sec": 9.96,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_070",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_070.wav",
+    "reference": "તેની સર્વવ્યાપક તાકાતથી રાજાથી લઈને સામાન્ય લોકો સુધી દરેક ને અસર થઈ",
+    "duration_sec": 5.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_071",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_071.wav",
+    "reference": "જાપાનમાં પ્રથમ ચેરી ફૂલ પાર્ટીઓનું આયોજન સમ્રાટ દ્વારા માત્ર પોતાના માટે શાહી દરબારની આસપાસ ઉમરાવશાહી અન્ય સભ્યો માટે જ કરવામાં આવ્યું હતું",
+    "duration_sec": 10.26,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_072",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_072.wav",
+    "reference": "સ્ત્રીઓને ખ્યાલ હોવો જોઇએ કે જેને તે સતામણી સમજે છે તે સાંસ્કૃતિક મતભેદો હોઈ શકે શકે અને અનુસરવું હાથથી પકડવું વગેરે અસામાન્ય નથી",
+    "duration_sec": 9.66,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_073",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_073.wav",
+    "reference": "આ મોસમમાં રોગનો પ્રથમ કિસ્સો જૂલાઈના અંતમાં નોંધાયો હતો",
+    "duration_sec": 5.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_074",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_074.wav",
+    "reference": "એનએચકેએ એ પણ જણાવ્યું કે નિગાટા પ્રાંતમાં કાશીવાઝાકી કારીવા પરમાણુ ઊર્જા પ્લાન્ટ સામાન્ય રીતે કાર્યરત છે",
+    "duration_sec": 11.64,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_075",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_075.wav",
+    "reference": "તે જૂની ભૂમિ-રડાર આધારિત ટેકનોલોજીની વિરુદ્ધમાં સેટેલાઇટ આધારિત ટેકનોલોજીનો ઉપયોગ કરે છે જેથી એર ટ્રાફિક કન્ટ્રોલર વધુ ચોકસાઈથી વિમાનને શોધી શકે અને પાયલોટને વધુ સચોટ માહિતી આપી શકે",
+    "duration_sec": 11.52,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_076",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_076.wav",
+    "reference": "પીછાઓની રચના સૂચવે છે કે તેનો ઉપયોગ ફ્લાઇટમાં થયો ન હતો તેના બદલે તાપમાનનિયમન અથવા પ્રદર્શન માટે.સંશોધકોએ સૂચવ્યું કે આ એક યુવાન ડાયનાસોરની પૂંછડી હોવા છતાં આ નમૂનામાં પુખ્ત વયનાં બાળકોની પૂંછડી દેખાય છે નહીં કે બચ્ચાની નીચે",
+    "duration_sec": 17.22,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_077",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_077.wav",
+    "reference": "આ રસપ્રદ ગામની ફરવા માટે અડધો કલાક જેટલો સમય લાગે",
+    "duration_sec": 4.26,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_078",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_078.wav",
+    "reference": "યહુદી પરિવાર ના જીવન નો મોટો ભાગ ખુલ્લી હવામાં વીત્યો",
+    "duration_sec": 4.08,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_079",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_079.wav",
+    "reference": "આ સામાન્ય પ્રથા બની ગઈ પરંતુ લોખંડને લીધે ગાડીના લાકડાના પૈડા પર વધુ ઘસારો થતો",
+    "duration_sec": 7.32,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_080",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_080.wav",
+    "reference": "જાપાન લગભગ 7,000 ટાપુઓ ધરાવે હોન્શુ સૌથી મોટો જાપાનને વિશ્વનો સાતમો સૌથી મોટો ટાપુ બનાવી રહ્યો!",
+    "duration_sec": 10.38,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_081",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_081.wav",
+    "reference": "અમુક અહેવાલો મૃત્યુના આંકડાને આઠ તરીકે રજૂ કરે છે અને સતાવાર અહેવાલો પ્રમાણે 30 જેટલા ઈજા પામ્યા હતા તેની પુષ્ટિ કરે છે પરંતુ અંતિમ આંકડાઓ હજુ સુધી જાણવા મળ્યા નથી",
+    "duration_sec": 12.12,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_082",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_082.wav",
+    "reference": "કારણ કે વિદ્યાર્થીઓ ઘણી વાર સૌથી વધુ વિવેચક શ્રોતા હોય બ્લોગ લેખક ટીકાથી બચવા લેખનમાં સુધારો કરવાનો પ્રયાસ કરે છે",
+    "duration_sec": 9.18,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_083",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_083.wav",
+    "reference": "દિવસમાં માત્ર અઢાર મેડલ મળતાં અનેક દેશો મેડલ પોડિયમ બનાવવામાં નિષ્ફળ ગયા છે",
+    "duration_sec": 7.74,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_084",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_084.wav",
+    "reference": "ઘાયલોને દવાખાને લઈ જવાયા પછી જ્યારે લડાઈ બંધ થઈ ત્યારે બાકી રહેલા લગભગ 40 સહનિવાસીઓ યાર્ડમાં રહ્યા અને તેમણે તેમની કોટડીઓમાં પાછા ફરવાનું નકાર્યું",
+    "duration_sec": 12.72,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_085",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_085.wav",
+    "reference": "પોલીસના જણાવ્યા અનુસાર ફોટોગ્રાફર સાથે અથડાયેલા વાહનના ડ્રાઇવરને ગુનાના આરોપનો સામનો કરવો પડે તેની સંભાવના નથી",
+    "duration_sec": 8.94,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_086",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_086.wav",
+    "reference": "આરબો ઇસ્લામને પણ વિવિધ પ્રદેશોમાં લઈ ગયા અને કોમોરોસ તથા મૅયોટમાં તે કાર્ય વિશાળ પાયે થયું",
+    "duration_sec": 7.86,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_087",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_087.wav",
+    "reference": "સ્થાનિક સત્તાધારીઓ પ્લાન્ટની નજીકના રહેવાસીઓને ઘરની અંદર રહેવાની એર-કન્ડિશનરો બંધ કરવાની અને નળનું પાણી ન પીવાની ચેતવણી આપી રહ્યાં છે",
+    "duration_sec": 9.36,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_088",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_088.wav",
+    "reference": "છપ્પન ભોગની 108 પ્લેટો હિન્દુવાદમાં 56 જુદી જુદી ખાદ્ય વસ્તુઓ જેવી કે મીઠાઈઓ ફળો મેવાઓ વાનગીઓ વગેરે કે જે દેવ સમક્ષ પ્રસ્તુત કરવામાં આવે છે  બાબા શ્યામને પીરસવામાં આવી હતી",
+    "duration_sec": 17.34,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_089",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_089.wav",
+    "reference": "કેનાન ની જમીનમાં કોઈ પ્રમાણમાં મોટા જંગલો ના હતા તેથી ત્યાં લાકડું ખુબજ મોંઘું હતું",
+    "duration_sec": 7.38,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_090",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_090.wav",
+    "reference": "આપણે પર્યાવરણ માટે વધુ મૈત્રીપૂર્ણ જીવન જીવવાનું શરૂ કરી શકીએ છીએ આપણે પર્યાવરણીય ચળવળમાં સામેલ થઈ શકીએ છીએ અને ભવિષ્યનાં તકલીફને થોડી હદ સુધી ઘટાડવા માટે કાર્યકર પણ બની શકીશું",
+    "duration_sec": 13.92,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_091",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_091.wav",
+    "reference": "વર્ષની સૌથી મોટી ટૂર્નામેન્ટ લાસ કેનિટાસના પોલો ફિલ્ડમાં ડિસેમ્બરમાં યોજાય છે",
+    "duration_sec": 7.44,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_092",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_092.wav",
+    "reference": "પ્રથમ વિશ્વ યુદ્ધ દરમિયાન યુદ્ધની ભયાનકતા અને અત્યાચાર જોયા પછી રાષ્ટ્રોને ભવિષ્યમાં આવી પરિસ્થિતિ ટાળવાની ઇચ્છા થઈ",
+    "duration_sec": 8.76,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_093",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_093.wav",
+    "reference": "ક્રુગર નેશનલ પાર્ક કેએનપી દક્ષિણ આફ્રિકાના ઉત્તર-પૂર્વમાં આવેલું છે અને પૂર્વમાં મોઝામ્બિકની સરહદ ઉત્તરમાં ઝિમ્બાબ્વે અને દક્ષિણ સરહદ મગર નદી છે",
+    "duration_sec": 11.76,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_094",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_094.wav",
+    "reference": "કૃપા કરીને સાઇટ સાથે તેની યોગ્યતા મુજબ સંપૂર્ણ ગૌરવ વિચારપૂર્વકતા અને માનથી વર્તન કરો કત્લેઆમ અથવા નાઝીઓ વિશે રમૂજ ન કરો",
+    "duration_sec": 11.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_095",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_095.wav",
+    "reference": "વૈજ્ઞાનિકો વિચારો કે ઓસેલોટ્સ ગંધ દ્વારા પ્રાણીઓને શિકાર ખાય છે અને શોધે,તેઓ જમીન પર હતા ત્યાં સૂંઘતા હતા",
+    "duration_sec": 10.5,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_096",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_096.wav",
+    "reference": "અવકાશમાં ઉપગ્રહને કોલ આવે છે અને તે પછી તરત જ તેને નીચે મોકલે છે",
+    "duration_sec": 6.12,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_097",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_097.wav",
+    "reference": "અહેવાલ જાહેર ચર્ચા અને યુએસ ની મધ્ય પૂર્વીય દેશો સાથેની નીતિઓ રચવા માટે સર્વ સંમતિની દરખાસ્ત સાથે ખૂલે છે",
+    "duration_sec": 8.46,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_098",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_098.wav",
+    "reference": "પૂર્વ ફિલિપિનો પોલિસમેને ફિલિપાઇન્સની રાજધાની મનિલામાં હોંગકોંગના પ્રવાસીઓની બસ હાઇજૅક કરીને તેમને બંદી બનાવી રાખ્યા છે",
+    "duration_sec": 9.18,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_099",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_099.wav",
+    "reference": "ચાર વર્ષમાં માર્ટેલની આ પાંચમી cep છે",
+    "duration_sec": 3.66,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "id": "fleurs_gu_in_100",
+    "dataset": "Google FLEURS (gu_in)",
+    "split": "read_gujarati",
+    "wav_file": "benchmark_data/real_speech/fleurs_gu_in_100.wav",
+    "reference": "પોઇન્ટ મેરિયોન અને ફેરમોન્ટ વચ્ચેનો વિસ્તાર બફેલો-પિટ્સબર્ગ હાઇવે પર સૌથી પડકારજનક ડ્રાઇવિંગ ની સ્થિતિ ધરાવે,અલગ બેકવુડ્સ ભૂપ્રદેશ દ્વારા વારંવાર પસાર થવું",
+    "duration_sec": 14.64,
     "license": "CC-BY-4.0"
   }
 ]

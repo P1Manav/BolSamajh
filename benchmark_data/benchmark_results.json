@@ -1,236 +1,536 @@
 {
   "benchmark_version": "v2.0",
-  "timestamp": "2026-10-25 13:35:07",
+  "timestamp": "2026-10-25 18:15:20",
   "hardware": {
     "device": "cuda",
     "compute_type": "int8_float16"
   },
   "real_speech": {
     "medium": {
-      "total_clips": 60,
-      "mean_wer_pct": 52.79,
-      "mean_cer_pct": 23.67,
-      "mean_latency_ms": 5307.8,
-      "mean_rtf": 0.567,
+      "total_clips": 300,
+      "mean_wer_pct": 53.87,
+      "mean_wer_ci_95": [
+        50.87,
+        56.94
+      ],
+      "mean_cer_pct": 20.37,
+      "mean_latency_ms": 1489.7,
+      "mean_rtf": 0.192,
       "splits": {
         "code_switched_hinglish": {
-          "count": 20,
-          "wer_pct": 52.84,
-          "cer_pct": 35.85,
-          "mean_latency_ms": 7263.0
+          "count": 100,
+          "wer_pct": 50.41,
+          "wer_ci_95": [
+            44.68,
+            56.41
+          ],
+          "cer_pct": 27.96,
+          "mean_latency_ms": 1081.1
         },
         "read_hindi": {
-          "count": 20,
-          "wer_pct": 27.39,
-          "cer_pct": 8.43,
-          "mean_latency_ms": 4144.3
+          "count": 100,
+          "wer_pct": 34.25,
+          "wer_ci_95": [
+            31.01,
+            37.45
+          ],
+          "cer_pct": 10.87,
+          "mean_latency_ms": 1536.6
         },
         "read_gujarati": {
-          "count": 20,
-          "wer_pct": 78.13,
-          "cer_pct": 26.72,
-          "mean_latency_ms": 4516.1
+          "count": 100,
+          "wer_pct": 76.96,
+          "wer_ci_95": [
+            73.74,
+            80.3
+          ],
+          "cer_pct": 22.28,
+          "mean_latency_ms": 1851.4
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     },
     "large-v3-turbo": {
-      "total_clips": 60,
-      "mean_wer_pct": 71.89,
-      "mean_cer_pct": 52.89,
-      "mean_latency_ms": 610.3,
-      "mean_rtf": 0.076,
+      "total_clips": 300,
+      "mean_wer_pct": 43.23,
+      "mean_wer_ci_95": [
+        40.27,
+        46.43
+      ],
+      "mean_cer_pct": 18.26,
+      "mean_latency_ms": 608.3,
+      "mean_rtf": 0.085,
       "splits": {
         "code_switched_hinglish": {
-          "count": 20,
-          "wer_pct": 121.51,
-          "cer_pct": 118.45,
-          "mean_latency_ms": 516.2
+          "count": 100,
+          "wer_pct": 38.59,
+          "wer_ci_95": [
+            32.75,
+            44.65
+          ],
+          "cer_pct": 20.98,
+          "mean_latency_ms": 365.4
         },
         "read_hindi": {
-          "count": 20,
-          "wer_pct": 24.15,
-          "cer_pct": 6.97,
-          "mean_latency_ms": 615.3
+          "count": 100,
+          "wer_pct": 26.0,
+          "wer_ci_95": [
+            22.92,
+            29.63
+          ],
+          "cer_pct": 8.09,
+          "mean_latency_ms": 555.7
         },
         "read_gujarati": {
-          "count": 20,
-          "wer_pct": 70.01,
-          "cer_pct": 33.25,
-          "mean_latency_ms": 699.2
+          "count": 100,
+          "wer_pct": 65.1,
+          "wer_ci_95": [
+            61.32,
+            68.88
+          ],
+          "cer_pct": 25.69,
+          "mean_latency_ms": 903.9
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     },
     "whisper-hinglish-swift": {
-      "total_clips": 60,
-      "mean_wer_pct": 103.88,
-      "mean_cer_pct": 59.93,
-      "mean_latency_ms": 173.1,
-      "mean_rtf": 0.02,
+      "total_clips": 300,
+      "mean_wer_pct": 79.36,
+      "mean_wer_ci_95": [
+        76.05,
+        82.81
+      ],
+      "mean_cer_pct": 29.08,
+      "mean_latency_ms": 158.2,
+      "mean_rtf": 0.021,
       "splits": {
         "code_switched_hinglish": {
-          "count": 20,
-          "wer_pct": 129.93,
-          "cer_pct": 114.96,
-          "mean_latency_ms": 139.0
+          "count": 100,
+          "wer_pct": 52.8,
+          "wer_ci_95": [
+            48.47,
+            57.96
+          ],
+          "cer_pct": 20.42,
+          "mean_latency_ms": 99.8
         },
         "read_hindi": {
-          "count": 20,
-          "wer_pct": 72.98,
-          "cer_pct": 24.66,
-          "mean_latency_ms": 187.0
+          "count": 100,
+          "wer_pct": 73.8,
+          "wer_ci_95": [
+            71.22,
+            76.62
+          ],
+          "cer_pct": 25.13,
+          "mean_latency_ms": 182.5
         },
         "read_gujarati": {
-          "count": 20,
-          "wer_pct": 108.73,
-          "cer_pct": 40.16,
-          "mean_latency_ms": 193.3
+          "count": 100,
+          "wer_pct": 111.48,
+          "wer_ci_95": [
+            108.45,
+            114.53
+          ],
+          "cer_pct": 41.7,
+          "mean_latency_ms": 192.3
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     }
   },
   "synthetic_stress": {
     "medium": {
       "total_clips": 100,
-      "mean_wer_pct": 66.12,
-      "mean_cer_pct": 32.97,
-      "mean_latency_ms": 800.4,
-      "mean_rtf": 0.142,
+      "mean_wer_pct": 63.12,
+      "mean_wer_ci_95": [
+        57.31,
+        69.53
+      ],
+      "mean_cer_pct": 28.71,
+      "mean_latency_ms": 692.3,
+      "mean_rtf": 0.131,
       "categories": {
         "everyday": {
           "count": 30,
-          "mean_wer_pct": 64.59,
-          "mean_cer_pct": 28.09,
-          "mean_latency_ms": 769.6
+          "mean_wer_pct": 65.4,
+          "wer_ci_95": [
+            59.73,
+            70.82
+          ],
+          "mean_cer_pct": 28.16,
+          "mean_latency_ms": 633.5
         },
         "technical": {
           "count": 20,
-          "mean_wer_pct": 53.54,
-          "mean_cer_pct": 21.07,
-          "mean_latency_ms": 622.0
+          "mean_wer_pct": 56.02,
+          "wer_ci_95": [
+            42.07,
+            70.39
+          ],
+          "mean_cer_pct": 20.96,
+          "mean_latency_ms": 560.2
         },
         "numbers": {
           "count": 20,
-          "mean_wer_pct": 106.92,
-          "mean_cer_pct": 69.82,
-          "mean_latency_ms": 1281.8
+          "mean_wer_pct": 78.62,
+          "wer_ci_95": [
+            59.53,
+            96.87
+          ],
+          "mean_cer_pct": 43.89,
+          "mean_latency_ms": 718.3
         },
         "names": {
           "count": 15,
-          "mean_wer_pct": 60.64,
-          "mean_cer_pct": 21.85,
-          "mean_latency_ms": 696.3
+          "mean_wer_pct": 65.5,
+          "wer_ci_95": [
+            53.66,
+            77.07
+          ],
+          "mean_cer_pct": 26.13,
+          "mean_latency_ms": 674.9
         },
         "codeswitch": {
           "count": 15,
-          "mean_wer_pct": 37.06,
-          "mean_cer_pct": 20.56,
-          "mean_latency_ms": 562.3
+          "mean_wer_pct": 44.97,
+          "wer_ci_95": [
+            28.03,
+            62.13
+          ],
+          "mean_cer_pct": 22.45,
+          "mean_latency_ms": 968.6
         }
       },
       "degradations": {
         "clean": {
-          "count": 100,
-          "mean_wer_pct": 66.12,
-          "mean_latency_ms": 800.4
+          "count": 20,
+          "mean_wer_pct": 62.27,
+          "wer_ci_95": [
+            57.13,
+            67.1
+          ],
+          "mean_latency_ms": 645.2
+        },
+        "speed_variation": {
+          "count": 20,
+          "mean_wer_pct": 65.53,
+          "wer_ci_95": [
+            53.13,
+            77.91
+          ],
+          "mean_latency_ms": 595.0
+        },
+        "noise_20db_snr": {
+          "count": 8,
+          "mean_wer_pct": 52.08,
+          "wer_ci_95": [
+            28.21,
+            76.19
+          ],
+          "mean_latency_ms": 538.2
+        },
+        "noise_10db_snr": {
+          "count": 7,
+          "mean_wer_pct": 64.09,
+          "wer_ci_95": [
+            41.62,
+            89.55
+          ],
+          "mean_latency_ms": 643.3
+        },
+        "noise_5db_snr": {
+          "count": 5,
+          "mean_wer_pct": 71.9,
+          "wer_ci_95": [
+            52.05,
+            91.75
+          ],
+          "mean_latency_ms": 673.8
+        },
+        "8khz_telephone_mulaw": {
+          "count": 20,
+          "mean_wer_pct": 76.83,
+          "wer_ci_95": [
+            60.31,
+            93.33
+          ],
+          "mean_latency_ms": 707.4
+        },
+        "combined_stress": {
+          "count": 20,
+          "mean_wer_pct": 49.73,
+          "wer_ci_95": [
+            34.26,
+            64.12
+          ],
+          "mean_latency_ms": 905.0
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     },
     "large-v3-turbo": {
       "total_clips": 100,
-      "mean_wer_pct": 58.99,
-      "mean_cer_pct": 26.43,
-      "mean_latency_ms": 486.2,
-      "mean_rtf": 0.089,
+      "mean_wer_pct": 56.76,
+      "mean_wer_ci_95": [
+        50.56,
+        62.89
+      ],
+      "mean_cer_pct": 24.24,
+      "mean_latency_ms": 323.8,
+      "mean_rtf": 0.06,
       "categories": {
         "everyday": {
           "count": 30,
-          "mean_wer_pct": 68.55,
-          "mean_cer_pct": 29.3,
-          "mean_latency_ms": 487.4
+          "mean_wer_pct": 64.88,
+          "wer_ci_95": [
+            57.36,
+            71.61
+          ],
+          "mean_cer_pct": 26.53,
+          "mean_latency_ms": 322.6
         },
         "technical": {
           "count": 20,
-          "mean_wer_pct": 48.27,
-          "mean_cer_pct": 18.42,
-          "mean_latency_ms": 468.2
+          "mean_wer_pct": 46.15,
+          "wer_ci_95": [
+            32.06,
+            61.08
+          ],
+          "mean_cer_pct": 17.43,
+          "mean_latency_ms": 305.9
         },
         "numbers": {
           "count": 20,
-          "mean_wer_pct": 82.09,
-          "mean_cer_pct": 46.49,
-          "mean_latency_ms": 516.0
+          "mean_wer_pct": 68.39,
+          "wer_ci_95": [
+            53.96,
+            83.5
+          ],
+          "mean_cer_pct": 34.56,
+          "mean_latency_ms": 341.8
         },
         "names": {
           "count": 15,
-          "mean_wer_pct": 58.85,
-          "mean_cer_pct": 21.38,
-          "mean_latency_ms": 496.8
+          "mean_wer_pct": 58.05,
+          "wer_ci_95": [
+            46.82,
+            70.01
+          ],
+          "mean_cer_pct": 21.25,
+          "mean_latency_ms": 332.0
         },
         "codeswitch": {
           "count": 15,
-          "mean_wer_pct": 23.52,
-          "mean_cer_pct": 9.65,
-          "mean_latency_ms": 457.7
+          "mean_wer_pct": 37.89,
+          "wer_ci_95": [
+            22.0,
+            54.43
+          ],
+          "mean_cer_pct": 17.95,
+          "mean_latency_ms": 317.7
         }
       },
       "degradations": {
         "clean": {
-          "count": 100,
-          "mean_wer_pct": 58.99,
-          "mean_latency_ms": 486.2
+          "count": 20,
+          "mean_wer_pct": 58.34,
+          "wer_ci_95": [
+            49.54,
+            66.24
+          ],
+          "mean_latency_ms": 321.0
+        },
+        "speed_variation": {
+          "count": 20,
+          "mean_wer_pct": 60.7,
+          "wer_ci_95": [
+            47.79,
+            74.16
+          ],
+          "mean_latency_ms": 308.8
+        },
+        "noise_20db_snr": {
+          "count": 8,
+          "mean_wer_pct": 46.06,
+          "wer_ci_95": [
+            25.03,
+            67.08
+          ],
+          "mean_latency_ms": 314.2
+        },
+        "noise_10db_snr": {
+          "count": 7,
+          "mean_wer_pct": 68.31,
+          "wer_ci_95": [
+            36.88,
+            102.21
+          ],
+          "mean_latency_ms": 342.6
+        },
+        "noise_5db_snr": {
+          "count": 5,
+          "mean_wer_pct": 81.9,
+          "wer_ci_95": [
+            72.05,
+            92.73
+          ],
+          "mean_latency_ms": 358.9
+        },
+        "8khz_telephone_mulaw": {
+          "count": 20,
+          "mean_wer_pct": 57.95,
+          "wer_ci_95": [
+            47.81,
+            68.63
+          ],
+          "mean_latency_ms": 327.8
+        },
+        "combined_stress": {
+          "count": 20,
+          "mean_wer_pct": 44.01,
+          "wer_ci_95": [
+            29.27,
+            58.44
+          ],
+          "mean_latency_ms": 326.0
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     },
     "whisper-hinglish-swift": {
       "total_clips": 100,
-      "mean_wer_pct": 33.43,
-      "mean_cer_pct": 18.77,
-      "mean_latency_ms": 108.5,
-      "mean_rtf": 0.019,
+      "mean_wer_pct": 36.31,
+      "mean_wer_ci_95": [
+        31.19,
+        42.32
+      ],
+      "mean_cer_pct": 18.41,
+      "mean_latency_ms": 92.9,
+      "mean_rtf": 0.017,
       "categories": {
         "everyday": {
           "count": 30,
-          "mean_wer_pct": 23.79,
-          "mean_cer_pct": 8.07,
-          "mean_latency_ms": 101.7
+          "mean_wer_pct": 22.9,
+          "wer_ci_95": [
+            17.96,
+            27.36
+          ],
+          "mean_cer_pct": 7.87,
+          "mean_latency_ms": 87.0
         },
         "technical": {
           "count": 20,
-          "mean_wer_pct": 33.26,
-          "mean_cer_pct": 11.24,
-          "mean_latency_ms": 104.9
+          "mean_wer_pct": 34.03,
+          "wer_ci_95": [
+            25.5,
+            43.04
+          ],
+          "mean_cer_pct": 10.69,
+          "mean_latency_ms": 90.2
         },
         "numbers": {
           "count": 20,
-          "mean_wer_pct": 70.72,
-          "mean_cer_pct": 62.05,
-          "mean_latency_ms": 127.6
+          "mean_wer_pct": 68.76,
+          "wer_ci_95": [
+            52.96,
+            86.75
+          ],
+          "mean_cer_pct": 51.64,
+          "mean_latency_ms": 108.2
         },
         "names": {
           "count": 15,
-          "mean_wer_pct": 24.16,
-          "mean_cer_pct": 7.76,
-          "mean_latency_ms": 106.5
+          "mean_wer_pct": 28.52,
+          "wer_ci_95": [
+            22.83,
+            34.16
+          ],
+          "mean_cer_pct": 10.25,
+          "mean_latency_ms": 91.4
         },
         "codeswitch": {
           "count": 15,
-          "mean_wer_pct": 12.48,
-          "mean_cer_pct": 3.48,
-          "mean_latency_ms": 103.7
+          "mean_wer_pct": 30.7,
+          "wer_ci_95": [
+            21.37,
+            40.2
+          ],
+          "mean_cer_pct": 13.62,
+          "mean_latency_ms": 89.4
         }
       },
       "degradations": {
         "clean": {
-          "count": 100,
-          "mean_wer_pct": 33.43,
-          "mean_latency_ms": 108.5
+          "count": 20,
+          "mean_wer_pct": 22.89,
+          "wer_ci_95": [
+            17.35,
+            29.2
+          ],
+          "mean_latency_ms": 88.3
+        },
+        "speed_variation": {
+          "count": 20,
+          "mean_wer_pct": 29.99,
+          "wer_ci_95": [
+            21.99,
+            38.43
+          ],
+          "mean_latency_ms": 88.5
+        },
+        "noise_20db_snr": {
+          "count": 8,
+          "mean_wer_pct": 26.25,
+          "wer_ci_95": [
+            16.81,
+            35.34
+          ],
+          "mean_latency_ms": 87.5
+        },
+        "noise_10db_snr": {
+          "count": 7,
+          "mean_wer_pct": 64.05,
+          "wer_ci_95": [
+            44.05,
+            87.79
+          ],
+          "mean_latency_ms": 104.9
+        },
+        "noise_5db_snr": {
+          "count": 5,
+          "mean_wer_pct": 84.21,
+          "wer_ci_95": [
+            46.36,
+            130.85
+          ],
+          "mean_latency_ms": 113.7
+        },
+        "8khz_telephone_mulaw": {
+          "count": 20,
+          "mean_wer_pct": 45.63,
+          "wer_ci_95": [
+            34.34,
+            59.21
+          ],
+          "mean_latency_ms": 98.5
+        },
+        "combined_stress": {
+          "count": 20,
+          "mean_wer_pct": 29.07,
+          "wer_ci_95": [
+            21.96,
+            37.64
+          ],
+          "mean_latency_ms": 89.0
         }
       },
+      "device": "cuda",
       "compute_type": "int8_float16"
     }
   }

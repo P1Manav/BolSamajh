@@ -41,14 +41,26 @@ def format_real_speech_table(real_results: dict) -> str:
         hi_wer = splits.get("read_hindi", {}).get("wer_pct", "N/A")
         gu_wer = splits.get("read_gujarati", {}).get("wer_pct", "N/A")
         cs_wer = splits.get("code_switched_hinglish", {}).get("wer_pct", "N/A")
+        hi_ci = splits.get("read_hindi", {}).get("wer_ci_95")
+        gu_ci = splits.get("read_gujarati", {}).get("wer_ci_95")
+        cs_ci = splits.get("code_switched_hinglish", {}).get("wer_ci_95")
         mean_cer = m_data["mean_cer_pct"]
         latency = m_data["mean_latency_ms"]
         rtf = m_data["mean_rtf"]
         prec = m_data.get("compute_type", "int8_float16")
 
         hi_str = f"{hi_wer}%" if hi_wer != "N/A" else "—"
+        if hi_ci:
+            hi_str += f" <br><sub>[{hi_ci[0]}–{hi_ci[1]}%]</sub>"
+
         gu_str = f"{gu_wer}%" if gu_wer != "N/A" else "—"
+        if gu_ci:
+            gu_str += f" <br><sub>[{gu_ci[0]}–{gu_ci[1]}%]</sub>"
+
         cs_str = f"{cs_wer}%" if cs_wer != "N/A" else "—"
+        if cs_ci:
+            cs_str += f" <br><sub>[{cs_ci[0]}–{cs_ci[1]}%]</sub>"
+
         cer_str = f"{mean_cer}%"
         lat_str = f"{latency} ms"
         rtf_str = f"{rtf}x"
@@ -63,15 +75,20 @@ def format_synthetic_table(synth_results: dict) -> str:
     lines = [
         "### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)",
         "",
-        "> 100 curated sentences covering technical terminology, currency amounts (₹), timestamps, and rapid code-switching with multi-voice rotation and automated audio degradations (speed change, additive noise, 8 kHz telephony filtering).",
+        "> 100 curated sentences covering technical terminology, currency amounts (₹), timestamps, and rapid code-switching with multi-voice rotation and automated audio degradations (speed change, additive noise, 8 kHz telephony filtering). Evaluated using canonical script-normalized transliteration scoring.",
         "",
-        "| Model | Precision | Overall WER | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |",
+        "| Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |",
         "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
 
     for model_name, m_data in synth_results.items():
         cats = m_data["categories"]
         overall_wer = m_data["mean_wer_pct"]
+        overall_ci = m_data.get("mean_wer_ci_95")
+        overall_str = f"**{overall_wer}%**"
+        if overall_ci:
+            overall_str += f"<br><sub>[{overall_ci[0]}–{overall_ci[1]}%]</sub>"
+
         ev_wer = cats.get("everyday", {}).get("mean_wer_pct", "—")
         tech_wer = cats.get("technical", {}).get("mean_wer_pct", "—")
         num_wer = cats.get("numbers", {}).get("mean_wer_pct", "—")
@@ -82,7 +99,7 @@ def format_synthetic_table(synth_results: dict) -> str:
         prec = m_data.get("compute_type", "int8_float16")
 
         lines.append(
-            f"| **{model_name}** | `{prec}` | **{overall_wer}%** | {ev_wer}% | {tech_wer}% | {num_wer}% | {name_wer}% | {cs_wer}% | **{lat} ms** | **{rtf}x** |"
+            f"| **{model_name}** | `{prec}` | {overall_str} | {ev_wer}% | {tech_wer}% | {num_wer}% | {name_wer}% | {cs_wer}% | **{lat} ms** | **{rtf}x** |"
         )
 
     return "\n".join(lines)
