@@ -85,13 +85,14 @@ def _prompt_document_path() -> str | None:
     return file_path if file_path else None
 
 
-def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline) -> None:
+def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, commands_pipeline) -> None:
     """Register global hotkeys using the keyboard library."""
     import keyboard
 
     dictation_key = config.hotkeys.dictation
     doc_load_key = config.hotkeys.doc_load
     doc_ask_key = config.hotkeys.doc_ask
+    command_key = config.hotkeys.command
     stop_key = config.hotkeys.stop
 
     # --- Dictation push-to-talk ---
@@ -140,6 +141,24 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline) -> No
     )
     threading.Thread(target=_qa_ptt_monitor, daemon=True).start()
 
+    # --- Voice Commands push-to-talk ---
+    def _cmd_ptt_monitor():
+        """Monitor for voice command key release."""
+        keys = command_key.split("+")
+        while True:
+            time.sleep(0.05)
+            if commands_pipeline.recorder.is_recording:
+                all_pressed = all(keyboard.is_pressed(k) for k in keys)
+                if not all_pressed:
+                    commands_pipeline.stop_and_execute()
+
+    keyboard.add_hotkey(
+        command_key,
+        commands_pipeline.start_command,
+        suppress=False,
+    )
+    threading.Thread(target=_cmd_ptt_monitor, daemon=True).start()
+
     # --- Stop / interrupt ---
     def on_stop():
         doc_qa_pipeline.interrupt()
@@ -147,10 +166,11 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline) -> No
     keyboard.add_hotkey(stop_key, on_stop, suppress=False)
 
     log.info("Hotkeys registered:")
-    log.info("  Dictation:  %s (hold to talk)", dictation_key)
-    log.info("  Load Doc:   %s", doc_load_key)
-    log.info("  Ask Doc:    %s (hold to talk)", doc_ask_key)
-    log.info("  Stop:       %s", stop_key)
+    log.info("  Dictation:     %s (hold to talk)", dictation_key)
+    log.info("  Load Doc:      %s", doc_load_key)
+    log.info("  Ask Doc:       %s (hold to talk)", doc_ask_key)
+    log.info("  Voice Command: %s (hold to speak on selection)", command_key)
+    log.info("  Stop:          %s", stop_key)
 
 
 def main() -> None:
@@ -179,12 +199,14 @@ def main() -> None:
     # 3. Create pipelines
     from bolsamajh.pipeline.dictation import DictationPipeline
     from bolsamajh.pipeline.doc_qa import DocQAPipeline
+    from bolsamajh.pipeline.commands import VoiceCommandsPipeline
 
     dictation = DictationPipeline(config, stt, hud)
     doc_qa = DocQAPipeline(config, stt, llm, tts, hud)
+    commands = VoiceCommandsPipeline(config, stt, llm, hud)
 
     # 4. Register hotkeys
-    _setup_hotkeys(config, dictation, doc_qa)
+    _setup_hotkeys(config, dictation, doc_qa, commands)
 
     # 5. Show ready state
     hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
@@ -194,8 +216,10 @@ def main() -> None:
     log.info("  Hold Ctrl+Shift+Space to dictate")
     log.info("  Ctrl+Shift+D to load a document")
     log.info("  Hold Ctrl+Shift+A to ask about it")
+    log.info("  Hold Ctrl+Shift+C to run voice command on selection")
     log.info("  Escape to stop/interrupt")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
 
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray
