@@ -3,7 +3,7 @@
 > **Speak to write and act in any app. Talk to any document to understand it in your own language.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python: 3.12](https://img.shields.io/badge/Python-3.12-green.svg)](https://python.org)
+[![Python: 3.11 | 3.12](https://img.shields.io/badge/Python-3.11_%7C_3.12-green.svg)](https://python.org)
 [![GPU: NVIDIA RTX](https://img.shields.io/badge/GPU-RTX_3060_Ti_Tested-76B900.svg)](https://nvidia.com)
 [![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#privacy--zero-spend-architecture)
 [![Buildathon: Bolna x Symphony](https://img.shields.io/badge/Buildathon-Bolna_%C3%97_Symphony-orange.svg)](https://bolna.ai)

@@ -8,8 +8,12 @@ import time
 import asyncio
 import threading
 import logging
-from tkinter import filedialog
-import tkinter as tk
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+except Exception:
+    tk = None
+    filedialog = None
 
 from bolsamajh.config import load_config, AppConfig
 from bolsamajh.overlay.hud import OverlayHUD

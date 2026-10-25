@@ -33,6 +33,7 @@ from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Streamin
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from bolsamajh import __version__
 from bolsamajh.config import load_config, AppConfig
 from bolsamajh.documents.loader import load_document, Document
 from bolsamajh.documents.retriever import DocumentRetriever
@@ -48,7 +49,7 @@ log = logging.getLogger("bolsamajh.web")
 app = FastAPI(
     title="BolSamajh Voice AI API",
     description="Multilingual Hinglish Voice Assistant, Document Intelligence & OpenAI-compatible Voice Gateway",
-    version="0.2.0",
+    version=__version__,
 )
 
 # Restrict CORS to localhost with no credentials (SSRF / CSRF hardening)

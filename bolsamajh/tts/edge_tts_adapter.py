@@ -7,7 +7,11 @@ import threading
 from typing import Literal
 
 import numpy as np
-import sounddevice as sd
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 
 from bolsamajh.tts.base import TextToSpeech
 
@@ -127,6 +131,10 @@ class EdgeTTSAdapter(TextToSpeech):
 
             sample_rate = audio_stream.rate or 24000
 
+            if sd is None:
+                log.warning("sounddevice is not available; cannot play synthesized audio")
+                return
+
             # Play with sounddevice (blocking but interruptible)
             sd.play(audio, samplerate=sample_rate)
 
@@ -143,9 +151,10 @@ class EdgeTTSAdapter(TextToSpeech):
     def stop(self) -> None:
         """Stop speech immediately."""
         self._stop_event.set()
-        try:
-            sd.stop()
-        except Exception:
-            pass
+        if sd is not None:
+            try:
+                sd.stop()
+            except Exception:
+                pass
         self._speaking = False
         log.info("Edge-TTS: stopped")

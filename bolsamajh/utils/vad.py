@@ -10,7 +10,11 @@ import threading
 from typing import Callable, Optional
 
 import numpy as np
-import sounddevice as sd
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +66,9 @@ class BargeInMonitor:
 
     def start(self):
         """Start monitoring mic for speech."""
+        if sd is None:
+            log.warning("sounddevice is not available in this environment; skipping BargeInMonitor")
+            return
         if self._running:
             return
         self._running = True

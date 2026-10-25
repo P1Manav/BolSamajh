@@ -34,6 +34,7 @@ def test_chunker_cross_page_and_citations():
     assert "Section" in web_chunks[0].citation
 
 
+@pytest.mark.slow
 def test_retriever_indexing_and_refusal():
     """Test DocumentRetriever indexing and threshold filtering."""
     doc = Document(
@@ -50,7 +51,7 @@ def test_retriever_indexing_and_refusal():
         ],
         doc_type="txt",
     )
-    retriever = DocumentRetriever(refusal_threshold=0.60)
+    retriever = DocumentRetriever(refusal_threshold=0.76)
     num_indexed = retriever.index_document(doc)
     assert num_indexed > 0
     assert retriever.is_loaded
@@ -60,8 +61,11 @@ def test_retriever_indexing_and_refusal():
     assert len(relevant_hits) > 0
     assert "BolSamajh" in relevant_hits[0].text
 
-    # Completely irrelevant query with threshold check
+    # Completely irrelevant query with threshold check: should return 0 hits
     irrelevant_hits = retriever.retrieve("How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=True)
-    # The score should be below or very low
-    for hit in irrelevant_hits:
-        assert hit.score >= retriever.refusal_threshold
+    assert len(irrelevant_hits) == 0
+
+    # Without threshold, raw top score should be strictly below refusal threshold
+    raw_hits = retriever.retrieve("How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=False)
+    assert len(raw_hits) > 0
+    assert raw_hits[0].score < retriever.refusal_threshold

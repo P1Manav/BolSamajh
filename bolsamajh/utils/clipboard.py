@@ -5,16 +5,20 @@ Adheres to Tier 3 Requirement 19:
 - Releases Shift modifier before simulating Ctrl+C so physical Shift hold doesn't convert Ctrl+C into Ctrl+Shift+C.
 - Restores original clipboard content after operations.
 """
-
 import time
 import uuid
 import logging
 import pyperclip
-from pynput.keyboard import Controller, Key
 
 log = logging.getLogger(__name__)
 
-_keyboard = Controller()
+try:
+    from pynput.keyboard import Controller, Key
+    _keyboard = Controller()
+except Exception:
+    Controller = None
+    Key = None
+    _keyboard = None
 
 
 def insert_text(text: str) -> None:
@@ -38,10 +42,11 @@ def insert_text(text: str) -> None:
         time.sleep(0.04)
 
         # Simulate Ctrl+V
-        _keyboard.press(Key.ctrl)
-        _keyboard.press("v")
-        _keyboard.release("v")
-        _keyboard.release(Key.ctrl)
+        if _keyboard is not None and Key is not None:
+            _keyboard.press(Key.ctrl)
+            _keyboard.press("v")
+            _keyboard.release("v")
+            _keyboard.release(Key.ctrl)
 
         time.sleep(0.08)  # Wait for paste to complete
         log.info("Inserted %d characters", len(text))
@@ -77,15 +82,17 @@ def get_selected_text(timeout_sec: float = 0.3) -> str:
         time.sleep(0.03)
 
         # Temporarily release Shift keys in case user is holding Shift in hotkey
-        _keyboard.release(Key.shift)
-        _keyboard.release(Key.shift_r)
+        if _keyboard is not None and Key is not None:
+            _keyboard.release(Key.shift)
+            _keyboard.release(Key.shift_r)
         time.sleep(0.02)
 
         # Simulate Ctrl+C
-        _keyboard.press(Key.ctrl)
-        _keyboard.press("c")
-        _keyboard.release("c")
-        _keyboard.release(Key.ctrl)
+        if _keyboard is not None and Key is not None:
+            _keyboard.press(Key.ctrl)
+            _keyboard.press("c")
+            _keyboard.release("c")
+            _keyboard.release(Key.ctrl)
 
         # Wait briefly for target application to process Ctrl+C
         t0 = time.time()

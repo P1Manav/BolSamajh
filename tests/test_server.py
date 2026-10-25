@@ -18,6 +18,9 @@ def test_status_endpoint():
     assert "tts" in data
 
 
+import socket
+from unittest.mock import patch
+
 def test_ssrf_protection_helper():
     assert not is_safe_external_url("http://localhost:8000")
     assert not is_safe_external_url("http://127.0.0.1:11434")
@@ -25,8 +28,9 @@ def test_ssrf_protection_helper():
     assert not is_safe_external_url("http://192.168.1.1/admin")
     assert not is_safe_external_url("http://10.0.0.1")
     assert not is_safe_external_url("ftp://example.com")
-    # Public domain should be allowed
-    assert is_safe_external_url("https://en.wikipedia.org/wiki/India")
+    # Public domain should be allowed — mock DNS lookup for offline-safe CI testing
+    with patch("socket.getaddrinfo", return_value=[(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))]):
+        assert is_safe_external_url("https://en.wikipedia.org/wiki/India")
 
 
 def test_ssrf_endpoint_blocking():

@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-import sounddevice as sd
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 
 from bolsamajh.tts.base import TextToSpeech
 
@@ -112,6 +116,10 @@ class PiperTTSAdapter(TextToSpeech):
                 audio_bytes = wf.readframes(n_frames)
                 audio_data = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
 
+            if sd is None:
+                log.warning("sounddevice is not available; cannot play synthesized audio")
+                return
+
             sd.play(audio_data, samplerate=sr)
             while sd.get_stream().active:
                 if self._stop_event.is_set():
@@ -127,8 +135,9 @@ class PiperTTSAdapter(TextToSpeech):
     def stop(self) -> None:
         """Stop speech immediately."""
         self._stop_event.set()
-        try:
-            sd.stop()
-        except Exception:
-            pass
+        if sd is not None:
+            try:
+                sd.stop()
+            except Exception:
+                pass
         self._speaking = False

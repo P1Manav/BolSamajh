@@ -6,7 +6,12 @@ Shows a small, always-on-top, semi-transparent pill that indicates:
 
 import logging
 import threading
-import tkinter as tk
+
+try:
+    import tkinter as tk
+except Exception:
+    tk = None
+
 from typing import Literal
 
 log = logging.getLogger(__name__)
@@ -38,6 +43,9 @@ class OverlayHUD:
 
     def start(self) -> None:
         """Start the overlay in a background thread."""
+        if tk is None:
+            log.warning("tkinter is not available; overlay HUD disabled")
+            return
         if self._thread and self._thread.is_alive():
             return
         self._thread = threading.Thread(target=self._run_tk, daemon=True)

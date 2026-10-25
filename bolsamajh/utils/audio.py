@@ -5,7 +5,11 @@ import wave
 import logging
 import threading
 import numpy as np
-import sounddevice as sd
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +31,7 @@ class MicRecorder:
     def __init__(self, sample_rate: int = SAMPLE_RATE):
         self.sample_rate = sample_rate
         self._frames: list[np.ndarray] = []
-        self._stream: sd.InputStream | None = None
+        self._stream = None
         self._recording = False
         self._lock = threading.Lock()
 
@@ -37,6 +41,9 @@ class MicRecorder:
 
     def start(self) -> None:
         """Start recording from default microphone."""
+        if sd is None:
+            raise RuntimeError("sounddevice is not available in this environment")
+
         with self._lock:
             if self._recording:
                 return

@@ -2,8 +2,14 @@
 
 import logging
 from PIL import Image, ImageDraw, ImageFont
-import pystray
-from pystray import MenuItem as Item
+try:
+    import pystray
+    from pystray import MenuItem as Item
+except Exception:
+    pystray = None
+    Item = None
+
+from bolsamajh import __version__
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +51,7 @@ def create_tray(config, on_quit_callback=None) -> pystray.Icon:
         icon=_create_icon_image(),
         title="BolSamajh — Bolo. Samjho.",
         menu=pystray.Menu(
-            Item("BolSamajh v1.0.0", lambda *a: None, enabled=False),
+            Item(f"BolSamajh v{__version__}", lambda *a: None, enabled=False),
             pystray.Menu.SEPARATOR,
             Item(
                 "Script Control",
