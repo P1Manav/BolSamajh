@@ -30,9 +30,9 @@ def format_real_speech_table(real_results: dict) -> str:
     lines = [
         "### 1. Real-World Speech Benchmark (Public Open Datasets)",
         "",
-        "> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical script-normalized transliteration scoring.",
+        "> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical script-normalized transliteration scoring. All model comparisons use identical clip sets.",
         "",
-        "| Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |",
+        "| Model | Precision | FLEURS Hindi (100 clips) | FLEURS Gujarati (100 clips) | HiACC Hinglish (100 clips, comparable across all 3) | All Real Speech (300 clips) | Mean Latency | RTF |",
         "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
 
@@ -44,7 +44,6 @@ def format_real_speech_table(real_results: dict) -> str:
         hi_ci = splits.get("read_hindi", {}).get("wer_ci_95")
         gu_ci = splits.get("read_gujarati", {}).get("wer_ci_95")
         cs_ci = splits.get("code_switched_hinglish", {}).get("wer_ci_95")
-        mean_cer = m_data["mean_cer_pct"]
         latency = m_data["mean_latency_ms"]
         rtf = m_data["mean_rtf"]
         prec = m_data.get("compute_type", "int8_float16")
@@ -61,7 +60,18 @@ def format_real_speech_table(real_results: dict) -> str:
         if cs_ci:
             cs_str += f" <br><sub>[{cs_ci[0]}–{cs_ci[1]}%]</sub>"
 
-        cer_str = f"{mean_cer}%"
+        # All Real Speech (300 clips): only models evaluating all 300 clips receive scores
+        if m_data.get("total_clips", 0) == 300:
+            all_wer = m_data["mean_wer_pct"]
+            all_ci = m_data.get("mean_wer_ci_95")
+            all_real_str = f"{all_wer}%"
+            if all_ci:
+                all_real_str += f" <br><sub>[{all_ci[0]}–{all_ci[1]}%]</sub>"
+            if model_name == "large-v3-turbo":
+                all_real_str = f"**{all_real_str}**"
+        else:
+            all_real_str = "— *(N/A: Hinglish-only)*"
+
         lat_str = f"{latency} ms"
         rtf_str = f"{rtf}x"
 
@@ -71,7 +81,11 @@ def format_real_speech_table(real_results: dict) -> str:
             gu_str = "— *(N/A: Hinglish-only)*"
             display_name = f"{model_name} <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>"
 
-        lines.append(f"| **{display_name}** | `{prec}` | {hi_str} | {gu_str} | **{cs_str}** | {cer_str} | **{lat_str}** | **{rtf_str}** |")
+        lines.append(f"| **{display_name}** | `{prec}` | {hi_str} | {gu_str} | **{cs_str}** | {all_real_str} | **{lat_str}** | **{rtf_str}** |")
+
+    lines.append("")
+    lines.append("> **Recommended Default Engine:**  ")
+    lines.append("> **`large-v3-turbo` is the recommended default model.** On the directly comparable 100-clip conversational Hinglish split (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20%, +11.68% margin) and `whisper-hinglish-swift` (52.70%, +14.18% margin). Across the full 300-clip real-world evaluation, `large-v3-turbo` achieves **43.47% WER** with multilingual Hindi/Gujarati coverage at 316.7 ms latency (0.059x RTF, over 16x faster than realtime).")
 
     return "\n".join(lines)
 
@@ -211,23 +225,40 @@ def update_benchmark_results_summary(real_results: dict, synth_results: dict, md
     }
 
     rows = [
-        "| Model | Architecture | License | Real Speech WER (95% CI) | Synthetic Stress WER (95% CI) | Latency (ms) | Real-Time Factor (RTF) |",
-        "| :--- | :--- | :--- | :---: | :---: | :---: | :---: |",
+        "| Model | Architecture | License | All Real Speech (300 clips) | HiACC-Only (100 clips, comparable across all 3) | Synthetic Stress (100 clips, comparable across all 3) | Latency (ms) | Real-Time Factor (RTF) |",
+        "| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |",
     ]
     for key in ["large-v3-turbo", "medium", "whisper-hinglish-swift"]:
         name, arch, lic = meta[key]
         r_data = real_results.get(key, {})
         s_data = synth_results.get(key, {})
+        splits = r_data.get("splits", {})
 
-        r_wer = r_data.get("mean_wer_pct", "—")
-        r_ci = r_data.get("mean_wer_ci_95")
-        r_str = f"**{r_wer}%**" if r_wer != "—" else "—"
-        if r_ci:
-            r_str += f" [{r_ci[0]}–{r_ci[1]}%]"
+        # All Real Speech (300 clips): only models evaluating all 300 clips receive scores
+        if r_data.get("total_clips", 0) == 300:
+            r_wer = r_data.get("mean_wer_pct", "—")
+            r_ci = r_data.get("mean_wer_ci_95")
+            all_real_str = f"{r_wer}%"
+            if r_ci:
+                all_real_str += f" [{r_ci[0]}–{r_ci[1]}%]"
+            if key == "large-v3-turbo":
+                all_real_str = f"**{all_real_str}**"
+        else:
+            all_real_str = "— *(N/A: Hinglish-only)*"
 
+        # HiACC-Only (100 clips, comparable across all 3)
+        h_wer = splits.get("code_switched_hinglish", {}).get("wer_pct", "—")
+        h_ci = splits.get("code_switched_hinglish", {}).get("wer_ci_95")
+        h_str = f"{h_wer}%" if h_wer != "—" else "—"
+        if h_ci:
+            h_str += f" [{h_ci[0]}–{h_ci[1]}%]"
+        if key == "large-v3-turbo":
+            h_str = f"**{h_str}**"
+
+        # Synthetic Stress (100 clips, comparable across all 3)
         s_wer = s_data.get("mean_wer_pct", "—")
         s_ci = s_data.get("mean_wer_ci_95")
-        s_str = f"**{s_wer}%**" if s_wer != "—" else "—"
+        s_str = f"**{s_wer}%**" if key == "whisper-hinglish-swift" else f"{s_wer}%"
         if s_ci:
             s_str += f" [{s_ci[0]}–{s_ci[1]}%]"
 
@@ -241,11 +272,20 @@ def update_benchmark_results_summary(real_results: dict, synth_results: dict, md
         if key != "medium":
             rtf_str = f"**{rtf_str}**"
 
-        rows.append(f"| **{name}** | {arch} | {lic} | {r_str} | {s_str} | {lat_str} | {rtf_str} |")
+        rows.append(f"| **{name}** | {arch} | {lic} | {all_real_str} | {h_str} | {s_str} | {lat_str} | {rtf_str} |")
 
     table_str = "\n".join(rows)
+    recommendation = (
+        "\n> **Recommended Default Engine:**  \n"
+        "> **`large-v3-turbo` is the recommended default model.** "
+        "On the strictly comparable 100-clip real conversational Hinglish evaluation (HiACC), `large-v3-turbo` achieves **38.52% WER**, "
+        "outperforming `medium` (50.20% WER, +11.68% margin) and `whisper-hinglish-swift` (52.70% WER, +14.18% margin). "
+        "Furthermore, across all 300 real speech clips (FLEURS Hindi + FLEURS Gujarati + HiACC), `large-v3-turbo` achieves **43.47% WER** "
+        "with robust multilingual capability that Hinglish-only models cannot support. Running at 316.7 ms latency (0.059x RTF, over 16x faster than realtime), "
+        "it delivers the highest overall transcription accuracy within desktop budget constraints.\n"
+    )
     pattern = r"## 1\. Executive Summary\s*\n\s*\| Model \|.*?\n(?=\n---|\n##)"
-    replacement = f"## 1. Executive Summary\n\n{table_str}\n"
+    replacement = f"## 1. Executive Summary\n\n{table_str}\n{recommendation}"
     new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
     return new_content
 

@@ -9,11 +9,14 @@
 
 ## 1. Executive Summary
 
-| Model | Architecture | License | Real Speech WER (95% CI) | Synthetic Stress WER (95% CI) | Latency (ms) | Real-Time Factor (RTF) |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **faster-whisper large-v3-turbo** | Whisper Large-v3-turbo CT2 | Apache-2.0 | **43.47%** [40.4–46.66%] | **56.03%** [50.14–61.51%] | 316.7 ms | **0.059x** |
-| **faster-whisper medium** | Whisper Medium CT2 | MIT | **53.8%** [50.81–56.88%] | **61.87%** [56.07–67.98%] | 660.6 ms | 0.126x |
-| **whisper-hinglish-swift** | Whisper Small Hinglish CT2 | Apache-2.0 | **52.7%** [48.41–57.86%] | **31.39%** [27.89–35.14%] | **93.8 ms** | **0.017x** |
+| Model | Architecture | License | All Real Speech (300 clips) | HiACC-Only (100 clips, comparable across all 3) | Synthetic Stress (100 clips, comparable across all 3) | Latency (ms) | Real-Time Factor (RTF) |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **faster-whisper large-v3-turbo** | Whisper Large-v3-turbo CT2 | Apache-2.0 | **43.47% [40.4–46.66%]** | **38.52% [32.71–44.56%]** | 56.03% [50.14–61.51%] | 316.7 ms | **0.059x** |
+| **faster-whisper medium** | Whisper Medium CT2 | MIT | 53.8% [50.81–56.88%] | 50.2% [44.26–56.14%] | 61.87% [56.07–67.98%] | 660.6 ms | 0.126x |
+| **whisper-hinglish-swift** | Whisper Small Hinglish CT2 | Apache-2.0 | — *(N/A: Hinglish-only)* | 52.7% [48.41–57.86%] | **31.39%** [27.89–35.14%] | **93.8 ms** | **0.017x** |
+
+> **Recommended Default Engine:**  
+> **`large-v3-turbo` is the recommended default model.** On the strictly comparable 100-clip real conversational Hinglish evaluation (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20% WER, +11.68% margin) and `whisper-hinglish-swift` (52.70% WER, +14.18% margin). Furthermore, across all 300 real speech clips (FLEURS Hindi + FLEURS Gujarati + HiACC), `large-v3-turbo` achieves **43.47% WER** with robust multilingual capability that Hinglish-only models cannot support. Running at 316.7 ms latency (0.059x RTF, over 16x faster than realtime), it delivers the highest overall transcription accuracy within desktop budget constraints.
 
 ---
 

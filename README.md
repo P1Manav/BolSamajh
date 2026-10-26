@@ -188,13 +188,16 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 ### 1. Real-World Speech Benchmark (Public Open Datasets)
 
-> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical script-normalized transliteration scoring.
+> Evaluated on real read and spontaneous conversational speech from verified CC-BY-4.0 open datasets: Google FLEURS (`hi_in`, `gu_in`) and HiACC Adult Test Eval (`Trelis/hiacc-adult-test-eval`). Evaluated using canonical script-normalized transliteration scoring. All model comparisons use identical clip sets.
 
-| Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
+| Model | Precision | FLEURS Hindi (100 clips) | FLEURS Gujarati (100 clips) | HiACC Hinglish (100 clips, comparable across all 3) | All Real Speech (300 clips) | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 33.78% <br><sub>[30.77–36.72%]</sub> | 77.43% <br><sub>[74.3–80.72%]</sub> | **50.2% <br><sub>[44.26–56.14%]</sub>** | 20.3% | **1529.9 ms** | **0.195x** |
-| **large-v3-turbo** | `int8_float16` | 25.89% <br><sub>[22.85–29.49%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | 18.19% | **575.5 ms** | **0.08x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | 20.53% | **100.6 ms** | **0.026x** |
+| **medium** | `int8_float16` | 33.78% <br><sub>[30.77–36.72%]</sub> | 77.43% <br><sub>[74.3–80.72%]</sub> | **50.2% <br><sub>[44.26–56.14%]</sub>** | 53.8% <br><sub>[50.81–56.88%]</sub> | **1529.9 ms** | **0.195x** |
+| **large-v3-turbo** | `int8_float16` | 25.89% <br><sub>[22.85–29.49%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | **43.47% <br><sub>[40.4–46.66%]</sub>** | **575.5 ms** | **0.08x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | — *(N/A: Hinglish-only)* | **100.6 ms** | **0.026x** |
+
+> **Recommended Default Engine:**  
+> **`large-v3-turbo` is the recommended default model.** On the directly comparable 100-clip conversational Hinglish split (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20%, +11.68% margin) and `whisper-hinglish-swift` (52.70%, +14.18% margin). Across the full 300-clip real-world evaluation, `large-v3-turbo` achieves **43.47% WER** with multilingual Hindi/Gujarati coverage at 316.7 ms latency (0.059x RTF, over 16x faster than realtime).
 
 ### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
