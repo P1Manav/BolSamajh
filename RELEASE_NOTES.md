@@ -21,7 +21,7 @@ BolSamajh v0.1.2 is an audited, empirical release of the open-source voice AI co
 - Fast, deterministic CI runs without network calls via `fake_edge_tts` and mock LLM fixtures (`pytest -m "not slow and not network"`).
 
 ### 2. Live Gemini Fallback & Key Security (Tier 1)
-- Switched default Google AI fallback model to `gemini-3.5-flash` (verified live on 2026-10-26 with `generateContent`).
+- Switched default Google AI fallback model to `gemini-3.5-flash` (unverified — run `python scripts/check_gemini.py` with your key).
 - Implemented automatic Flash-family fallback on HTTP 404 from live Google AI models endpoint.
 - Secured API key handling: transmitted strictly via `x-goog-api-key` header (never in URL), with `httpx` logging suppressed to prevent terminal key leaks.
 

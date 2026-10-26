@@ -14,7 +14,7 @@
 **Bolo. Samjho.** — Open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) for 500 million Hinglish speakers: dictation anywhere, talk-to-document with verifiable citations, and in-place voice editing.
 
 ### 3. Since when have you been working on this project?
-**2026-10-25** (verified by initial repository commit `82d10c1`).
+this repository started on 2026-10-25; the first prototype overlay predates it.
 
 ### 4. What is the problem you are solving?
 Over 500 million people across India speak fluid Hindi-English code-switching ("Hinglish"), yet mainstream speech recognition engines force an unnatural binary choice between pure English and formal Devanagari Hindi. Commercial dictation apps (e.g. Wispr Flow) are closed-source, require costly monthly subscriptions, send voice data to foreign cloud servers, and fail on colloquial code-switching like *"PR merge karke branch rebase kar lo"* or *"invoice pe 18% GST add karo"*. Furthermore, non-technical users struggle to digest complex PDFs, insurance policies, and legal notices without a conversational voice assistant that explains nuance in their own tongue with verifiable page citations.
@@ -31,7 +31,7 @@ BolSamajh provides a lightweight voice AI overlay (local STT/RAG; cloud TTS by d
 - **Speech-to-Text (STT):** `faster-whisper` (`medium`, `large-v3-turbo-ct2`, and `whisper-hinglish-swift-ct2` [third-party CT2 conversion of Oriserve Swift, unverified]) running on NVIDIA CUDA 12 via pip wheels with automatic CPU int8 fallback.
 - **Phonetics & Script Normalization:** `aksharamukha` offline library for script transformation (Natural, Roman Latin with diacritic stripping, Devanagari) and canonical script-normalized benchmark scoring.
 - **Document RAG:** `intfloat/multilingual-e5-base` (512 token context, passage/query prefixes), PyMuPDF with local OCR fallback for scanned PDFs, and FAISS vector index.
-- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-3.5-flash`, verified live 2026-10-26, with automatic Flash-family fallback on 404 via `x-goog-api-key` header).
+- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-3.5-flash`, unverified — run `python scripts/check_gemini.py` with your key, with automatic Flash-family fallback on 404 via `x-goog-api-key` header).
 - **Text-to-Speech (TTS):** Microsoft Edge-TTS (unofficial cloud endpoint: `hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX). Edge-TTS neural voices natively pronounce Roman Hinglish without destructive ISO transliteration.
 - **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in (exposed `is_active` state and warning logging); `Escape` key for immediate recording cancellation and audio stop.
 - **Desktop & Web:** Python 3.11 & 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.

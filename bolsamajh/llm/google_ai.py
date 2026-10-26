@@ -1,7 +1,7 @@
 """Google AI Studio (Gemini) LLM adapter — free tier fallback.
 
 Free-tier model:
-- Model: gemini-3.5-flash (verified live with generateContent on 2026-10-26).
+- Model: gemini-3.5-flash (unverified — run python scripts/check_gemini.py with your key).
 - Configurable via GOOGLE_AI_MODEL or BOLSAMAJH_GOOGLE_AI_MODEL.
 - Sends API key in 'x-goog-api-key' header instead of URL parameters.
 - Uses native 'systemInstruction' instead of fake user/model turn pairs.

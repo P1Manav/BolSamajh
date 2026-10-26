@@ -16,7 +16,7 @@
 
 ## D003: LLM Layer — Ollama + gemma3:4b (with Google AI Studio Fallback)
 **Date:** 2026-10-25  
-**Choice:** Ollama serving `gemma3:4b` locally, with optional Google AI Studio (`gemini-3.5-flash` free tier via `x-goog-api-key`, verified live 2026-10-26, with automatic 404 fallback to live Flash-family models) as cloud fallback.  
+**Choice:** Ollama serving `gemma3:4b` locally, with optional Google AI Studio (`gemini-3.5-flash` free tier via `x-goog-api-key`, unverified — run `python scripts/check_gemini.py` with your key, with automatic 404 fallback to live Flash-family models) as cloud fallback.  
 **Alternatives considered:** llama.cpp direct, Phi-3 (less multilingual), Mistral (English-centric).  
 **Reason:** Gemma 3 4B has strong multilingual capability including Hindi/English, fits in 8 GB VRAM alongside whisper medium, and Ollama provides a simple local HTTP API. Free-tier Gemini provides an optional, unmetered fallback when local resources are constrained.
 
@@ -100,7 +100,7 @@
 
 ## D017: LLM Layer Hardening — Context Window, Auto-Fallback & Header Auth
 **Date:** 2026-10-25  
-**Choice:** Set `num_ctx: 8192` explicitly in Ollama API payload. Implement `FallbackLLMAdapter` between local Ollama and Google AI Studio. Update Google AI Studio adapter to verified active free-tier `gemini-3.5-flash` (verified live 2026-10-26 with automatic Flash-family fallback on 404), native `systemInstruction`, and `x-goog-api-key` header auth (never in URL params). Set `httpx`/`httpcore` loggers to `WARNING`.  
+**Choice:** Set `num_ctx: 8192` explicitly in Ollama API payload. Implement `FallbackLLMAdapter` between local Ollama and Google AI Studio. Update Google AI Studio adapter to free-tier `gemini-3.5-flash` (unverified — run `python scripts/check_gemini.py` with your key, with automatic Flash-family fallback on 404), native `systemInstruction`, and `x-goog-api-key` header auth (never in URL params). Set `httpx`/`httpcore` loggers to `WARNING`.  
 **Alternatives considered:** Hardcoded single provider; API key in URL parameters (leaks to HTTP proxy logs).  
 **Reason:** Ensures zero prompt truncation on 8k context, zero key leakage in logs or URL traces, and automatic failover if local Ollama is not running.
 

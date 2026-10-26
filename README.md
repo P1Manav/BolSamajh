@@ -3,6 +3,7 @@
 > **Speak to write and act in any app. Talk to any document to understand it in your own language.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml/badge.svg)](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml)
 [![Python: 3.11 | 3.12](https://img.shields.io/badge/Python-3.11_%7C_3.12-green.svg)](https://python.org)
 [![GPU: NVIDIA RTX](https://img.shields.io/badge/GPU-RTX_3060_Ti_Tested-76B900.svg)](https://nvidia.com)
 [![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#-privacy--architecture-transparency)
@@ -18,7 +19,7 @@ BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by defa
 
 ### ⚡ One-Command Quickstart
 
-**Prerequisites:** Python 3.11 or 3.12 only (CI-verified on Ubuntu & Windows).
+**Prerequisites:** Python 3.11 or 3.12 only (see [![CI](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml/badge.svg)](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml) for build status on Ubuntu & Windows).
 
 ```powershell
 git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh && python -m venv venv && .\venv\Scripts\activate && pip install -r requirements.lock.txt && python -m bolsamajh
@@ -93,7 +94,7 @@ graph TD
 
     subgraph Engines & Adapters
         STT["STT: faster-whisper (medium, INT8/FP16 CUDA)"]
-        LLM["LLM: Ollama (gemma3:4b local) / Gemini 3.5 Flash Free Fallback (verified live 2026-10-26)"]
+        LLM["LLM: Ollama (gemma3:4b local) / Gemini 3.5 Flash Free Fallback (unverified — run python scripts/check_gemini.py with your key)"]
         TTS["TTS: Edge-TTS (Swara/Neerja/Dhwani) / Piper (Offline ONNX)"]
         RAG["RAG: multilingual-e5-base (512 ctx) + FAISS"]
     end
