@@ -2,13 +2,28 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 All Tiers Complete (Tiers 0–5) — Fully Audited, Tested & Validated for Submission
+## Current Status: 🎯 v1.0.0-submission Released & Fully Verified (Phases 1–9 Complete)
 
 ---
 
 ### ✅ Completed Milestones
 
-#### Tier 5 — Quality, CI/CD & Submission Readiness
+#### Phase 1–9 Final Master Execution & Buildathon Submission (v1.0.0-submission)
+- [x] **Phase 1 — CI & Repo Health:** Test suites run on Python 3.11 and 3.12 cleanly; `scripts/generate_readme_tables.py --check` passing. Evidence: `docs/evidence/ci_health.txt`.
+- [x] **Phase 2 — Latency Reconciliation:** Shared decode/timing harness in `bolsamajh/benchmark/timing.py` across both measurement scripts with identical warmup, clip lengths, and reporting.
+- [x] **Phase 3 — Strict Grammar Number Normalizer:** Grammar-based parsing in `bolsamajh/benchmark/normalization.py`; whole-run valid number parsing; ambiguous words (`do`, `so`, etc.) guarded; normalizer on/off WER reported; dynamic date/CUDA stamps.
+- [x] **Phase 4 — Fail-Soft Gemini Fallback:** Startup warning, 404 Flash discovery, 429 single-retry with backoff, `/api/status` fail-soft status; 100% pipeline stability with no key.
+- [x] **Phase 5 — Host Automated Verifications:**
+  - Automated desktop dictation in Notepad (WER 0.0000, modifier released check via `GetAsyncKeyState`, 100% clipboard restoration).
+  - Voice editing (`Alt+Shift+C`) tested with real text selection replacement in-place.
+  - Automated 10-minute barge-in continuous test (93 sentences, 0 false triggers in speaker and headphone modes, speech onset latency 231.5ms / 66.2ms).
+  - 100% offline air-gapped mode verified with socket-level outbound blocker across all 7 pipeline components.
+  - Piper local neural TTS verified with SHA-256 cryptographic check and live synthesis.
+  - Document Q&A tested on real PDF, DOCX, and local web page (9/9 questions answered with exact citations).
+- [x] **Phase 6 — Bolna Package Integration:** Verified using Bolna's own `OPENAISynthesizer` package client code against local server (Hindi 4.48s & English 4.02s playable audio via PyAV); batch STT verified; minimal Realtime WebSocket `/v1/realtime` verified. Evidence: `docs/evidence/bolna_client_check.txt`.
+- [x] **Phase 7 — Code Quality Sweep:** Modifier restore after Ctrl+C/V; sentence splitter initials & quotes edge cases; cancel thread lifecycle deadlock resolved; device/compute_type consistency; clean `ruff` validation on pyflakes ruleset.
+- [x] **Phase 8 — Submission Package:** Rewritten application answers and demo script; created `submission/FINAL_CHECKLIST.md`; fresh-clone smoke test passed in isolated temp dir; tagged `v1.0.0-submission`.
+- [x] **Phase 9 — Final Execution Report:** Comprehensive final report in `docs/FINAL_REPORT.md` and pushed to remote master.
 - [x] **Complete Test Suite:** 40/40 non-slow unit tests passing in automated CI (`pytest -v -m "not slow" tests/`), with full 41/41 unit tests passing locally and in dedicated workflow, covering sentence splitting, barge-in echo, interrupt generation ID, worker lifecycle, text cleanup, transliteration, DocumentRetriever, LLM fallback, clipboard sentinel logic, and web server endpoints with SSRF protection.
 - [x] **GitHub Actions Workflow (`.github/workflows/ci.yml`):** Multi-OS (Ubuntu + Windows) and multi-version (Python 3.11, 3.12) CPU test runner.
 - [x] **Pinned & Split Dependencies:** Clean separation into `requirements.txt` (CPU / platform independent) and `requirements-gpu.txt` (NVIDIA CUDA 12 runtime wheels).
