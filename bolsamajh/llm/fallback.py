@@ -24,12 +24,21 @@ class FallbackLLMAdapter(LLMAdapter):
     def active_engine(self) -> str:
         return self._active_engine
 
+    @property
+    def fallback_status(self) -> str:
+        """Return human-readable status of the fallback engine."""
+        if getattr(self.secondary, "disabled", False):
+            return "LLM fallback unavailable"
+        if hasattr(self.secondary, "_api_key") and not getattr(self.secondary, "_api_key", ""):
+            return "LLM fallback unavailable"
+        return "available"
+
     async def is_available(self) -> bool:
         """Available if either primary or secondary is available."""
         if await self.primary.is_available():
             self._active_engine = self.primary.name
             return True
-        if await self.secondary.is_available():
+        if self.fallback_status != "LLM fallback unavailable" and await self.secondary.is_available():
             self._active_engine = self.secondary.name
             return True
         return False
@@ -41,11 +50,18 @@ class FallbackLLMAdapter(LLMAdapter):
             self._active_engine = self.primary.name
             return res
         except Exception as e:
+            if self.fallback_status == "LLM fallback unavailable":
+                log.warning("Primary LLM (%s) failed: %s. LLM fallback unavailable.", self.primary.name, e)
+                raise RuntimeError(f"Primary LLM ({self.primary.name}) failed and LLM fallback unavailable: {e}")
             log.warning("Primary LLM (%s) failed: %s. Falling back to %s...",
                         self.primary.name, e, self.secondary.name)
-            res = await self.secondary.generate(prompt, system=system)
-            self._active_engine = self.secondary.name
-            return res
+            try:
+                res = await self.secondary.generate(prompt, system=system)
+                self._active_engine = self.secondary.name
+                return res
+            except Exception as e_sec:
+                log.warning("Secondary LLM (%s) failed: %s", self.secondary.name, e_sec)
+                raise RuntimeError(f"Both primary ({self.primary.name}) and secondary ({self.secondary.name}) failed: {e_sec}")
 
     async def generate_stream(self, prompt: str, system: str = "") -> AsyncIterator[str]:
         """Attempt streaming with primary; fall back to secondary if primary fails early."""
@@ -61,8 +77,15 @@ class FallbackLLMAdapter(LLMAdapter):
                 # If streaming already started and yielded tokens, we cannot cleanly re-stream from secondary
                 log.error("Primary LLM (%s) streaming aborted mid-stream: %s", self.primary.name, e)
                 raise
+            if self.fallback_status == "LLM fallback unavailable":
+                log.warning("Primary LLM (%s) failed to start stream: %s. LLM fallback unavailable.", self.primary.name, e)
+                raise RuntimeError(f"Primary LLM ({self.primary.name}) failed and LLM fallback unavailable: {e}")
             log.warning("Primary LLM (%s) failed to start stream: %s. Falling back to %s...",
                         self.primary.name, e, self.secondary.name)
-            async for token in self.secondary.generate_stream(prompt, system=system):
-                yield token
-            self._active_engine = self.secondary.name
+            try:
+                async for token in self.secondary.generate_stream(prompt, system=system):
+                    yield token
+                self._active_engine = self.secondary.name
+            except Exception as e_sec:
+                log.warning("Secondary LLM (%s) streaming failed: %s", self.secondary.name, e_sec)
+                raise RuntimeError(f"Both primary ({self.primary.name}) and secondary ({self.secondary.name}) streaming failed: {e_sec}")

@@ -129,3 +129,140 @@ async def test_google_ai_fallback_on_404(monkeypatch):
     assert any("gemini-3.5-flash" in u for u in posted_urls)
 
 
+@pytest.mark.anyio
+async def test_google_ai_no_key_path(monkeypatch):
+    """Test path: no key set disables Gemini adapter and fails soft."""
+    monkeypatch.delenv("GOOGLE_AI_API_KEY", raising=False)
+    adapter = GoogleAIAdapter()
+    assert adapter.disabled is True
+    assert await adapter.is_available() is False
+    assert await adapter.list_available_models() == []
+    with pytest.raises(RuntimeError, match="Gemini fallback unavailable"):
+        await adapter.generate("test prompt")
+
+    # Verify FallbackLLMAdapter marks fallback unavailable
+    primary_fail = MockLLMAdapter("primary", should_fail=True)
+    fallback = FallbackLLMAdapter(primary=primary_fail, secondary=adapter)
+    assert fallback.fallback_status == "LLM fallback unavailable"
+    with pytest.raises(RuntimeError, match="LLM fallback unavailable"):
+        await fallback.generate("test prompt")
+
+
+@pytest.mark.anyio
+async def test_google_ai_404_discovery_empty(monkeypatch):
+    """Test path: 404 with empty discovery fails soft."""
+    monkeypatch.setenv("GOOGLE_AI_API_KEY", "test-key")
+    adapter = GoogleAIAdapter(model="gemini-nonexistent")
+
+    async def mock_list(self):
+        return []
+
+    monkeypatch.setattr(GoogleAIAdapter, "list_available_models", mock_list)
+
+    class MockResponse:
+        def __init__(self, status_code, data):
+            self.status_code = status_code
+            self._data = data
+
+        def json(self):
+            return self._data
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError("error", request=None, response=self)
+
+    async def mock_post(client_self, url, **kwargs):
+        return MockResponse(404, {"error": "Not Found"})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+
+    with pytest.raises(RuntimeError, match="no available Flash-family fallback"):
+        await adapter.generate("test prompt")
+    assert adapter.disabled is True
+
+
+@pytest.mark.anyio
+async def test_google_ai_429_retry_success(monkeypatch):
+    """Test path: 429 rate limit retried with backoff once and succeeds."""
+    monkeypatch.setenv("GOOGLE_AI_API_KEY", "test-key")
+    adapter = GoogleAIAdapter(model="gemini-3.5-flash", backoff_seconds=0.001)
+
+    call_count = 0
+
+    class MockResponse:
+        def __init__(self, status_code, data):
+            self.status_code = status_code
+            self._data = data
+
+        def json(self):
+            return self._data
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError("error", request=None, response=self)
+
+    async def mock_post(client_self, url, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return MockResponse(429, {"error": "Resource Exhausted"})
+        return MockResponse(
+            200,
+            {"candidates": [{"content": {"parts": [{"text": "success after retry"}]}}]},
+        )
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+
+    res = await adapter.generate("test prompt")
+    assert res == "success after retry"
+    assert call_count == 2
+    assert adapter.disabled is False
+
+
+@pytest.mark.anyio
+async def test_google_ai_429_retry_fail_soft(monkeypatch):
+    """Test path: 429 rate limit retried once then fails soft."""
+    monkeypatch.setenv("GOOGLE_AI_API_KEY", "test-key")
+    adapter = GoogleAIAdapter(model="gemini-3.5-flash", backoff_seconds=0.001)
+
+    call_count = 0
+
+    class MockResponse:
+        def __init__(self, status_code, data):
+            self.status_code = status_code
+            self._data = data
+
+        def json(self):
+            return self._data
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError("error", request=None, response=self)
+
+    async def mock_post(client_self, url, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        return MockResponse(429, {"error": "Resource Exhausted"})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+
+    with pytest.raises(RuntimeError, match="rate limit exceeded"):
+        await adapter.generate("test prompt")
+    assert call_count == 2
+    assert adapter.disabled is True
+
+
+def test_api_status_reports_llm_fallback_unavailable(monkeypatch):
+    """Test that /api/status reports 'LLM fallback unavailable' when no key is set."""
+    monkeypatch.delenv("GOOGLE_AI_API_KEY", raising=False)
+    from fastapi.testclient import TestClient
+    from bolsamajh.web.server import app
+
+    client = TestClient(app)
+    resp = client.get("/api/status")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["llm_fallback"] == "LLM fallback unavailable"
+
+
+

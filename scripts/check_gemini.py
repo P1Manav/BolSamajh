@@ -86,14 +86,15 @@ async def check_gemini(api_key: str, model: str = "gemini-3.5-flash") -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Verify live Google AI Studio Gemini API access.")
-    parser.add_argument("--api-key", default=os.getenv("GEMINI_API_KEY", ""), help="Google AI Studio Gemini API Key")
+    api_key_env = os.getenv("GOOGLE_AI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+    parser.add_argument("--api-key", default=api_key_env, help="Google AI Studio Gemini API Key")
     parser.add_argument("--model", default="gemini-3.5-flash", help="Gemini model to test (default: gemini-3.5-flash)")
     args = parser.parse_args()
 
     api_key = args.api_key.strip()
     if not api_key:
-        print("[!] No GEMINI_API_KEY found.")
-        print("    Please set GEMINI_API_KEY in your environment or pass --api-key <KEY>.")
+        print("[!] No GOOGLE_AI_API_KEY or GEMINI_API_KEY found.")
+        print("    Please set GOOGLE_AI_API_KEY in your environment or pass --api-key <KEY>.")
         print("    Example:")
         print("        python scripts/check_gemini.py --api-key AIzaSy...")
         return 1

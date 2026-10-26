@@ -1,0 +1,9 @@
+$ python scripts/check_gemini.py
+[!] No GOOGLE_AI_API_KEY or GEMINI_API_KEY found.
+    Please set GOOGLE_AI_API_KEY in your environment or pass --api-key <KEY>.
+    Example:
+        python scripts/check_gemini.py --api-key AIzaSy...
+
+Exit code: 1
+Status: unverified (no API key configured in environment).
+Safety default: Adapter fails soft, disables fallback, logs warning at startup, runs locally on Ollama.

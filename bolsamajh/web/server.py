@@ -47,6 +47,7 @@ from bolsamajh.documents.retriever import DocumentRetriever
 from bolsamajh.documents.chunker import Chunk
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
 from bolsamajh.llm.factory import create_llm_adapter
+from bolsamajh.llm.fallback import FallbackLLMAdapter
 from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
 from bolsamajh.pipeline.doc_qa import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
 from bolsamajh.utils.cuda_setup import auto_detect_device
@@ -126,6 +127,8 @@ def check_bind_security(host: Optional[str] = None) -> None:
 async def lifespan(app: FastAPI):
     """Application lifespan: perform bind security check on startup, cancel tasks on shutdown."""
     check_bind_security()
+    if not os.getenv("GOOGLE_AI_API_KEY"):
+        log.warning("GOOGLE_AI_API_KEY not set; Gemini cloud fallback disabled. Running local Ollama only.")
     yield
     for task in list(_BACKGROUND_TASKS):
         task.cancel()
@@ -630,6 +633,16 @@ async def get_status():
     llm_configured = bool(os.getenv("GOOGLE_AI_API_KEY")) if config.llm.engine == "google_ai" else True
     llm_ready = await check_llm_ready_cached(ttl_seconds=60.0)
 
+    llm_fallback_msg = "LLM fallback unavailable"
+    if isinstance(llm, FallbackLLMAdapter):
+        llm_fallback_msg = llm.fallback_status
+    elif config.llm.engine == "google_ai" and not os.getenv("GOOGLE_AI_API_KEY"):
+        llm_fallback_msg = "LLM fallback unavailable"
+    elif config.llm.engine == "ollama" and not config.llm.auto_fallback:
+        llm_fallback_msg = "disabled"
+    elif getattr(llm, "disabled", False):
+        llm_fallback_msg = "LLM fallback unavailable"
+
     return {
         "status": "ready",
         "device": gpu_name,
@@ -637,6 +650,7 @@ async def get_status():
         "llm": llm.name,
         "llm_ready": llm_ready,
         "llm_configured": llm_configured,
+        "llm_fallback": llm_fallback_msg,
         "tts": tts.name,
         "document_loaded": retriever.is_loaded,
         "document_title": retriever.document_title,

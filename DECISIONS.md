@@ -120,3 +120,10 @@
 **Choice:** Replaced naive regex/lookaround number conversion with a strict hierarchy grammar parser (`_parse_strict_number`, `_parse_sub99`, `SCALE_PRIORITY`). Ambiguous Hindi number words (`do`, `so`, `sat`, etc.) only convert when part of a valid compound containing an unambiguous scale word or digit. Removed all hardcoded dates and CUDA version strings from docs, generating them dynamically via `generate_readme_tables.py` from JSON sources of truth.  
 **Alternatives considered:** Relying on ad-hoc exception lists for common phrases like "nau do gyarah".  
 **Reason:** Ad-hoc regexes failed on phrases like "so do sau" and colloquial idioms. Strict grammar prevents corrupting natural language while accurately parsing valid numerical expressions. Dynamic document stamping eliminates stale doc stamps.
+
+## D021: Fail-Soft Gemini Cloud Fallback Architecture
+**Date:** 2026-10-26  
+**Choice:** Hardened `GoogleAIAdapter` and `FallbackLLMAdapter` with an explicit `disabled` flag, one clear startup warning on missing `GOOGLE_AI_API_KEY` or failed model check, single-retry backoff on HTTP 429 rate limits, and automatic Flash-family candidate discovery on HTTP 404. When Gemini fallback is unavailable or unconfigured, `/api/status` returns `"llm_fallback": "LLM fallback unavailable"` and the system operates 100% locally on Ollama without process termination.  
+**Alternatives considered:** Throwing unhandled exceptions during API calls or silently omitting fallback status.  
+**Reason:** Prevents demo or server crashes when users run locally without an external Google AI key or encounter cloud rate limits, ensuring uninterrupted offline/local operation.
+
