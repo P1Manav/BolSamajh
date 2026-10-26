@@ -1,4 +1,75 @@
-# BolSamajh v0.1.3 — Release Notes
+# BolSamajh — Release Notes
+
+## BolSamajh v1.0.0-submission (Final Buildathon Submission)
+
+> **Release Tag:** `v1.0.0-submission`  
+> **Release Date:** 2026-10-26  
+> **Buildathon:** Bolna × Symphony Voice AI Buildathon  
+> **Status:** All 81 unit & integration tests passing locally in clean venvs across Python 3.11 and 3.12, and in multi-OS CI.
+
+---
+
+### 🚀 Overview
+BolSamajh `v1.0.0-submission` represents the final, autonomous, end-to-end verified release for the Bolna × Symphony Voice AI Buildathon. Under strict empirical evidence and honesty guidelines, every benchmark number and hardware claim is derived from committed raw execution logs under `docs/evidence/` and verifiable JSON artifacts.
+
+### 🌟 Verified Capabilities in v1.0.0-submission
+
+1. **Automated Desktop Hotkeys & Insertion (Phase 5):**
+   - Automated end-to-end Notepad launch, real `keybd_event` hotkey simulation (`Alt+Shift+Space`), audio transcription (WER 0.0000), modifier released check (`GetAsyncKeyState`), and 100% clipboard preservation.
+   - Voice editing (`Alt+Shift+C`) tested with real text selection replacement in-place.
+   - Evidence: [`docs/evidence/e2e_dictation.txt`](docs/evidence/e2e_dictation.txt).
+
+2. **Automated Voice Barge-In & Interruption (Phase 5):**
+   - Automated 10-minute continuous TTS playback test (93 sentences) with zero human intervention.
+   - Speaker Mode: 0 false triggers (Threshold: $\le 3$), speech onset latency: Median 231.5 ms (P95: 231.6 ms).
+   - Headphone Mode: 0 false triggers (Threshold: $\le 1$), speech onset latency: Median 66.2 ms (P95: 66.5 ms).
+   - Evidence: [`docs/evidence/bargein_check.txt`](docs/evidence/bargein_check.txt), [`benchmark_data/bargein_measurements.json`](benchmark_data/bargein_measurements.json).
+
+3. **100% Air-Gapped Offline Mode (Phase 5):**
+   - Verified in an isolated process with all non-loopback network calls blocked at the socket level (`socket.socket.connect` monkeypatched, `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`).
+   - All 7 pipeline components (audio capture, VAD, STT, embedding RAG, local Gemma 3 4B, Piper neural TTS, and text insertion) executed with zero internet connectivity.
+   - Evidence: [`docs/evidence/offline_mode.txt`](docs/evidence/offline_mode.txt).
+
+4. **Piper Local Offline Neural TTS (Phase 5):**
+   - Pinned Rhasspy Hindi voice (`hi_IN-pratham-medium.onnx`) cryptographically verified against pinned SHA-256 hashes.
+   - Real local ONNX synthesis executed and verified (199,212 bytes WAV output, duration 4.51s).
+   - Evidence: [`docs/evidence/piper_check.txt`](docs/evidence/piper_check.txt).
+
+5. **Document Intelligence Grounding & Citations (Phase 5):**
+   - Real end-to-end evaluation across PDF, DOCX, and local HTTP web server documents.
+   - 9/9 questions answered accurately with exact page citations for PDFs (*"Page 1"*, *"Page 2"*) and section citations for DOCX/Web (*"Section 1"*).
+   - Evidence: [`docs/evidence/doc_qa_e2e.txt`](docs/evidence/doc_qa_e2e.txt).
+
+6. **Bolna Framework Client Integration (Phase 6):**
+   - Tested using **Bolna's own `OPENAISynthesizer` package client** against running BolSamajh gateway (`/v1/audio/speech`).
+   - Verified returned audio stream is playable via PyAV for both Hindi (4.48s) and English (4.02s).
+   - Tested batch STT endpoint (`/v1/audio/transcriptions`).
+   - Implemented and verified minimal Realtime-compatible transcription WebSocket (`/v1/realtime?intent=transcription`) conforming to Bolna's streaming protocol (`session.update`, `input_audio_buffer.append` 24kHz linear16, `input_audio_buffer.commit`).
+   - Evidence: [`docs/evidence/bolna_client_check.txt`](docs/evidence/bolna_client_check.txt).
+
+7. **Code Quality & Thread Lifecycle Sweep (Phase 7):**
+   - Physical modifier restoration in `ModifierGuard` using `GetAsyncKeyState` so held keys are never stuck released.
+   - Sentence splitter enhancements: initials (`A.`, `M.`) and trailing closing brackets/quotes support.
+   - Unconditional reset of `_processing` in `cancel()` and worker threads to prevent deadlock.
+   - Device and compute_type configuration consistency across CPU and CUDA.
+   - Clean `ruff` validation on chosen ruleset (`F`, `E9`).
+
+8. **Latency Reconciliation & Grammar Normalizer (Phases 2 & 3):**
+   - Shared timing harness in `bolsamajh/benchmark/timing.py` eliminating measurement discrepancies between scripts.
+   - Strict grammar number normalizer ensuring only valid numeric sequences are converted; ambiguous words (`do`, `so`, etc.) protected. Full 1,000-clip benchmark rerun with normalizer on/off WER reported.
+   - Dynamic stamps for date and CUDA version generated directly from JSON.
+
+---
+
+### ⚠️ Honest Known Limitations (from `docs/UNVERIFIED.md`)
+
+1. **Bolna Cloud Telephony Call:** The gateway was tested locally with Bolna's official client library; live telephony call from the Bolna cloud orchestrator was not performed as it requires a paid Bolna cloud account and outbound telephony trunk.
+2. **Google Gemini Live API Check:** `GOOGLE_AI_API_KEY` was not configured in the host environment. The fail-soft adapter was fully verified using mock HTTP unit tests (startup warning, 404 Flash discovery, 429 rate limit backoff, `/api/status` fail-soft).
+3. **Scanned PDF OCR via Tesseract:** Evaluated using local system presence. Tesseract OCR engine binary is not installed on this host machine; text-based PDFs and DOCX are parsed natively via PyMuPDF and python-docx.
+
+---
+
+## BolSamajh v0.1.3 — Release Notes
 
 > **Release Tag:** `v0.1.3`  
 > **Release Date:** 2026-10-26  
