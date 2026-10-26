@@ -26,7 +26,7 @@ class HotkeyConfig:
 class STTConfig:
     """Speech-to-text settings."""
     engine: str = "faster_whisper"
-    model_size: str = "medium"                # faster-whisper model size (medium, large-v3-turbo, whisper-hinglish-swift)
+    model_size: str = "large-v3-turbo"        # Default CUDA model (large-v3-turbo); medium supported as fallback
     language: str = "auto"                    # Auto-detect language or specify 'hi', 'en', 'gu'
     device: str = "cuda"                      # cuda or cpu
     compute_type: str = "int8_float16"         # int8 weights + fp16 compute

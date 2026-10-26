@@ -66,7 +66,7 @@ def auto_detect_device() -> tuple[str, str, str]:
 
     Returns:
         (device, compute_type, recommended_model)
-        - On GPU: ('cuda', 'int8_float16', 'medium')
+        - On GPU: ('cuda', 'int8_float16', 'large-v3-turbo')
         - On CPU: ('cpu', 'int8', 'MSpider3/whisper-hindi2hinglish-swift-ct2')
     """
     setup_cuda_dlls()
@@ -75,7 +75,7 @@ def auto_detect_device() -> tuple[str, str, str]:
         cuda_count = ctranslate2.get_cuda_device_count()
         if cuda_count > 0:
             log.info("CUDA GPU detected (%d device(s)). Using cuda:int8_float16", cuda_count)
-            return "cuda", "int8_float16", "medium"
+            return "cuda", "int8_float16", "large-v3-turbo"
     except Exception as e:
         log.debug("CUDA check exception: %s", e)
 

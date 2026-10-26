@@ -31,6 +31,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.lock.txt
 
+      - name: Verify documentation numbers match JSON benchmark truth
+        run: |
+          python scripts/generate_readme_tables.py --check
+
       - name: Run unit test suite
         run: |
           pytest -v -m "not slow and not network" tests/

@@ -78,7 +78,7 @@
 **Date:** 2026-10-25  
 **Choice:** Replace 128-token MiniLM with `intfloat/multilingual-e5-base` (512 token max sequence length, explicit `passage: ` and `query: ` prefixes). Calibrate cosine similarity refusal threshold on 200 Google XQuAD Hindi validation questions and 200 unanswerable queries.  
 **Alternatives considered:** `paraphrase-multilingual-MiniLM-L12-v2` (truncates 500-token chunks after 128 tokens), `BGE-M3` (heavier VRAM footprint).  
-**Reason:** 200-question XQuAD Hindi empirical evaluation achieved 89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5 at 22.31 ms latency. Optimal F1-maximizing refusal threshold of 0.785 cleanly separates relevant from irrelevant queries (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
+**Reason:** 200-question XQuAD Hindi empirical evaluation achieved <!-- NUM:rag.hit_at_1 -->89.0%<!-- /NUM --> Hit@1, <!-- NUM:rag.hit_at_3 -->98.0%<!-- /NUM --> Hit@3, <!-- NUM:rag.hit_at_5 -->98.5%<!-- /NUM --> Hit@5 at <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms latency. Optimal F1-maximizing refusal threshold of <!-- NUM:rag.refusal_threshold -->0.785<!-- /NUM --> cleanly separates relevant from irrelevant queries (F1: <!-- NUM:rag.f1 -->0.8685<!-- /NUM -->, Precision: <!-- NUM:rag.precision -->81.86%<!-- /NUM -->, Recall: <!-- NUM:rag.recall -->92.5%<!-- /NUM -->).
 
 ## D014: Prompt-Injection Guardrails & Conversational Memory
 **Date:** 2026-10-25  

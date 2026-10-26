@@ -38,18 +38,16 @@ BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud s
 
 ### 7. What are your key measured metrics? (All backed by repository JSON files)
 All metrics originate from reproducible scripts in `benchmark_data/`:
-- **Inference Latency (`hardware_measurements.json`):** Measured on NVIDIA RTX 3060 Ti GPU (`cuda` `int8_float16`): **1,425.0 ms mean** on a 3.82s sentence (RTF 0.373x); real-speech spontaneous code-switch is **2,262.2 ms** (RTF **0.146x**, running 6.8× faster than real-time) on a 15.45s clip (`hiacc_cs_001.wav`). Across the full 300-clip real-speech suite, `large-v3-turbo` achieves **997.0 ms mean latency (RTF 0.131x)** and `whisper-hinglish-swift` achieves **386.9 ms (RTF 0.051x)**.
-- **VRAM Overhead (`hardware_measurements.json`):** **1,075 MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
-- **Document Retrieval (`retrieval_benchmark.json`):** **89.0% Hit@1, 98.0% Hit@3, 98.5% Hit@5** on Google XQuAD Hindi validation split with **22.31 ms mean latency** and calibrated refusal threshold of **0.785** (F1: 0.8685, Precision: 81.86%, Recall: 92.5%).
-- **Time-To-First-Audio (`hardware_measurements.json`):** **672.9 ms** Edge-TTS first-packet latency; **2,520.5 ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
+- **Inference Latency (`hardware_measurements.json`):** Measured on NVIDIA RTX 3060 Ti GPU (`cuda` `int8_float16`): **<!-- NUM:hw.stt_synth_latency_ms -->495.0<!-- /NUM --> ms mean** on a 3.82s sentence (RTF <!-- NUM:hw.stt_synth_rtf -->0.13<!-- /NUM -->x); real-speech latency across <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips is **<!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms** (RTF **<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x**, p95: **<!-- NUM:hw.stt_real_p95_latency_ms -->1492.6<!-- /NUM --> ms**) on `large-v3-turbo`.
+- **VRAM Overhead (`hardware_measurements.json`):** **<!-- NUM:hw.vram_allocated_delta_mb -->1142.0<!-- /NUM --> MB** model allocation delta (fits comfortably in 8 GB VRAM alongside local Gemma 3 4B).
+- **Document Retrieval (`retrieval_benchmark.json`):** **<!-- NUM:rag.hit_at_1 -->89.0%<!-- /NUM --> Hit@1, <!-- NUM:rag.hit_at_3 -->98.0%<!-- /NUM --> Hit@3, <!-- NUM:rag.hit_at_5 -->98.5%<!-- /NUM --> Hit@5** on Google XQuAD Hindi validation split with **<!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms mean latency** and calibrated refusal threshold of **<!-- NUM:rag.refusal_threshold -->0.785<!-- /NUM -->** (F1: <!-- NUM:rag.f1 -->0.8685<!-- /NUM -->, Precision: <!-- NUM:rag.precision -->81.86%<!-- /NUM -->, Recall: <!-- NUM:rag.recall -->92.5%<!-- /NUM -->).
+- **Time-To-First-Audio (`hardware_measurements.json`):** **<!-- NUM:hw.tts_first_packet_ms -->835.6<!-- /NUM --> ms** Edge-TTS first-packet latency; **<!-- NUM:hw.total_ttfa_ms -->1702.8<!-- /NUM --> ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
 - **Real Speech Benchmark (`benchmark_results.json`):**
-  - Read Hindi (FLEURS `hi_in`): **26.0% WER** (95% CI: [22.92, 29.63%]) on `large-v3-turbo`; **34.25% WER** (95% CI: [31.01, 37.45%]) on `medium`.
-  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **38.59% WER** (95% CI: [32.75, 44.65%]) on `large-v3-turbo`; **50.41% WER** (95% CI: [44.68, 56.41%]) on `medium`.
-  - Read Gujarati (FLEURS `gu_in`): **65.10% WER** on `large-v3-turbo`; **76.96% WER** on `medium`.
+  - Read Hindi (FLEURS `hi_in`): **<!-- NUM:stt.turbo.fleurs_hi_wer -->25.94%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_hi_wer -->33.63%<!-- /NUM --> WER** on `medium`.
+  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.hiacc_wer -->50.31%<!-- /NUM --> WER** on `medium`.
+  - Read Gujarati (FLEURS `gu_in`): **<!-- NUM:stt.turbo.fleurs_gu_wer -->66.01%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_gu_wer -->77.65%<!-- /NUM --> WER** on `medium`.
 - **Synthetic Stress Benchmark (`benchmark_results.json`, 100 sentences with noise & 8kHz phone filter):**
-  - Rapid Code-switching: **30.70% WER** (`whisper-hinglish-swift`), **37.89% WER** (`large-v3-turbo`).
-  - Everyday Dialogue: **22.90% WER** (`whisper-hinglish-swift`), **64.88% WER** (`large-v3-turbo`).
-  - Overall Synthetic Stress Set: **36.31% WER** (95% CI: [31.19, 42.32%]) on `whisper-hinglish-swift` at **92.9 ms latency** and **0.017x RTF**.
+  - Overall Synthetic Stress Set: **<!-- NUM:stt.swift.synth_wer -->31.02%<!-- /NUM --> WER** on `whisper-hinglish-swift` at **<!-- NUM:stt.swift.synth_latency_ms -->97.7<!-- /NUM --> ms latency** and **<!-- NUM:stt.swift.synth_rtf -->0.018<!-- /NUM -->x RTF**; **<!-- NUM:stt.turbo.synth_wer -->56.03%<!-- /NUM --> WER** on `large-v3-turbo`.
 
 ### 8. How does BolSamajh align with the Bolna ecosystem?
 BolSamajh directly supports Bolna's vision of autonomous voice agents:

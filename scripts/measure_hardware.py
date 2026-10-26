@@ -75,7 +75,7 @@ def measure_gpu_specs() -> Dict[str, Any]:
     return specs
 
 
-def measure_stt_performance(model_size: str = "medium", device: str = "cuda", compute_type: str = "int8_float16", test_wav: str = "benchmark_data/audio/sentence_001.wav") -> Dict[str, Any]:
+def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "cuda", compute_type: str = "int8_float16", test_wav: str = "benchmark_data/audio/sentence_001.wav") -> Dict[str, Any]:
     from faster_whisper import WhisperModel
 
     _, _, baseline_vram = _get_nvidia_smi_memory()
@@ -86,13 +86,14 @@ def measure_stt_performance(model_size: str = "medium", device: str = "cuda", co
 
     audio, duration = _read_wav_float32(wav_full_path)
 
+    model_id = "deepdml/faster-whisper-large-v3-turbo-ct2" if model_size == "large-v3-turbo" else model_size
     t0 = time.perf_counter()
     try:
-        model = WhisperModel(model_size, device=device, compute_type=compute_type)
+        model = WhisperModel(model_id, device=device, compute_type=compute_type)
         actual_device = device
     except Exception as e:
         print(f"CUDA failed ({e}), loading on CPU")
-        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        model = WhisperModel(model_id, device="cpu", compute_type="int8")
         actual_device = "cpu"
     load_time = time.perf_counter() - t0
 
@@ -118,43 +119,43 @@ def measure_stt_performance(model_size: str = "medium", device: str = "cuda", co
     p95_lat = round(float(np.percentile(latencies, 95)), 1)
     rtf = round(mean_lat / (duration * 1000.0), 3)
 
-    # 3. Real speech empirical measurement
-    real_wav_path = str(ROOT_DIR / "benchmark_data/real_speech/hiacc_cs_001.wav")
+    # 3. Real speech empirical measurement across all evaluated real clips
+    per_clip_path = ROOT_DIR / "benchmark_data" / "per_clip_results.jsonl"
     real_speech_metrics = {}
-    if os.path.exists(real_wav_path):
-        real_audio, real_dur = _read_wav_float32(real_wav_path)
-        real_lats = []
-        print(f"Measuring 3 STT inference runs on real speech clip (hiacc_cs_001.wav, {round(real_dur, 2)}s)...")
-        for _ in range(3):
-            t_start = time.perf_counter()
-            _ = list(model.transcribe(real_audio, beam_size=5, vad_filter=True)[0])
-            t_end = time.perf_counter()
-            real_lats.append((t_end - t_start) * 1000.0)
-        real_mean_lat = round(float(np.mean(real_lats)), 1)
-        real_rtf = round(real_mean_lat / (real_dur * 1000.0), 3)
-        real_speech_metrics = {
-            "clip_id": "hiacc_cs_001",
-            "test_clip_duration_sec": round(real_dur, 2),
-            "device": actual_device,
-            "compute_type": compute_type if actual_device == "cuda" else "int8",
-            "runs": len(real_lats),
-            "mean_latency_ms": real_mean_lat,
-            "median_latency_ms": round(float(np.median(real_lats)), 1),
-            "min_latency_ms": round(float(np.min(real_lats)), 1),
-            "p95_latency_ms": round(float(np.percentile(real_lats, 95)), 1),
-            "real_time_factor_rtf": real_rtf,
-            "ratio_vs_synthetic": f"{round(real_mean_lat / mean_lat, 1)}x",
-            "empirical_notes": (
-                f"Empirically measured on {actual_device} ({compute_type if actual_device == 'cuda' else 'int8'}) "
-                f"with {round(real_dur, 1)}s real conversational speech clip. "
-                f"Latency scales linearly with audio duration (synthetic {round(duration, 1)}s -> real {round(real_dur, 1)}s), "
-                f"maintaining RTF of {real_rtf}x on {actual_device}."
-            ),
-        }
-    else:
+    if per_clip_path.exists():
+        records = []
+        with open(per_clip_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    records.append(json.loads(line))
+        real_clips = [r for r in records if r.get("model") == model_size and not r.get("clip_id", "").startswith("synth_stress")]
+        if real_clips:
+            real_lats = [r["latency_ms"] for r in real_clips]
+            real_durs = [r["audio_duration"] for r in real_clips]
+            real_rtfs = [r["latency_ms"] / (r["audio_duration"] * 1000.0) for r in real_clips if r.get("audio_duration", 0) > 0]
+            real_speech_metrics = {
+                "clip_count": len(real_clips),
+                "device": actual_device,
+                "compute_type": compute_type if actual_device == "cuda" else "int8",
+                "mean_duration_sec": round(float(np.mean(real_durs)), 2),
+                "mean_latency_ms": round(float(np.mean(real_lats)), 1),
+                "median_latency_ms": round(float(np.median(real_lats)), 1),
+                "min_latency_ms": round(float(np.min(real_lats)), 1),
+                "p95_latency_ms": round(float(np.percentile(real_lats, 95)), 1),
+                "real_time_factor_rtf": round(float(np.mean(real_rtfs)), 3),
+                "empirical_notes": (
+                    f"Empirically measured on {actual_device} ({compute_type if actual_device == 'cuda' else 'int8'}) "
+                    f"across {len(real_clips)} real conversational and read speech clips. "
+                    f"Mean latency {round(float(np.mean(real_lats)), 1)} ms with p95 {round(float(np.percentile(real_lats, 95)), 1)} ms, "
+                    f"maintaining RTF of {round(float(np.mean(real_rtfs)), 3)}x."
+                ),
+            }
+
+    if not real_speech_metrics:
         real_speech_metrics = {
             "mean_latency_ms": None,
-            "empirical_notes": "Real speech clip not found; not measured.",
+            "empirical_notes": "Real speech clips not found; not measured.",
         }
 
     return {

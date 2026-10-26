@@ -115,13 +115,13 @@
   - Dropped the unprincipled "best of two references" trick.
 - [x] **Multi-Engine Empirical Comparison on NVIDIA RTX 3060 Ti:**
   - **Real Speech:**
-    * `medium`: 53.4% Mean WER, 20.09% CER, 2,900.4 ms latency on CUDA int8_float16 (HiACC CS: 49.82%, FLEURS HI: 33.49%, FLEURS GU: 76.77%)
-    * `large-v3-turbo`: 43.2% Mean WER, 18.21% CER, 997.0 ms latency, 0.131x RTF (FLEURS HI: 26.0%, FLEURS GU: 65.1%, HiACC CS: 38.59%)
-    * `whisper-hinglish-swift`: 79.4% Mean WER, 386.9 ms latency, 0.051x RTF (Synthetic stress: 36.31% WER, 0.039x RTF)
+    * `medium`: <!-- NUM:stt.medium.real_mean_wer -->53.86%<!-- /NUM --> Mean WER, <!-- NUM:stt.medium.real_mean_cer -->20.05%<!-- /NUM --> CER, <!-- NUM:stt.medium.real_latency_ms -->1973.5<!-- /NUM --> ms latency on CUDA int8_float16 (HiACC CS: <!-- NUM:stt.medium.hiacc_wer -->50.31%<!-- /NUM -->, FLEURS HI: <!-- NUM:stt.medium.fleurs_hi_wer -->33.63%<!-- /NUM -->, FLEURS GU: <!-- NUM:stt.medium.fleurs_gu_wer -->77.65%<!-- /NUM -->)
+    * `large-v3-turbo`: <!-- NUM:stt.turbo.real_mean_wer -->43.49%<!-- /NUM --> Mean WER, <!-- NUM:stt.turbo.real_mean_cer -->18.2%<!-- /NUM --> CER, <!-- NUM:stt.turbo.real_latency_ms -->779.2<!-- /NUM --> ms latency, <!-- NUM:stt.turbo.real_rtf -->0.101<!-- /NUM -->x RTF (FLEURS HI: <!-- NUM:stt.turbo.fleurs_hi_wer -->25.94%<!-- /NUM -->, FLEURS GU: <!-- NUM:stt.turbo.fleurs_gu_wer -->66.01%<!-- /NUM -->, HiACC CS: <!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM -->)
+    * `whisper-hinglish-swift`: <!-- NUM:stt.swift.real_mean_wer -->52.7%<!-- /NUM --> Mean WER (Hinglish-only), <!-- NUM:stt.swift.real_latency_ms -->105.5<!-- /NUM --> ms latency, <!-- NUM:stt.swift.real_rtf -->0.027<!-- /NUM -->x RTF
   - **Synthetic Stress Set:**
-    * `whisper-hinglish-swift`: **33.43% Overall WER**, **18.77% CER**, **108.5 ms Latency**, **0.019x RTF** (Code-switching: **12.48% WER**, Everyday: **23.79% WER**)
-    * `large-v3-turbo`: 58.99% Overall WER, 26.43% CER, 486.2 ms Latency, 0.089x RTF (Code-switching: 23.52% WER)
-    * `medium`: 66.12% Overall WER, 32.97% CER, 800.4 ms Latency, 0.142x RTF (Code-switching: 37.06% WER)
+    * `whisper-hinglish-swift`: **<!-- NUM:stt.swift.synth_wer -->31.02%<!-- /NUM --> Overall WER**, **<!-- NUM:stt.swift.synth_latency_ms -->97.7<!-- /NUM --> ms Latency**, **<!-- NUM:stt.swift.synth_rtf -->0.018<!-- /NUM -->x RTF**
+    * `large-v3-turbo`: <!-- NUM:stt.turbo.synth_wer -->56.03%<!-- /NUM --> Overall WER, <!-- NUM:stt.turbo.synth_latency_ms -->327.9<!-- /NUM --> ms Latency, <!-- NUM:stt.turbo.synth_rtf -->0.061<!-- /NUM -->x RTF
+    * `medium`: <!-- NUM:stt.medium.synth_wer -->61.54%<!-- /NUM --> Overall WER, <!-- NUM:stt.medium.synth_latency_ms -->711.8<!-- /NUM --> ms Latency, <!-- NUM:stt.medium.synth_rtf -->0.136<!-- /NUM -->x RTF
 - [x] **Automated README Table Generation (`scripts/generate_readme_tables.py`):**
   - Generated README tables directly from `benchmark_data/benchmark_results.json` and `hardware_measurements.json`.
 
@@ -198,12 +198,12 @@
 
 | Metric | Measured Value | Target | Status |
 | :--- | :--- | :--- | :--- |
-| **STT Latency (single sentence, warm)** | **1,425.0 ms (min: 1,386.5 ms, p95: 1,502.6 ms)** | < 1000 ms | 🟢 Verified (GPU) |
-| **STT Latency (Real Speech)** | **2,262.2 ms (RTF 0.146x on 15.5s clip)** | < 3000 ms | 🟢 Verified (GPU) |
-| **Real-Time Factor (RTF)** | **0.146x (15.5s real clip)** | < 0.25x | 🟢 Verified |
-| **GPU VRAM Model Allocation** | **1,075 MB (faster-whisper medium)** | < 4,000 MB | 🟢 Verified |
-| **Peak Total VRAM Used** | **2,746 MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
-| **Document Retrieval Latency** | **72.58 ms across 20 chunks (E5 Base)** | < 100 ms | 🟢 Verified |
-| **Edge-TTS First-Packet Latency** | **672.9 ms (Edge-TTS)** | < 800 ms | 🟢 Verified |
-| **Doc-QA True End-to-End TTFA** | **2,520.5 ms (Question end → Audio play)** | < 3000 ms | 🟢 Verified |
+| **STT Latency (single sentence, warm)** | **<!-- NUM:hw.stt_synth_latency_ms -->495.0<!-- /NUM --> ms (large-v3-turbo)** | < 1000 ms | 🟢 Verified (GPU) |
+| **STT Latency (Real Speech)** | **<!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms (mean over <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, RTF <!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x, p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1492.6<!-- /NUM --> ms)** | < 2000 ms | 🟢 Verified (GPU) |
+| **Real-Time Factor (RTF)** | **<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x (real speech)** | < 0.25x | 🟢 Verified |
+| **GPU VRAM Model Allocation** | **<!-- NUM:hw.vram_allocated_delta_mb -->1142.0<!-- /NUM --> MB (faster-whisper large-v3-turbo)** | < 2,048 MB | 🟢 Verified |
+| **Peak Total VRAM Used** | **<!-- NUM:hw.vram_peak_used_mb -->2179.0<!-- /NUM --> MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
+| **Document Retrieval Latency** | **<!-- NUM:hw.retrieval_latency_ms -->22.18<!-- /NUM --> ms across 20 chunks (E5 Base)** | < 50 ms | 🟢 Verified |
+| **Edge-TTS First-Packet Latency** | **<!-- NUM:hw.tts_first_packet_ms -->835.6<!-- /NUM --> ms (Edge-TTS)** | < 1,000 ms | 🟢 Verified |
+| **Doc-QA True End-to-End TTFA** | **<!-- NUM:hw.total_ttfa_ms -->1702.8<!-- /NUM --> ms (Question end → Audio play)** | < 2000 ms | 🟢 Verified |
 | **Cloud API Spend** | **$0.00 (Zero spend rule)** | $0.00 | 🟢 100% Free |

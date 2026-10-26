@@ -32,9 +32,9 @@ To maintain absolute credibility for judges and users, here is a transparent bre
 
 | Feature / Component | Status | What Works | What Does Not / Known Limitations |
 | :--- | :---: | :--- | :--- |
-| **Multilingual STT Benchmarks** | **Verified** | 1,200 benchmark clips evaluated on RTX 3060 Ti GPU today; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at 2,262.2 ms (0.146x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
-| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (50.4% on HiACC) than read speech (26.0% on FLEURS). |
-| **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; 22.31 ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
+| **Multilingual STT Benchmarks** | **Verified** | <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> benchmark clips evaluated on RTX 3060 Ti GPU today; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at <!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms (<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
+| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.94%<!-- /NUM --> on FLEURS). |
+| **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
 | **In-Place Voice Editing** | **Implemented, untested on hardware** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Physical hotkey and OS clipboard automation untested on this machine today; preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
 | **Voice Barge-In Interruption** | **Implemented, untested on hardware** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Untested on hardware speakers/headphones (no live 10-minute playback measurement on this machine); laptop built-in speakers at maximum volume can cause echo false-positives without headphones. |
 | **Bolna Agent Voice Gateway** | **Implemented, untested on hardware** | Exposes OpenAI-compatible `/v1/audio/speech` (TTS with mp3/wav and speed support) and `/v1/audio/transcriptions` (STT); Bearer token auth; bind security checks. Verified with test client, not yet tested against a live Bolna agent. | Real-time WebSocket streaming STT protocol (`REALTIME_TRANSCRIBER_URL`) is not implemented; Bolna uses batch transcription endpoints. |
@@ -50,13 +50,13 @@ Hold `Alt+Shift+Space` in **any** Windows application (Notepad, VS Code, Slack, 
 - **Intelligent Text Cleanup:** Strips disfluencies (*umm*, *uhh*, *hmm*, *ahh*) without deleting valid colloquial words (`like`, `actually`, `matlab`, `accha`).
 - **Format Standardization:** Normalizes Indian currency (₹), percentages, dates, and phone numbers.
 - **Script Flexibility:** Choose Natural (as spoken), clean Roman Latin, or Devanagari from the system tray menu.
-- **Measured Latency:** ~580–800 ms per-sentence inference on an RTX 3060 Ti GPU (Real-Time Factor 0.18x, running 5.5× faster than real-time).
+- **Measured Latency:** ~<!-- NUM:hw.stt_synth_latency_ms -->495.0<!-- /NUM --> ms per-sentence inference on an RTX 3060 Ti GPU (Real-Time Factor <!-- NUM:hw.stt_synth_rtf -->0.13<!-- /NUM -->x, running ~8× faster than real-time) with large-v3-turbo.
 
 ### 2. 📄 Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask)
 Load any PDF (including scanned PDFs with local OCR fallback), Word document (`.docx`), text/markdown file, or web URL. Hold `Alt+Shift+A` and ask voice questions in conversational Hinglish.
-- **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured 22.31 ms mean retrieval latency, 98.0% Hit@3 on Google XQuAD Hindi).
+- **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms mean retrieval latency, <!-- NUM:rag.hit_at_3 -->98.0%<!-- /NUM --> Hit@3 on Google XQuAD Hindi).
 - **Strict Grounding with Document Citations:** Answers only from verified source passages; cites exact page numbers for PDFs (*"Page 4 ke according..."*) and section headings for web/docx.
-- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with measured 626.4 ms Edge-TTS first-packet latency (~1.7s end-to-end TTFA from question end to audio play). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
+- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with measured <!-- NUM:hw.tts_first_packet_ms -->835.6<!-- /NUM --> ms Edge-TTS first-packet latency (~<!-- NUM:hw.total_ttfa_ms -->1702.8<!-- /NUM --> ms end-to-end TTFA from question end to audio play). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
 - **Multi-Turn Memory:** Supports conversational follow-ups (*"ruko, yeh dobara samjhao"*).
 
 ### 3. ⚡ In-App Voice Commands on Selection (`Alt+Shift+C`)
@@ -212,16 +212,16 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Pipeline Component | Metric | Measured Value | Target / Baseline | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| **STT Latency (Synthetic Audio)** | Warm run (3.82s audio, CUDA `int8_float16`) | **1425.0 ms** | < 1,000 ms | **Failed** |
-| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.373x** | < 0.25x (4x realtime) | **Failed** |
-| **STT Latency (Real Speech)** | Spontaneous speech (15.45s audio, `cuda` `int8_float16`) | **2262.2 ms** (RTF **0.146x**) | < 2,000 ms | **Passed** |
-| **GPU VRAM Overhead** | STT Model Allocation Delta | **1075.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
-| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **72.58 ms** | < 50 ms | **Failed** |
-| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **672.9 ms** | < 800 ms | **Passed** |
-| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **2520.5 ms** | < 2,000 ms | **Failed** |
+| **STT Latency (Synthetic Audio)** | Warm run (3.82s audio, CUDA `int8_float16`) | **495.0 ms** | < 1,000 ms | **Passed** |
+| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.13x** | < 0.25x (4x realtime) | **Passed** |
+| **STT Latency (Real Speech)** | Mean over 300 real speech clips (`cuda` `int8_float16`) | **779.2 ms** (p95: **1492.6 ms**) (RTF **0.101x**) | < 2,000 ms | **Passed** |
+| **GPU VRAM Overhead** | STT Model Allocation Delta | **1142.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
+| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **22.18 ms** | < 50 ms | **Passed** |
+| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **835.6 ms** | < 1,000 ms | **Passed** |
+| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **1702.8 ms** | < 2,000 ms | **Passed** |
 
 > **Empirical Latency Notes:**
-> Real speech latency scales proportionally with audio duration (15.45s conversational speech vs 3.82s synthetic sentence), maintaining fast sub-0.10x Real-Time Factor (0.146x) on GPU.
+> Real speech latency scales proportionally with audio duration (mean 8.41s conversational speech across 300 clips vs 3.82s synthetic sentence), maintaining fast sub-0.15x Real-Time Factor (0.101x) on GPU.
 
 ### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)
 

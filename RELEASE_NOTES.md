@@ -21,10 +21,10 @@ BolSamajh v0.1.1 is an audited, empirical release of the open-source, local-firs
 - Pinned exact dependency versions in `requirements.lock.txt` for both Python 3.11 and 3.12 across Ubuntu and Windows.
 
 ### 2. Empirical Benchmark & Latency Truth (Tier 1)
-- Evaluated 1,200 real speech and synthetic stress clips across three models on an NVIDIA GeForce RTX 3060 Ti GPU.
+- Evaluated <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> real speech and synthetic stress clips across three models on an NVIDIA GeForce RTX 3060 Ti GPU.
 - Committed complete per-clip results in `benchmark_data/per_clip_results.jsonl` (model, clip ID, reference, raw hypothesis, normalized texts, WER, latency, audio duration, device).
 - Generated Section 3 worst clips automatically via `scripts/dump_worst_clips.py` with zero hand edits.
-- Re-measured real speech latency on GPU: **2,262.2 ms** (RTF **0.146x**, running 6.8× faster than real-time) on a 15.45s clip (`hiacc_cs_001.wav`), replacing fabricated latency claims.
+- Re-measured real speech latency on GPU: **<!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms** (RTF **<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x**, p95: **<!-- NUM:hw.stt_real_p95_latency_ms -->1492.6<!-- /NUM --> ms**) across <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> real speech clips on large-v3-turbo, replacing fabricated latency claims.
 - Clarified that `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve Swift.
 
 ### 3. Gemini Fallback & Speech Gateway (Tier 2)
@@ -49,7 +49,7 @@ BolSamajh v0.1.1 is an audited, empirical release of the open-source, local-firs
 
 ## ⚠️ Honest Known Limitations
 
-1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus exhibits 50.41% WER on Whisper medium and 38.59% on large-v3-turbo due to diverse Indian regional accents and colloquial loanwords.
+1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves fast inference, real spontaneous accented speech from the HiACC corpus exhibits <!-- NUM:stt.medium.hiacc_wer -->50.31%<!-- /NUM --> WER on Whisper medium and <!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on large-v3-turbo due to diverse Indian regional accents and colloquial loanwords.
 2. **Orthographic vs. Phonetic Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"* vs *"मीटिंग"*). While BolSamajh uses canonical script-normalized transliteration to bridge Devanagari and Latin scripts without penalizing alphabet mismatches, it does not phonemically collapse loanword spelling variants.
 3. **Physical Hardware Execution:** Features such as physical microphone hotkey dictation, in-place OS clipboard pasting, and 100% offline air-gapped mode with physical network disconnection are implemented and verified via unit/integration tests with synthetic audio and stubs, but are marked **Implemented, untested on hardware** for this automated session.
 4. **Swift Model Conversion:** The model `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve's Swift model.

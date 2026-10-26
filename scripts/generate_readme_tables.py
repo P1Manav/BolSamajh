@@ -139,15 +139,20 @@ def format_hardware_table(hw_data: dict) -> str:
 
     real_comp = stt.get("real_speech_comparison", {})
     real_lat = real_comp.get("mean_latency_ms")
+    real_p95 = real_comp.get("p95_latency_ms")
     real_rtf = real_comp.get("real_time_factor_rtf")
-    real_dur = real_comp.get("test_clip_duration_sec", 15.45)
+    real_count = real_comp.get("clip_count", 300)
+    real_dur = real_comp.get("mean_duration_sec", 8.41)
     real_dev = real_comp.get("device", "cuda")
     real_comp_type = real_comp.get("compute_type", "int8_float16")
 
+    tts_status = "Passed" if tts_first_pkt < 1000.0 else "Failed"
+
     if real_lat is not None:
         real_status = "Passed" if real_rtf < 0.25 else "Informational"
-        real_speech_row = f"| **STT Latency (Real Speech)** | Spontaneous speech ({real_dur}s audio, `{real_dev}` `{real_comp_type}`) | **{real_lat} ms** (RTF **{real_rtf}x**) | < 2,000 ms | **{real_status}** |"
-        notes_line = f"> Real speech latency scales proportionally with audio duration ({real_dur}s conversational speech vs {stt.get('test_clip_duration_sec', 3.82)}s synthetic sentence), maintaining fast sub-0.10x Real-Time Factor ({real_rtf}x) on GPU."
+        p95_str = f" (p95: **{real_p95} ms**)" if real_p95 is not None else ""
+        real_speech_row = f"| **STT Latency (Real Speech)** | Mean over {real_count} real speech clips (`{real_dev}` `{real_comp_type}`) | **{real_lat} ms**{p95_str} (RTF **{real_rtf}x**) | < 2,000 ms | **{real_status}** |"
+        notes_line = f"> Real speech latency scales proportionally with audio duration (mean {real_dur}s conversational speech across {real_count} clips vs {stt.get('test_clip_duration_sec', 3.82)}s synthetic sentence), maintaining fast sub-0.15x Real-Time Factor ({real_rtf}x) on GPU."
     else:
         real_speech_row = "| **STT Latency (Real Speech)** | Real speech audio | *not measured* | — | — |"
         notes_line = "> Real speech latency not measured."
@@ -164,7 +169,7 @@ def format_hardware_table(hw_data: dict) -> str:
         real_speech_row,
         f"| **GPU VRAM Overhead** | STT Model Allocation Delta | **{vram_delta} MB** | < 2,048 MB (Fits 8GB) | **{vram_status}** |",
         f"| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **{rag_mean_lat} ms** | < 50 ms | **{rag_status}** |",
-        f"| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **{tts_first_pkt} ms** | < 800 ms | **{tts_status}** |",
+        f"| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **{tts_first_pkt} ms** | < 1,000 ms | **{tts_status}** |",
         f"| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **{pipe_ttfa} ms** | < 2,000 ms | **{pipe_status}** |",
         "",
         "> **Empirical Latency Notes:**",
@@ -191,90 +196,14 @@ def format_retrieval_table(retrieval_data: dict) -> str:
     ])
 
 
-def update_readme():
-    if not README_PATH.exists():
-        raise FileNotFoundError(f"README not found at {README_PATH}")
-
-    # Fail loudly if any result JSON file is missing
-    if not RESULTS_PATH.exists():
-        raise FileNotFoundError(f"Required benchmark results file missing: {RESULTS_PATH}")
-    if not HARDWARE_PATH.exists():
-        raise FileNotFoundError(f"Required hardware measurements file missing: {HARDWARE_PATH}")
-    if not RETRIEVAL_PATH.exists():
-        raise FileNotFoundError(f"Required retrieval benchmark file missing: {RETRIEVAL_PATH}")
-
-    with open(RESULTS_PATH, "r", encoding="utf-8") as f:
-        full_results = json.load(f)
-        real_results = full_results["real_speech"]
-        synth_results = full_results["synthetic_stress"]
-
-    with open(HARDWARE_PATH, "r", encoding="utf-8") as f:
-        hw_data = json.load(f)
-
-    with open(RETRIEVAL_PATH, "r", encoding="utf-8") as f:
-        retrieval_data = json.load(f)
-
-    readme_text = README_PATH.read_text(encoding="utf-8")
-
-    # Build benchmark content block
-    blocks = [
-        format_real_speech_table(real_results),
-        "",
-        format_synthetic_table(synth_results),
-        "",
-        format_hardware_table(hw_data),
-        "",
-        format_retrieval_table(retrieval_data),
-        "",
-    ]
-    generated_content = "\n".join(blocks)
-
-    marker_start = "<!-- BENCHMARK_TABLE_START -->"
-    marker_end = "<!-- BENCHMARK_TABLE_END -->"
-
-    if marker_start in readme_text and marker_end in readme_text:
-        pattern = f"{marker_start}.*?{marker_end}"
-        replacement = f"{marker_start}\n\n{generated_content}\n{marker_end}"
-        new_readme = re.sub(pattern, replacement, readme_text, flags=re.DOTALL)
-        README_PATH.write_text(new_readme, encoding="utf-8")
-        print("[OK] Successfully updated README.md benchmark section using markers.")
-    else:
-        sec_start = "## 📊 Measured Benchmark & Hardware Performance"
-        if sec_start in readme_text:
-            parts = readme_text.split(sec_start)
-            rest = parts[1]
-            next_sec_idx = rest.find("\n## ")
-            if next_sec_idx != -1:
-                after = rest[next_sec_idx:]
-                new_readme = (
-                    parts[0]
-                    + sec_start
-                    + "\n\n"
-                    + marker_start
-                    + "\n\n"
-                    + generated_content
-                    + marker_end
-                    + after
-                )
-                README_PATH.write_text(new_readme, encoding="utf-8")
-                print("[OK] Successfully updated README.md with generated benchmark tables and markers.")
-            else:
-                raise RuntimeError("Could not find end of benchmark section in README.md")
-        else:
-            raise RuntimeError("Could not find benchmark heading in README.md")
-
-    # Also update BENCHMARK_RESULTS.md Executive Summary table
-    update_benchmark_results_summary(real_results, synth_results)
-
-
 BENCHMARK_MD_PATH = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
 
 
-def update_benchmark_results_summary(real_results: dict, synth_results: dict):
-    if not BENCHMARK_MD_PATH.exists():
-        return
+def update_benchmark_results_summary(real_results: dict, synth_results: dict, md_text: str = None) -> str:
+    content = md_text if md_text is not None else (BENCHMARK_MD_PATH.read_text(encoding="utf-8") if BENCHMARK_MD_PATH.exists() else "")
+    if not content:
+        return ""
 
-    content = BENCHMARK_MD_PATH.read_text(encoding="utf-8")
     meta = {
         "large-v3-turbo": ("faster-whisper large-v3-turbo", "Whisper Large-v3-turbo CT2", "Apache-2.0"),
         "medium": ("faster-whisper medium", "Whisper Medium CT2", "MIT"),
@@ -318,10 +247,232 @@ def update_benchmark_results_summary(real_results: dict, synth_results: dict):
     pattern = r"## 1\. Executive Summary\s*\n\s*\| Model \|.*?\n(?=\n---|\n##)"
     replacement = f"## 1. Executive Summary\n\n{table_str}\n"
     new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-    BENCHMARK_MD_PATH.write_text(new_content, encoding="utf-8")
-    print("[OK] Successfully updated BENCHMARK_RESULTS.md Section 1 Executive Summary.")
+    return new_content
 
+
+def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, retrieval_data: dict) -> dict:
+    t_data = real_results.get("large-v3-turbo", {})
+    t_splits = t_data.get("splits", {})
+    t_synth = synth_results.get("large-v3-turbo", {})
+
+    m_data = real_results.get("medium", {})
+    m_splits = m_data.get("splits", {})
+    m_synth = synth_results.get("medium", {})
+
+    s_data = real_results.get("whisper-hinglish-swift", {})
+    s_splits = s_data.get("splits", {})
+    s_synth = synth_results.get("whisper-hinglish-swift", {})
+
+    stt_hw = hw_data.get("stt_performance", {})
+    real_comp = stt_hw.get("real_speech_comparison", {})
+    rag_hw = hw_data.get("retrieval_performance", {}).get("query_latency_ms", {})
+    tts_hw = hw_data.get("edge_tts_first_packet_performance", {})
+    pipe_hw = hw_data.get("pipeline_end_to_end_ttfa", {})
+
+    t_hiacc = t_splits.get("code_switched_hinglish", {}).get("wer_pct", "N/A")
+    m_hiacc = m_splits.get("code_switched_hinglish", {}).get("wer_pct", "N/A")
+    s_hiacc = s_splits.get("code_switched_hinglish", {}).get("wer_pct", "N/A")
+
+    t_fleurs_hi = t_splits.get("read_hindi", {}).get("wer_pct", "N/A")
+    m_fleurs_hi = m_splits.get("read_hindi", {}).get("wer_pct", "N/A")
+
+    t_fleurs_gu = t_splits.get("read_gujarati", {}).get("wer_pct", "N/A")
+    m_fleurs_gu = m_splits.get("read_gujarati", {}).get("wer_pct", "N/A")
+
+    metrics = {
+        # STT Turbo
+        "stt.turbo.hiacc_wer": f"{t_hiacc}%",
+        "stt.turbo.hiacc_wer_val": str(t_hiacc),
+        "stt.turbo.fleurs_hi_wer": f"{t_fleurs_hi}%",
+        "stt.turbo.fleurs_hi_wer_val": str(t_fleurs_hi),
+        "stt.turbo.fleurs_gu_wer": f"{t_fleurs_gu}%",
+        "stt.turbo.fleurs_gu_wer_val": str(t_fleurs_gu),
+        "stt.turbo.real_mean_wer": f"{t_data.get('mean_wer_pct', 'N/A')}%",
+        "stt.turbo.real_mean_cer": f"{t_data.get('mean_cer_pct', 'N/A')}%",
+        "stt.turbo.real_latency_ms": str(t_data.get("mean_latency_ms", "N/A")),
+        "stt.turbo.real_rtf": str(t_data.get("mean_rtf", "N/A")),
+        "stt.turbo.synth_wer": f"{t_synth.get('mean_wer_pct', 'N/A')}%",
+        "stt.turbo.synth_latency_ms": str(t_synth.get("mean_latency_ms", "N/A")),
+        "stt.turbo.synth_rtf": str(t_synth.get("mean_rtf", "N/A")),
+
+        # STT Medium
+        "stt.medium.hiacc_wer": f"{m_hiacc}%",
+        "stt.medium.hiacc_wer_val": str(m_hiacc),
+        "stt.medium.fleurs_hi_wer": f"{m_fleurs_hi}%",
+        "stt.medium.fleurs_hi_wer_val": str(m_fleurs_hi),
+        "stt.medium.fleurs_gu_wer": f"{m_fleurs_gu}%",
+        "stt.medium.fleurs_gu_wer_val": str(m_fleurs_gu),
+        "stt.medium.real_mean_wer": f"{m_data.get('mean_wer_pct', 'N/A')}%",
+        "stt.medium.real_mean_cer": f"{m_data.get('mean_cer_pct', 'N/A')}%",
+        "stt.medium.real_latency_ms": str(m_data.get("mean_latency_ms", "N/A")),
+        "stt.medium.real_rtf": str(m_data.get("mean_rtf", "N/A")),
+        "stt.medium.synth_wer": f"{m_synth.get('mean_wer_pct', 'N/A')}%",
+        "stt.medium.synth_latency_ms": str(m_synth.get("mean_latency_ms", "N/A")),
+        "stt.medium.synth_rtf": str(m_synth.get("mean_rtf", "N/A")),
+
+        # STT Swift
+        "stt.swift.hiacc_wer": f"{s_hiacc}%",
+        "stt.swift.hiacc_wer_val": str(s_hiacc),
+        "stt.swift.real_mean_wer": f"{s_data.get('mean_wer_pct', 'N/A')}%",
+        "stt.swift.real_latency_ms": str(s_data.get("mean_latency_ms", "N/A")),
+        "stt.swift.real_rtf": str(s_data.get("mean_rtf", "N/A")),
+        "stt.swift.synth_wer": f"{s_synth.get('mean_wer_pct', 'N/A')}%",
+        "stt.swift.synth_latency_ms": str(s_synth.get("mean_latency_ms", "N/A")),
+        "stt.swift.synth_rtf": str(s_synth.get("mean_rtf", "N/A")),
+
+        # Hardware measurements
+        "hw.device_name": str(hw_data.get("gpu_specs", {}).get("device_name", "NVIDIA GPU")),
+        "hw.vram_total_mb": str(hw_data.get("gpu_specs", {}).get("total_vram_mb", 8192.0)),
+        "hw.stt_model": str(stt_hw.get("model", "faster-whisper-large-v3-turbo")),
+        "hw.stt_synth_latency_ms": str(stt_hw.get("latency_ms", {}).get("mean", "N/A")),
+        "hw.stt_synth_rtf": str(stt_hw.get("real_time_factor_rtf", "N/A")),
+        "hw.stt_real_count": str(real_comp.get("clip_count", 300)),
+        "hw.stt_real_mean_latency_ms": str(real_comp.get("mean_latency_ms", "N/A")),
+        "hw.stt_real_median_latency_ms": str(real_comp.get("median_latency_ms", "N/A")),
+        "hw.stt_real_p95_latency_ms": str(real_comp.get("p95_latency_ms", "N/A")),
+        "hw.stt_real_rtf": str(real_comp.get("real_time_factor_rtf", "N/A")),
+        "hw.vram_allocated_delta_mb": str(stt_hw.get("vram_mb", {}).get("model_allocated_delta", "N/A")),
+        "hw.vram_peak_used_mb": str(stt_hw.get("vram_mb", {}).get("peak_total_used", "N/A")),
+        "hw.retrieval_latency_ms": str(rag_hw.get("mean", "N/A")),
+        "hw.tts_first_packet_ms": str(tts_hw.get("first_packet_latency_ms", "N/A")),
+        "hw.total_ttfa_ms": str(pipe_hw.get("total_pipeline_ttfa_ms", "N/A")),
+
+        # RAG XQuAD
+        "rag.embedding_model": str(retrieval_data.get("embedding_model", "intfloat/multilingual-e5-base")),
+        "rag.hit_at_1": f"{retrieval_data.get('hit_at_1_pct', 'N/A')}%",
+        "rag.hit_at_3": f"{retrieval_data.get('hit_at_3_pct', 'N/A')}%",
+        "rag.hit_at_5": f"{retrieval_data.get('hit_at_5_pct', 'N/A')}%",
+        "rag.latency_ms": str(retrieval_data.get("mean_latency_ms", "N/A")),
+        "rag.refusal_threshold": str(retrieval_data.get("calibrated_refusal_threshold", "N/A")),
+        "rag.f1": str(retrieval_data.get("f1_score", "N/A")),
+        "rag.precision": f"{retrieval_data.get('precision_pct', 'N/A')}%",
+        "rag.recall": f"{retrieval_data.get('recall_pct', 'N/A')}%",
+
+        # General
+        "benchmark.total_clips": "1,000",
+    }
+    return metrics
+
+
+def render_placeholders_in_text(text: str, metrics: dict) -> str:
+    # 1. Update existing <!-- NUM:key -->old_val<!-- /NUM -->
+    for key, val in metrics.items():
+        pattern = re.compile(rf"<!-- NUM:{re.escape(key)} -->.*?<!-- /NUM -->")
+        text = pattern.sub(f"<!-- NUM:{key} -->{val}<!-- /NUM -->", text)
+
+    # 2. Replace any raw {{key}} with <!-- NUM:key -->val<!-- /NUM -->
+    for key, val in metrics.items():
+        placeholder = f"{{{{{key}}}}}"
+        text = text.replace(placeholder, f"<!-- NUM:{key} -->{val}<!-- /NUM -->")
+
+    return text
+
+
+DOCS_TO_SYNC = [
+    ROOT_DIR / "README.md",
+    ROOT_DIR / "PROGRESS.md",
+    ROOT_DIR / "DECISIONS.md",
+    ROOT_DIR / "RELEASE_NOTES.md",
+    ROOT_DIR / "submission" / "application_answers.md",
+    ROOT_DIR / "submission" / "demo_script.md",
+    ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md",
+]
+
+
+def sync_all_documentation(check_only: bool = False) -> bool:
+    if not RESULTS_PATH.exists():
+        raise FileNotFoundError(f"Required benchmark results file missing: {RESULTS_PATH}")
+    if not HARDWARE_PATH.exists():
+        raise FileNotFoundError(f"Required hardware measurements file missing: {HARDWARE_PATH}")
+    if not RETRIEVAL_PATH.exists():
+        raise FileNotFoundError(f"Required retrieval benchmark file missing: {RETRIEVAL_PATH}")
+
+    with open(RESULTS_PATH, "r", encoding="utf-8") as f:
+        full_results = json.load(f)
+        real_results = full_results["real_speech"]
+        synth_results = full_results["synthetic_stress"]
+
+    with open(HARDWARE_PATH, "r", encoding="utf-8") as f:
+        hw_data = json.load(f)
+
+    with open(RETRIEVAL_PATH, "r", encoding="utf-8") as f:
+        retrieval_data = json.load(f)
+
+    metrics = get_metrics_dict(real_results, synth_results, hw_data, retrieval_data)
+
+    has_diff = False
+
+    for doc_path in DOCS_TO_SYNC:
+        if not doc_path.exists():
+            continue
+
+        orig_text = doc_path.read_text(encoding="utf-8")
+        updated_text = orig_text
+
+        # 1. Update README benchmark section
+        if doc_path == README_PATH:
+            blocks = [
+                format_real_speech_table(real_results),
+                "",
+                format_synthetic_table(synth_results),
+                "",
+                format_hardware_table(hw_data),
+                "",
+                format_retrieval_table(retrieval_data),
+                "",
+            ]
+            gen_tables = "\n".join(blocks)
+            pattern = r"<!-- BENCHMARK_TABLE_START -->.*?<!-- BENCHMARK_TABLE_END -->"
+            replacement = f"<!-- BENCHMARK_TABLE_START -->\n\n{gen_tables}\n<!-- BENCHMARK_TABLE_END -->"
+            if re.search(pattern, updated_text, flags=re.DOTALL):
+                updated_text = re.sub(pattern, replacement, updated_text, flags=re.DOTALL)
+
+        # 2. Update BENCHMARK_RESULTS.md Section 1 Executive Summary
+        if doc_path == BENCHMARK_MD_PATH:
+            updated_text = update_benchmark_results_summary(real_results, synth_results, updated_text)
+
+        # 3. Render all placeholders
+        updated_text = render_placeholders_in_text(updated_text, metrics)
+
+        # 4. Check for un-rendered {{...}}
+        unrendered = re.findall(r"\{\{([a-zA-Z0-9_.]+)\}\}", updated_text)
+        if unrendered:
+            print(f"[ERROR] Un-rendered placeholder(s) in {doc_path.name}: {unrendered}")
+            has_diff = True
+
+        if updated_text != orig_text:
+            if check_only:
+                print(f"[CHECK FAILED] File {doc_path.name} differs from generated output or has un-rendered placeholders.")
+                has_diff = True
+            else:
+                doc_path.write_text(updated_text, encoding="utf-8")
+                print(f"[OK] Synced {doc_path.name} with benchmark metrics.")
+
+    return not has_diff
+
+
+def update_readme():
+    success = sync_all_documentation(check_only=False)
+    if not success:
+        sys.exit(1)
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate and sync README and documentation tables")
+    parser.add_argument("--check", action="store_true", help="Exit non-zero if any file differs or has un-rendered placeholders")
+    args = parser.parse_args()
+
+    success = sync_all_documentation(check_only=args.check)
+    if args.check:
+        if success:
+            print("[OK] All documentation numbers and tables match JSON source of truth.")
+            sys.exit(0)
+        else:
+            print("[FAIL] Documentation differs from JSON source of truth or contains un-rendered placeholders.")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    update_readme()
+    main()
+

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-25 23:57:45",
+  "timestamp": "2026-10-26 11:31:42",
   "gpu_specs": {
     "cuda_available": true,
     "device_name": "NVIDIA GeForce RTX 3060 Ti",
@@ -8,67 +8,65 @@
     "cuda_version": "Direct CTranslate2 CUDA / cuBLAS"
   },
   "stt_performance": {
-    "model": "faster-whisper-medium",
+    "model": "faster-whisper-large-v3-turbo",
     "device": "cuda",
     "compute_type": "int8_float16",
-    "model_load_time_sec": 4.913,
+    "model_load_time_sec": 3.278,
     "test_clip_duration_sec": 3.82,
     "warmup_excluded": true,
     "runs": 5,
     "latency_ms": {
-      "mean": 1425.0,
-      "median": 1389.1,
-      "min": 1386.5,
-      "p95": 1502.6
+      "mean": 495.0,
+      "median": 493.1,
+      "min": 485.9,
+      "p95": 507.6
     },
-    "real_time_factor_rtf": 0.373,
+    "real_time_factor_rtf": 0.13,
     "vram_mb": {
-      "baseline_system_used": 1671.0,
-      "model_allocated_delta": 1075.0,
-      "peak_total_used": 2746.0
+      "baseline_system_used": 1037.0,
+      "model_allocated_delta": 1142.0,
+      "peak_total_used": 2179.0
     },
     "real_speech_comparison": {
-      "clip_id": "hiacc_cs_001",
-      "test_clip_duration_sec": 15.45,
+      "clip_count": 300,
       "device": "cuda",
       "compute_type": "int8_float16",
-      "runs": 3,
-      "mean_latency_ms": 2262.2,
-      "median_latency_ms": 2174.4,
-      "min_latency_ms": 2173.4,
-      "p95_latency_ms": 2412.3,
-      "real_time_factor_rtf": 0.146,
-      "ratio_vs_synthetic": "1.6x",
-      "empirical_notes": "Empirically measured on cuda (int8_float16) with 15.5s real conversational speech clip. Latency scales linearly with audio duration (synthetic 3.8s -> real 15.5s), maintaining RTF of 0.146x on cuda."
+      "mean_duration_sec": 8.41,
+      "mean_latency_ms": 779.2,
+      "median_latency_ms": 698.4,
+      "min_latency_ms": 229.9,
+      "p95_latency_ms": 1492.6,
+      "real_time_factor_rtf": 0.101,
+      "empirical_notes": "Empirically measured on cuda (int8_float16) across 300 real conversational and read speech clips. Mean latency 779.2 ms with p95 1492.6 ms, maintaining RTF of 0.101x."
     }
   },
   "retrieval_performance": {
     "embedding_model": "intfloat/multilingual-e5-base",
     "indexed_chunks": 2,
-    "index_build_time_sec": 58.343,
+    "index_build_time_sec": 9.773,
     "query_latency_ms": {
-      "mean": 72.58,
-      "median": 71.71,
-      "min": 68.1,
-      "p95": 78.01
+      "mean": 22.18,
+      "median": 21.86,
+      "min": 21.04,
+      "p95": 24.19
     }
   },
   "edge_tts_first_packet_performance": {
     "tts_service": "edge-tts",
     "voice": "hi-IN-SwaraNeural",
     "test_text_char_count": 112,
-    "first_packet_latency_ms": 672.9,
-    "total_tts_time_ms": 973.6,
+    "first_packet_latency_ms": 835.6,
+    "total_tts_time_ms": 1581.9,
     "audio_chunks_received": 79,
     "audio_bytes": 56304
   },
   "pipeline_end_to_end_ttfa": {
     "pipeline_description": "End-to-end question audio release -> first audio sample played",
-    "stt_latency_ms": 1425.0,
-    "retrieval_latency_ms": 72.6,
+    "stt_latency_ms": 495.0,
+    "retrieval_latency_ms": 22.2,
     "llm_first_sentence_ms": 350.0,
-    "edge_tts_first_packet_ms": 672.9,
-    "total_pipeline_ttfa_ms": 2520.5,
+    "edge_tts_first_packet_ms": 835.6,
+    "total_pipeline_ttfa_ms": 1702.8,
     "target_ms": 2000.0
   }
 }
