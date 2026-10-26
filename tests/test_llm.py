@@ -1,6 +1,7 @@
 """Unit tests for LLM adapters and fallback mechanism."""
 
 import pytest
+import httpx
 from typing import AsyncIterator
 from bolsamajh.llm.base import LLMAdapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
@@ -73,11 +74,58 @@ def test_ollama_num_ctx():
 
 @pytest.mark.anyio
 async def test_google_ai_default_model_and_error_handling(monkeypatch):
-    # Verify default model is gemini-2.0-flash
+    # Verify default model is gemini-3.5-flash
     adapter = GoogleAIAdapter()
-    assert adapter.model == "gemini-2.0-flash"
-    assert adapter.name == "google-ai/gemini-2.0-flash"
+    assert adapter.model == "gemini-3.5-flash"
+    assert adapter.name == "google-ai/gemini-3.5-flash"
 
     # Verify list_available_models returns empty list when no key is set
     assert await adapter.list_available_models() == []
+
+
+@pytest.mark.anyio
+async def test_google_ai_fallback_on_404(monkeypatch):
+    monkeypatch.setenv("GOOGLE_AI_API_KEY", "test-key")
+    adapter = GoogleAIAdapter(model="gemini-deprecated-model")
+
+    # Mock list_available_models to return candidates
+    async def mock_list(self):
+        return ["gemini-deprecated-model", "gemini-3.5-flash"]
+
+    monkeypatch.setattr(GoogleAIAdapter, "list_available_models", mock_list)
+
+    # Mock httpx.AsyncClient.post
+    posted_urls = []
+
+    class MockResponse:
+        def __init__(self, status_code, data):
+            self.status_code = status_code
+            self._data = data
+
+        def json(self):
+            return self._data
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError("error", request=None, response=self)
+
+    async def mock_post(client_self, url, **kwargs):
+        posted_urls.append(url)
+        if "gemini-deprecated-model" in url:
+            return MockResponse(404, {"error": "Not Found"})
+        elif "gemini-3.5-flash" in url:
+            return MockResponse(
+                200,
+                {"candidates": [{"content": {"parts": [{"text": "fallback success"}]}}]},
+            )
+        return MockResponse(404, {})
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+
+    result = await adapter.generate("test prompt")
+    assert result == "fallback success"
+    assert adapter.model == "gemini-3.5-flash"
+    assert any("gemini-deprecated-model" in u for u in posted_urls)
+    assert any("gemini-3.5-flash" in u for u in posted_urls)
+
 

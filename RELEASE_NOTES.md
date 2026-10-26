@@ -28,7 +28,7 @@ BolSamajh v0.1.1 is an audited, empirical release of the open-source, local-firs
 - Clarified that `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve Swift.
 
 ### 3. Gemini Fallback & Speech Gateway (Tier 2)
-- Replaced retired `gemini-1.5-flash` with `gemini-2.0-flash` (configurable via `GOOGLE_AI_MODEL`), added model-retired diagnostics, and removed unverified verification claims.
+- Updated Google AI default from retired `gemini-2.0-flash` to active `gemini-3.5-flash` (verified live on 2026-10-26 with `generateContent`, configurable via `GOOGLE_AI_MODEL`), added automatic Flash-family fallback on HTTP 404 from live models endpoint, and added regression tests.
 - Enhanced `/v1/audio/speech` endpoint to honor `response_format` (`mp3`, `wav`), `speed` (rate adjustment), and return clean HTTP 502 JSON error on Edge-TTS upstream failure (no bare 500s).
 - Clarified Bolna gateway documentation as implemented and integration-tested, with clear live testing steps.
 

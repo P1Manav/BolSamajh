@@ -40,7 +40,7 @@ class LLMConfig:
     ollama_base_url: str = "http://localhost:11434"
     ollama_num_ctx: int = 8192                # 8k context window to prevent prompt truncation
     auto_fallback: bool = True                 # Automatically fallback between Ollama and Gemini
-    google_ai_model: str = "gemini-2.0-flash"  # Configurable via GOOGLE_AI_MODEL (unverified without active GOOGLE_AI_API_KEY)
+    google_ai_model: str = "gemini-3.5-flash"  # Configurable via GOOGLE_AI_MODEL (verified live 2026-10-26)
     # API key read from env var GOOGLE_AI_API_KEY
     temperature: float = 0.3
     max_tokens: int = 1024

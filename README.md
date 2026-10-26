@@ -93,7 +93,7 @@ graph TD
 
     subgraph Engines & Adapters
         STT["STT: faster-whisper (medium, INT8/FP16 CUDA)"]
-        LLM["LLM: Ollama (gemma3:4b local) / Gemini 1.5 Flash Free Fallback"]
+        LLM["LLM: Ollama (gemma3:4b local) / Gemini 3.5 Flash Free Fallback (verified live 2026-10-26)"]
         TTS["TTS: Edge-TTS (Swara/Neerja/Dhwani) / Piper (Offline ONNX)"]
         RAG["RAG: multilingual-e5-base (512 ctx) + FAISS"]
     end

@@ -31,7 +31,7 @@ BolSamajh provides a lightweight, local-first voice AI overlay with zero cloud s
 - **Speech-to-Text (STT):** `faster-whisper` (`medium`, `large-v3-turbo-ct2`, and `whisper-hinglish-swift-ct2` [third-party CT2 conversion of Oriserve Swift, unverified]) running on NVIDIA CUDA 12 via pip wheels with automatic CPU int8 fallback.
 - **Phonetics & Script Normalization:** `aksharamukha` offline library for script transformation (Natural, Roman Latin with diacritic stripping, Devanagari) and canonical script-normalized benchmark scoring.
 - **Document RAG:** `intfloat/multilingual-e5-base` (512 token context, passage/query prefixes), PyMuPDF with local OCR fallback for scanned PDFs, and FAISS vector index.
-- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-2.0-flash` or configurable free tier via `x-goog-api-key` header).
+- **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-3.5-flash`, verified live 2026-10-26, with automatic Flash-family fallback on 404 via `x-goog-api-key` header).
 - **Text-to-Speech (TTS):** Microsoft Edge-TTS (`hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX). Edge-TTS neural voices natively pronounce Roman Hinglish without destructive ISO transliteration.
 - **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in (exposed `is_active` state and warning logging); `Escape` key for immediate recording cancellation and audio stop.
 - **Desktop & Web:** Python 3.11 & 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.

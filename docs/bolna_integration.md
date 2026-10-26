@@ -71,7 +71,7 @@ curl -s http://localhost:8000/api/status
   "status": "ready",
   "device": "CUDA GPU",
   "stt": "faster-whisper-medium",
-  "llm": "fallback(ollama/gemma3:4b -> google-ai/gemini-1.5-flash)",
+  "llm": "fallback(ollama/gemma3:4b -> google-ai/gemini-3.5-flash)",
   "llm_ready": false,
   "tts": "edge-tts",
   "document_loaded": false,

@@ -79,7 +79,7 @@
   - Set `num_ctx: 8192` in `OllamaAdapter` options so long document prompts are never truncated.
   - Added `check_status()` to verify server connectivity and model pull status.
   - Created `FallbackLLMAdapter` (`bolsamajh/llm/fallback.py`) and `create_llm_adapter` factory.
-  - Updated `GoogleAIAdapter`: replaced retired model with verified free-tier `gemini-1.5-flash` (15 RPM, no card needed), added `x-goog-api-key` header authentication, top-level `systemInstruction`, and suppressed `httpx`/`httpcore` loggers to `WARNING`.
+  - Updated `GoogleAIAdapter`: default to active free-tier `gemini-3.5-flash` (verified live on 2026-10-26 with `generateContent`), automatic 404 fallback to select available Flash-family models from live models endpoint, `x-goog-api-key` header authentication, top-level `systemInstruction`, and suppressed `httpx`/`httpcore` loggers to `WARNING`.
 - [x] **Document Handling & Prompt Injection Hardening (`bolsamajh/documents/loader.py`, `bolsamajh/pipeline/doc_qa.py`):**
   - Added OCR fallback for scanned PDFs via PyMuPDF native OCR and `pytesseract` with clear logging for unreadable pages.
   - Wrapped retrieved context inside `<document_data>` XML tags with explicit instruction to treat content strictly as passive data.
