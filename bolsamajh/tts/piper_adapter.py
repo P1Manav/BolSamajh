@@ -22,7 +22,12 @@ from bolsamajh.tts.base import TextToSpeech
 log = logging.getLogger(__name__)
 
 # Official Piper Hindi voices on Hugging Face (MIT licensed)
-_PIPER_HF_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/main/hi/hi_IN/pratham/medium"
+# Pinned to specific Hugging Face commit hash for supply-chain integrity:
+# Commit: 5041a7a49ae5b3a0f30e6837769eb03fdbb231bd
+# Verified live download and SHA-256 hash checks performed:
+# - hi_IN-pratham-medium.onnx: 63,516,050 bytes, SHA-256 169964b0871667f6793416d4b35e97357a68ba1ad01df8580c28048989ee7693
+# - hi_IN-pratham-medium.onnx.json: 4,970 bytes, SHA-256 b68edd2cd7950dd436314013b7cd12e9699e5a3f6fe5af5af94294cf6aa7b9fd
+_PIPER_HF_BASE = "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/hi/hi_IN/pratham/medium"
 _MODEL_FILENAME = "hi_IN-pratham-medium.onnx"
 _CONFIG_FILENAME = "hi_IN-pratham-medium.onnx.json"
 
@@ -56,6 +61,7 @@ class PiperTTSAdapter(TextToSpeech):
     def __init__(self, model_path: str = ""):
         self.model_path = model_path
         self._voice = None
+        self._voice_lock = threading.Lock()
         self._speaking = False
         self._stop_event = threading.Event()
         self._models_dir = Path(__file__).parent.parent.parent / "models" / "piper"
@@ -105,19 +111,24 @@ class PiperTTSAdapter(TextToSpeech):
         if self._voice is not None:
             return
 
-        from piper.voice import PiperVoice
+        with self._voice_lock:
+            if self._voice is not None:
+                return
 
-        model_file, json_file = self._ensure_model()
-        log.info("Loading Piper offline voice from %s...", model_file.name)
-        self._voice = PiperVoice.load(str(model_file), config_path=str(json_file))
-        log.info("Piper offline voice loaded successfully.")
+            from piper.voice import PiperVoice
+
+            model_file, json_file = self._ensure_model()
+            log.info("Loading Piper offline voice from %s...", model_file.name)
+            self._voice = PiperVoice.load(str(model_file), config_path=str(json_file))
+            log.info("Piper offline voice loaded successfully.")
 
     def synthesize_to_bytes(self, text: str) -> bytes:
         """Synthesize text offline using Piper ONNX and return raw WAV bytes."""
         if not text.strip():
             return b""
 
-        self._load_voice()
+        if self._voice is None:
+            self._load_voice()
 
         # Piper Hindi voice expects Devanagari script.
         # Only transliterate if the text is in another Indic script (e.g. Gujarati).

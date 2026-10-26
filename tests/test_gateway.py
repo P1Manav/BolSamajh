@@ -147,6 +147,8 @@ def test_openai_speech_edge_tts_failure_502(monkeypatch):
             pass
 
         async def stream(self):
+            if False:
+                yield None
             raise ConnectionError("Simulated Edge-TTS connection drop")
 
     monkeypatch.setattr(edge_tts, "Communicate", FailingCommunicate)
@@ -156,6 +158,50 @@ def test_openai_speech_edge_tts_failure_502(monkeypatch):
     data = response.json()
     assert "detail" in data
     assert "Edge-TTS upstream synthesis failed" in str(data["detail"])
+
+
+def test_openai_speech_piper_singleton_load_voice_once(monkeypatch):
+    """Verify that multiple /v1/audio/speech requests reuse the cached Piper instance and call _load_voice only once."""
+    from bolsamajh.web import server
+    from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+    server.reset_piper_adapter()
+
+    load_voice_calls = []
+
+    def stub_load_voice(self):
+        load_voice_calls.append(1)
+        import unittest.mock
+        stub_voice = unittest.mock.MagicMock()
+
+        def mock_synth(text, wav_file):
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(22050)
+            wav_file.writeframes(b"\x00\x00" * 100)
+
+        stub_voice.synthesize = mock_synth
+        self._voice = stub_voice
+
+    monkeypatch.setattr(PiperTTSAdapter, "_load_voice", stub_load_voice)
+
+    resp1 = client.post("/v1/audio/speech", json={
+        "model": "tts-1",
+        "input": "First request text",
+        "voice": "piper",
+        "response_format": "wav",
+    })
+    assert resp1.status_code == 200
+
+    resp2 = client.post("/v1/audio/speech", json={
+        "model": "tts-1",
+        "input": "Second request text",
+        "voice": "piper",
+        "response_format": "wav",
+    })
+    assert resp2.status_code == 200
+
+    assert len(load_voice_calls) == 1, f"Expected _load_voice to be called once, got {len(load_voice_calls)}"
+    server.reset_piper_adapter()
 
 
 def test_openai_speech_piper_voice_wav(monkeypatch):

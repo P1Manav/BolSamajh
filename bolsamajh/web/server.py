@@ -26,6 +26,8 @@ import ipaddress
 import hmac
 import re
 import codecs
+import threading
+import zlib
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin
 from typing import Optional, List, AsyncIterator
@@ -53,6 +55,28 @@ log = logging.getLogger("bolsamajh.web")
 
 # Track strong references to background asyncio tasks to prevent premature garbage collection
 _BACKGROUND_TASKS: set[asyncio.Task] = set()
+
+# Module-level cached PiperTTSAdapter instance (lazy, thread-safe)
+_piper_adapter_instance = None
+_piper_adapter_lock = threading.Lock()
+
+
+def get_piper_adapter(model_path: str = ""):
+    """Lazy, thread-safe singleton cache for PiperTTSAdapter."""
+    global _piper_adapter_instance
+    if _piper_adapter_instance is None:
+        with _piper_adapter_lock:
+            if _piper_adapter_instance is None:
+                from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+                _piper_adapter_instance = PiperTTSAdapter(model_path=model_path)
+    return _piper_adapter_instance
+
+
+def reset_piper_adapter() -> None:
+    """Reset module-level cached PiperTTSAdapter instance (used in tests)."""
+    global _piper_adapter_instance
+    with _piper_adapter_lock:
+        _piper_adapter_instance = None
 
 
 class HTTPFetchError(Exception):
@@ -338,31 +362,49 @@ def safe_fetch_url(
             if resp.status < 200 or resp.status >= 400:
                 raise HTTPFetchError(resp.status, resp.reason)
 
-            # Cap response body while reading chunk by chunk to prevent memory exhaustion
-            body_chunks = []
-            total_read = 0
+            encoding = resp.getheader("content-encoding", "").lower()
+            decompressor = None
+            if encoding == "gzip":
+                import zlib
+                decompressor = zlib.decompressobj(wbits=16 + zlib.MAX_WBITS)
+            elif encoding == "deflate":
+                import zlib
+                decompressor = zlib.decompressobj()
+
+            # Stream response body chunk-by-chunk and enforce size caps on both compressed input
+            # and decompressed output as chunks arrive to prevent gzip/deflate bombs.
+            decompressed_chunks = []
+            total_decompressed = 0
+            raw_read = 0
             chunk_size = 65536
+
             while True:
                 chunk = resp.read(chunk_size)
                 if not chunk:
                     break
-                total_read += len(chunk)
-                if total_read > max_body_size:
+                raw_read += len(chunk)
+                if raw_read > max_body_size:
                     raise ValueError(f"Response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
-                body_chunks.append(chunk)
-            body_bytes = b"".join(body_chunks)
 
-            encoding = resp.getheader("content-encoding", "").lower()
-            if encoding == "gzip":
-                import gzip
-                body_bytes = gzip.decompress(body_bytes)
-                if len(body_bytes) > max_body_size:
-                    raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
-            elif encoding == "deflate":
-                import zlib
-                body_bytes = zlib.decompress(body_bytes)
-                if len(body_bytes) > max_body_size:
-                    raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                if decompressor is not None:
+                    decompressed = decompressor.decompress(chunk)
+                    if decompressed:
+                        total_decompressed += len(decompressed)
+                        if total_decompressed > max_body_size:
+                            raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                        decompressed_chunks.append(decompressed)
+                else:
+                    decompressed_chunks.append(chunk)
+
+            if decompressor is not None:
+                tail = decompressor.flush()
+                if tail:
+                    total_decompressed += len(tail)
+                    if total_decompressed > max_body_size:
+                        raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                    decompressed_chunks.append(tail)
+
+            body_bytes = b"".join(decompressed_chunks)
 
             charset = detect_charset(resp.getheader("content-type", ""), body_bytes)
             try:
@@ -941,8 +983,7 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
     # Route to local offline Piper TTS if requested
     if requested_voice in ("piper", "piper-pratham", "hi_in-pratham-medium") or req_model in ("piper", "piper-tts"):
         try:
-            from bolsamajh.tts.piper_adapter import PiperTTSAdapter
-            piper_tts = PiperTTSAdapter(model_path=getattr(config.tts, "piper_model_path", ""))
+            piper_tts = get_piper_adapter(model_path=getattr(config.tts, "piper_model_path", ""))
             wav_bytes = await asyncio.to_thread(piper_tts.synthesize_to_bytes, req.input)
             if not wav_bytes:
                 raise RuntimeError("Piper offline TTS returned empty audio stream.")

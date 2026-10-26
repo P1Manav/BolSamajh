@@ -499,4 +499,54 @@ def test_load_url_endpoint_404_error_message(monkeypatch):
     assert "SSRF" not in detail
 
 
+def test_safe_fetch_url_gzip_bomb_protection(monkeypatch):
+    """Verify safe_fetch_url rejects gzip bomb payloads expanding to > 5 MB
+    incrementally during streaming decompression without allocating the full output.
+    """
+    import gzip
+    import io
+    import socket
+    from bolsamajh.web.server import safe_fetch_url
+
+    # Create a small gzip payload (<15 KB) that expands to 10 MB
+    raw_payload = b"X" * (10 * 1024 * 1024)
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode="wb") as gz:
+        gz.write(raw_payload)
+    compressed_bytes = buf.getvalue()
+    assert len(compressed_bytes) < 30 * 1024, "Compressed payload should be small"
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    class MockGzipBombSocket:
+        def __init__(self):
+            headers = (
+                b"HTTP/1.1 200 OK\r\n"
+                b"Content-Type: text/html\r\n"
+                b"Content-Encoding: gzip\r\n"
+                + f"Content-Length: {len(compressed_bytes)}\r\n".encode("utf-8")
+                + b"Connection: close\r\n\r\n"
+            )
+            self._response = headers + compressed_bytes
+
+        def sendall(self, data):
+            pass
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockGzipBombSocket())
+
+    with pytest.raises(ValueError) as excinfo:
+        safe_fetch_url("http://example.com/bomb.html", max_body_size=5 * 1024 * 1024)
+
+    assert "Decompressed response body exceeds maximum allowed size" in str(excinfo.value)
+
+
+
 
