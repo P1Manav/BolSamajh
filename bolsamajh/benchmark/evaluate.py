@@ -194,6 +194,8 @@ def evaluate_real_speech(
             "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
             "cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
             "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
+            "median_latency_ms": round(float(np.median([c["latency_ms"] for c in clips])), 1),
+            "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in clips], 95)), 1),
         }
         for split, clips in splits_data.items()
     }
@@ -207,6 +209,8 @@ def evaluate_real_speech(
         "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
+        "median_latency_ms": round(float(np.median([c["latency_ms"] for c in all_clips])), 1),
+        "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in all_clips], 95)), 1),
         "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
         "splits": splits_dict,
     }
@@ -286,6 +290,8 @@ def evaluate_synthetic_stress(
         "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
+        "median_latency_ms": round(float(np.median([c["latency_ms"] for c in all_clips])), 1),
+        "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in all_clips], 95)), 1),
         "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
         "categories": {
             cat: {
@@ -294,6 +300,8 @@ def evaluate_synthetic_stress(
                 "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "mean_cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
+                "median_latency_ms": round(float(np.median([c["latency_ms"] for c in clips])), 1),
+                "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in clips], 95)), 1),
             }
             for cat, clips in category_data.items()
         },
@@ -303,6 +311,8 @@ def evaluate_synthetic_stress(
                 "mean_wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
                 "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
+                "median_latency_ms": round(float(np.median([c["latency_ms"] for c in clips])), 1),
+                "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in clips], 95)), 1),
             }
             for deg, clips in degradation_data.items()
         }

@@ -198,12 +198,12 @@
 
 | Metric | Measured Value | Target | Status |
 | :--- | :--- | :--- | :--- |
-| **STT Latency (single sentence, warm)** | **<!-- NUM:hw.stt_synth_latency_ms -->495.0<!-- /NUM --> ms (large-v3-turbo)** | < 1000 ms | 🟢 Verified (GPU) |
-| **STT Latency (Real Speech)** | **<!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms (mean over <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, RTF <!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x, p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1492.6<!-- /NUM --> ms)** | < 2000 ms | 🟢 Verified (GPU) |
-| **Real-Time Factor (RTF)** | **<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x (real speech)** | < 0.25x | 🟢 Verified |
-| **GPU VRAM Model Allocation** | **<!-- NUM:hw.vram_allocated_delta_mb -->1142.0<!-- /NUM --> MB (faster-whisper large-v3-turbo)** | < 2,048 MB | 🟢 Verified |
-| **Peak Total VRAM Used** | **<!-- NUM:hw.vram_peak_used_mb -->2179.0<!-- /NUM --> MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
-| **Document Retrieval Latency** | **<!-- NUM:hw.retrieval_latency_ms -->22.18<!-- /NUM --> ms across 20 chunks (E5 Base)** | < 50 ms | 🟢 Verified |
-| **Edge-TTS First-Packet Latency** | **<!-- NUM:hw.tts_first_packet_ms -->835.6<!-- /NUM --> ms (Edge-TTS)** | < 1,000 ms | 🟢 Verified |
-| **Doc-QA True End-to-End TTFA** | **<!-- NUM:hw.total_ttfa_ms -->1702.8<!-- /NUM --> ms (Question end → Audio play)** | < 2000 ms | 🟢 Verified |
+| **STT Latency (single sentence, warm)** | **<!-- NUM:hw.stt_synth_latency_ms -->703.0<!-- /NUM --> ms (large-v3-turbo)** | < 1000 ms | 🟢 Verified (GPU) |
+| **STT Latency (Real Speech)** | **<!-- NUM:hw.stt_real_mean_latency_ms -->575.5<!-- /NUM --> ms (mean over <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, RTF <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x, p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms)** | < 2000 ms | 🟢 Verified (GPU) |
+| **Real-Time Factor (RTF)** | **<!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x (real speech)** | < 0.25x | 🟢 Verified |
+| **GPU VRAM Model Allocation** | **<!-- NUM:hw.vram_allocated_delta_mb -->1140.0<!-- /NUM --> MB (faster-whisper large-v3-turbo)** | < 2,048 MB | 🟢 Verified |
+| **Peak Total VRAM Used** | **<!-- NUM:hw.vram_peak_used_mb -->2618.0<!-- /NUM --> MB (System + Whisper)** | < 8,192 MB | 🟢 Verified |
+| **Document Retrieval Latency** | **<!-- NUM:hw.retrieval_latency_ms -->49.62<!-- /NUM --> ms across 20 chunks (E5 Base)** | < 50 ms | 🟢 Verified |
+| **Edge-TTS First-Packet Latency** | **<!-- NUM:hw.tts_first_packet_ms -->798.7<!-- /NUM --> ms (Edge-TTS)** | < 1,000 ms | 🟢 Verified |
+| **Doc-QA True End-to-End TTFA** | **<!-- NUM:hw.total_ttfa_ms -->1901.3<!-- /NUM --> ms (Question end → Audio play)** | < 2000 ms | 🟢 Verified |
 | **Cloud API Spend** | **$0.00 (Zero spend rule)** | $0.00 | 🟢 100% Free |

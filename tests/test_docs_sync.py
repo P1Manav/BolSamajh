@@ -119,3 +119,39 @@ def test_comparison_columns_use_identical_clip_sets():
                                 f"In {doc.name}, whisper-hinglish-swift has value '{swift_score}' "
                                 f"in 300-clip column '{headers[all_real_idx]}'! Clip sets do not match."
                             )
+
+
+def test_hardware_measurements_three_runs_and_median_p95():
+    """Verify hardware_measurements.json contains 3 runs per model with required fields and README shows median/p95."""
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    hw_path = root / "benchmark_data" / "hardware_measurements.json"
+    assert hw_path.exists(), "hardware_measurements.json missing"
+
+    data = json.loads(hw_path.read_text(encoding="utf-8"))
+    assert "models" in data, "models dict missing from hardware_measurements.json"
+
+    expected_models = ["large-v3-turbo", "medium", "whisper-hinglish-swift"]
+    for m in expected_models:
+        assert m in data["models"], f"Model {m} missing from hardware_measurements.json models"
+        m_data = data["models"][m]
+        assert "runs" in m_data, f"runs missing for model {m}"
+        assert len(m_data["runs"]) == 3, f"Expected 3 runs for {m}, got {len(m_data['runs'])}"
+        for run in m_data["runs"]:
+            assert "mean_latency_ms" in run
+            assert "median_latency_ms" in run
+            assert "p95_latency_ms" in run
+        assert "gpu_name" in m_data
+        assert "device_used" in m_data
+        assert "nvidia_smi_output" in m_data
+        assert "latency_ms" in m_data
+        assert "median" in m_data["latency_ms"]
+        assert "p95" in m_data["latency_ms"]
+
+    readme_text = (root / "README.md").read_text(encoding="utf-8")
+    assert "STT Latency (Synthetic Audio)" in readme_text
+    assert "STT Latency (Real Speech)" in readme_text
+    assert "p95:" in readme_text
+    assert "Median over 300 real speech clips" in readme_text

@@ -137,36 +137,34 @@ def format_hardware_table(hw_data: dict) -> str:
     edge_tts = hw_data["edge_tts_first_packet_performance"]
     pipeline = hw_data["pipeline_end_to_end_ttfa"]
 
-    stt_mean_lat = stt["latency_ms"]["mean"]
+    stt_median_lat = stt["latency_ms"]["median"]
+    stt_p95_lat = stt["latency_ms"]["p95"]
     stt_rtf = stt["real_time_factor_rtf"]
     vram_delta = stt["vram_mb"]["model_allocated_delta"]
-    rag_mean_lat = rag["query_latency_ms"]["mean"]
+    rag_median_lat = rag["query_latency_ms"]["median"]
     tts_first_pkt = edge_tts["first_packet_latency_ms"]
     pipe_ttfa = pipeline["total_pipeline_ttfa_ms"]
 
-    stt_lat_status = "Passed" if stt_mean_lat < 1000.0 else "Failed"
+    stt_lat_status = "Passed" if stt_median_lat < 1000.0 else "Failed"
     stt_rtf_status = "Passed" if stt_rtf < 0.25 else "Failed"
     vram_status = "Passed" if vram_delta < 2048.0 else "Failed"
-    rag_status = "Passed" if rag_mean_lat < 50.0 else "Failed"
-    tts_status = "Passed" if tts_first_pkt < 800.0 else "Failed"
+    rag_status = "Passed" if rag_median_lat < 50.0 else "Failed"
+    tts_status = "Passed" if tts_first_pkt < 1000.0 else "Failed"
     pipe_status = "Passed" if pipe_ttfa < 2000.0 else "Failed"
 
     real_comp = stt.get("real_speech_comparison", {})
-    real_lat = real_comp.get("mean_latency_ms")
+    real_median = real_comp.get("median_latency_ms")
     real_p95 = real_comp.get("p95_latency_ms")
     real_rtf = real_comp.get("real_time_factor_rtf")
     real_count = real_comp.get("clip_count", 300)
-    real_dur = real_comp.get("mean_duration_sec", 8.41)
     real_dev = real_comp.get("device", "cuda")
     real_comp_type = real_comp.get("compute_type", "int8_float16")
 
-    tts_status = "Passed" if tts_first_pkt < 1000.0 else "Failed"
-
-    if real_lat is not None:
+    if real_median is not None:
         real_status = "Passed" if real_rtf < 0.25 else "Informational"
         p95_str = f" (p95: **{real_p95} ms**)" if real_p95 is not None else ""
-        real_speech_row = f"| **STT Latency (Real Speech)** | Mean over {real_count} real speech clips (`{real_dev}` `{real_comp_type}`) | **{real_lat} ms**{p95_str} (RTF **{real_rtf}x**) | < 2,000 ms | **{real_status}** |"
-        notes_line = f"> Real speech latency scales proportionally with audio duration (mean {real_dur}s conversational speech across {real_count} clips vs {stt.get('test_clip_duration_sec', 3.82)}s synthetic sentence), maintaining fast sub-0.15x Real-Time Factor ({real_rtf}x) on GPU."
+        real_speech_row = f"| **STT Latency (Real Speech)** | Median over {real_count} real speech clips (`{real_dev}` `{real_comp_type}`) | **{real_median} ms**{p95_str} (RTF **{real_rtf}x**) | < 2,000 ms | **{real_status}** |"
+        notes_line = "> Measured across 3 runs with warmup (excluded). Host GPU state was recorded via nvidia-smi with background processes logged."
     else:
         real_speech_row = "| **STT Latency (Real Speech)** | Real speech audio | *not measured* | — | — |"
         notes_line = "> Real speech latency not measured."
@@ -178,11 +176,11 @@ def format_hardware_table(hw_data: dict) -> str:
         "",
         "| Pipeline Component | Metric | Measured Value | Target / Baseline | Status |",
         "| :--- | :--- | :---: | :---: | :---: |",
-        f"| **STT Latency (Synthetic Audio)** | Warm run ({stt.get('test_clip_duration_sec', 3.82)}s audio, CUDA `int8_float16`) | **{stt_mean_lat} ms** | < 1,000 ms | **{stt_lat_status}** |",
+        f"| **STT Latency (Synthetic Audio)** | 3 runs ({stt.get('test_clip_duration_sec', 3.82)}s audio, CUDA `int8_float16`) | **{stt_median_lat} ms** (p95: **{stt_p95_lat} ms**) | < 1,000 ms | **{stt_lat_status}** |",
         f"| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **{stt_rtf}x** | < 0.25x (4x realtime) | **{stt_rtf_status}** |",
         real_speech_row,
         f"| **GPU VRAM Overhead** | STT Model Allocation Delta | **{vram_delta} MB** | < 2,048 MB (Fits 8GB) | **{vram_status}** |",
-        f"| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **{rag_mean_lat} ms** | < 50 ms | **{rag_status}** |",
+        f"| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **{rag_median_lat} ms** | < 50 ms | **{rag_status}** |",
         f"| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **{tts_first_pkt} ms** | < 1,000 ms | **{tts_status}** |",
         f"| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **{pipe_ttfa} ms** | < 2,000 ms | **{pipe_status}** |",
         "",
@@ -364,7 +362,9 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "hw.device_name": str(hw_data.get("gpu_specs", {}).get("device_name", "NVIDIA GPU")),
         "hw.vram_total_mb": str(hw_data.get("gpu_specs", {}).get("total_vram_mb", 8192.0)),
         "hw.stt_model": str(stt_hw.get("model", "faster-whisper-large-v3-turbo")),
-        "hw.stt_synth_latency_ms": str(stt_hw.get("latency_ms", {}).get("mean", "N/A")),
+        "hw.stt_synth_latency_ms": str(stt_hw.get("latency_ms", {}).get("median", stt_hw.get("latency_ms", {}).get("mean", "N/A"))),
+        "hw.stt_synth_median_latency_ms": str(stt_hw.get("latency_ms", {}).get("median", "N/A")),
+        "hw.stt_synth_p95_latency_ms": str(stt_hw.get("latency_ms", {}).get("p95", "N/A")),
         "hw.stt_synth_rtf": str(stt_hw.get("real_time_factor_rtf", "N/A")),
         "hw.stt_real_count": str(real_comp.get("clip_count", 300)),
         "hw.stt_real_mean_latency_ms": str(real_comp.get("mean_latency_ms", "N/A")),
@@ -373,7 +373,7 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "hw.stt_real_rtf": str(real_comp.get("real_time_factor_rtf", "N/A")),
         "hw.vram_allocated_delta_mb": str(stt_hw.get("vram_mb", {}).get("model_allocated_delta", "N/A")),
         "hw.vram_peak_used_mb": str(stt_hw.get("vram_mb", {}).get("peak_total_used", "N/A")),
-        "hw.retrieval_latency_ms": str(rag_hw.get("mean", "N/A")),
+        "hw.retrieval_latency_ms": str(rag_hw.get("median", rag_hw.get("mean", "N/A"))),
         "hw.tts_first_packet_ms": str(tts_hw.get("first_packet_latency_ms", "N/A")),
         "hw.total_ttfa_ms": str(pipe_hw.get("total_pipeline_ttfa_ms", "N/A")),
 

@@ -1,72 +1,259 @@
 {
-  "timestamp": "2026-10-26 11:31:42",
+  "timestamp": "2026-10-26 14:07:45",
   "gpu_specs": {
     "cuda_available": true,
     "device_name": "NVIDIA GeForce RTX 3060 Ti",
     "total_vram_mb": 8192.0,
     "torch_version": "2.14.1+cpu",
-    "cuda_version": "Direct CTranslate2 CUDA / cuBLAS"
+    "cuda_version": "Direct CTranslate2 CUDA / cuBLAS",
+    "other_gpu_processes_present": true,
+    "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   56C    P8             17W /  240W |    1478MiB /   8192MiB |     16%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+"
+  },
+  "models": {
+    "large-v3-turbo": {
+      "model": "faster-whisper-large-v3-turbo",
+      "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
+      "device_used": "cuda",
+      "compute_type": "int8_float16",
+      "model_load_time_sec": 6.096,
+      "test_clip_duration_sec": 3.82,
+      "warmup_excluded": true,
+      "runs": [
+        {
+          "run_index": 1,
+          "mean_latency_ms": 703.4,
+          "median_latency_ms": 706.6,
+          "p95_latency_ms": 709.5
+        },
+        {
+          "run_index": 2,
+          "mean_latency_ms": 760.9,
+          "median_latency_ms": 701.9,
+          "p95_latency_ms": 945.7
+        },
+        {
+          "run_index": 3,
+          "mean_latency_ms": 699.6,
+          "median_latency_ms": 702.6,
+          "p95_latency_ms": 712.2
+        }
+      ],
+      "latency_ms": {
+        "mean": 721.3,
+        "median": 703.0,
+        "min": 684.6,
+        "p95": 801.0
+      },
+      "real_time_factor_rtf": 0.184,
+      "other_gpu_processes_present": true,
+      "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   55C    P8             17W /  240W |    1478MiB /   8192MiB |     13%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "vram_mb": {
+        "baseline_system_used": 1478.0,
+        "model_allocated_delta": 1140.0,
+        "peak_total_used": 2618.0
+      },
+      "real_speech_comparison": {
+        "clip_count": 300,
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "mean_duration_sec": 8.41,
+        "mean_latency_ms": 575.5,
+        "median_latency_ms": 510.1,
+        "min_latency_ms": 214.4,
+        "p95_latency_ms": 1301.6,
+        "real_time_factor_rtf": 0.061
+      }
+    },
+    "medium": {
+      "model": "faster-whisper-medium",
+      "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
+      "device_used": "cuda",
+      "compute_type": "int8_float16",
+      "model_load_time_sec": 5.867,
+      "test_clip_duration_sec": 3.82,
+      "warmup_excluded": true,
+      "runs": [
+        {
+          "run_index": 1,
+          "mean_latency_ms": 1480.4,
+          "median_latency_ms": 1428.4,
+          "p95_latency_ms": 1603.3
+        },
+        {
+          "run_index": 2,
+          "mean_latency_ms": 1531.8,
+          "median_latency_ms": 1454.4,
+          "p95_latency_ms": 1684.3
+        },
+        {
+          "run_index": 3,
+          "mean_latency_ms": 1187.0,
+          "median_latency_ms": 1196.0,
+          "p95_latency_ms": 1204.3
+        }
+      ],
+      "latency_ms": {
+        "mean": 1399.7,
+        "median": 1428.4,
+        "min": 1154.5,
+        "p95": 1650.6
+      },
+      "real_time_factor_rtf": 0.374,
+      "other_gpu_processes_present": true,
+      "nvidia_smi_output": "Mon Oct 26 14:06:53 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 63%   68C    P2            133W /  240W |    1611MiB /   8192MiB |     40%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           27868      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "vram_mb": {
+        "baseline_system_used": 1611.0,
+        "model_allocated_delta": 960.0,
+        "peak_total_used": 2571.0
+      },
+      "real_speech_comparison": {
+        "clip_count": 300,
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "mean_duration_sec": 8.41,
+        "mean_latency_ms": 1529.9,
+        "median_latency_ms": 1229.8,
+        "min_latency_ms": 317.6,
+        "p95_latency_ms": 2511.3,
+        "real_time_factor_rtf": 0.146
+      }
+    },
+    "whisper-hinglish-swift": {
+      "model": "faster-whisper-whisper-hinglish-swift",
+      "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
+      "device_used": "cuda",
+      "compute_type": "int8_float16",
+      "model_load_time_sec": 0.677,
+      "test_clip_duration_sec": 3.82,
+      "warmup_excluded": true,
+      "runs": [
+        {
+          "run_index": 1,
+          "mean_latency_ms": 190.6,
+          "median_latency_ms": 191.1,
+          "p95_latency_ms": 199.7
+        },
+        {
+          "run_index": 2,
+          "mean_latency_ms": 179.3,
+          "median_latency_ms": 176.9,
+          "p95_latency_ms": 188.9
+        },
+        {
+          "run_index": 3,
+          "mean_latency_ms": 182.7,
+          "median_latency_ms": 183.5,
+          "p95_latency_ms": 185.9
+        }
+      ],
+      "latency_ms": {
+        "mean": 184.2,
+        "median": 183.5,
+        "min": 173.1,
+        "p95": 199.1
+      },
+      "real_time_factor_rtf": 0.048,
+      "other_gpu_processes_present": true,
+      "nvidia_smi_output": "Mon Oct 26 14:07:22 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 71%   61C    P2            102W /  240W |    1611MiB /   8192MiB |     31%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           27868      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "vram_mb": {
+        "baseline_system_used": 1611.0,
+        "model_allocated_delta": 96.0,
+        "peak_total_used": 1707.0
+      },
+      "real_speech_comparison": {
+        "clip_count": 100,
+        "device": "cuda",
+        "compute_type": "int8_float16",
+        "mean_duration_sec": 4.59,
+        "mean_latency_ms": 100.6,
+        "median_latency_ms": 88.8,
+        "min_latency_ms": 48.7,
+        "p95_latency_ms": 194.3,
+        "real_time_factor_rtf": 0.019
+      }
+    }
   },
   "stt_performance": {
     "model": "faster-whisper-large-v3-turbo",
-    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
+    "device_used": "cuda",
     "compute_type": "int8_float16",
-    "model_load_time_sec": 3.278,
+    "model_load_time_sec": 6.096,
     "test_clip_duration_sec": 3.82,
     "warmup_excluded": true,
-    "runs": 5,
+    "runs": [
+      {
+        "run_index": 1,
+        "mean_latency_ms": 703.4,
+        "median_latency_ms": 706.6,
+        "p95_latency_ms": 709.5
+      },
+      {
+        "run_index": 2,
+        "mean_latency_ms": 760.9,
+        "median_latency_ms": 701.9,
+        "p95_latency_ms": 945.7
+      },
+      {
+        "run_index": 3,
+        "mean_latency_ms": 699.6,
+        "median_latency_ms": 702.6,
+        "p95_latency_ms": 712.2
+      }
+    ],
     "latency_ms": {
-      "mean": 495.0,
-      "median": 493.1,
-      "min": 485.9,
-      "p95": 507.6
+      "mean": 721.3,
+      "median": 703.0,
+      "min": 684.6,
+      "p95": 801.0
     },
-    "real_time_factor_rtf": 0.13,
+    "real_time_factor_rtf": 0.184,
+    "other_gpu_processes_present": true,
+    "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   55C    P8             17W /  240W |    1478MiB /   8192MiB |     13%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
     "vram_mb": {
-      "baseline_system_used": 1037.0,
-      "model_allocated_delta": 1142.0,
-      "peak_total_used": 2179.0
+      "baseline_system_used": 1478.0,
+      "model_allocated_delta": 1140.0,
+      "peak_total_used": 2618.0
     },
     "real_speech_comparison": {
       "clip_count": 300,
       "device": "cuda",
       "compute_type": "int8_float16",
       "mean_duration_sec": 8.41,
-      "mean_latency_ms": 779.2,
-      "median_latency_ms": 698.4,
-      "min_latency_ms": 229.9,
-      "p95_latency_ms": 1492.6,
-      "real_time_factor_rtf": 0.101,
-      "empirical_notes": "Empirically measured on cuda (int8_float16) across 300 real conversational and read speech clips. Mean latency 779.2 ms with p95 1492.6 ms, maintaining RTF of 0.101x."
+      "mean_latency_ms": 575.5,
+      "median_latency_ms": 510.1,
+      "min_latency_ms": 214.4,
+      "p95_latency_ms": 1301.6,
+      "real_time_factor_rtf": 0.061
     }
   },
   "retrieval_performance": {
     "embedding_model": "intfloat/multilingual-e5-base",
     "indexed_chunks": 2,
-    "index_build_time_sec": 9.773,
+    "index_build_time_sec": 16.77,
     "query_latency_ms": {
-      "mean": 22.18,
-      "median": 21.86,
-      "min": 21.04,
-      "p95": 24.19
+      "mean": 49.63,
+      "median": 49.62,
+      "min": 44.55,
+      "p95": 54.12
     }
   },
   "edge_tts_first_packet_performance": {
     "tts_service": "edge-tts",
     "voice": "hi-IN-SwaraNeural",
     "test_text_char_count": 112,
-    "first_packet_latency_ms": 835.6,
-    "total_tts_time_ms": 1581.9,
+    "first_packet_latency_ms": 798.7,
+    "total_tts_time_ms": 1170.6,
     "audio_chunks_received": 79,
     "audio_bytes": 56304
   },
   "pipeline_end_to_end_ttfa": {
     "pipeline_description": "End-to-end question audio release -> first audio sample played",
-    "stt_latency_ms": 495.0,
-    "retrieval_latency_ms": 22.2,
+    "stt_latency_ms": 703.0,
+    "retrieval_latency_ms": 49.6,
     "llm_first_sentence_ms": 350.0,
-    "edge_tts_first_packet_ms": 835.6,
-    "total_pipeline_ttfa_ms": 1702.8,
+    "edge_tts_first_packet_ms": 798.7,
+    "total_pipeline_ttfa_ms": 1901.3,
     "target_ms": 2000.0
   }
 }
