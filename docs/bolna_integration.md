@@ -27,7 +27,7 @@ Bolna orchestrates voice agents using two distinct audio channels:
 
 | Component | Bolna Protocol | BolSamajh Support | Notes |
 |:---|:---|:---|:---|
-| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Implemented, not yet tested against a live Bolna agent** | Configured via `synthesizer_base_url` and `synthesizer_key`. Supports MP3 and WAV output using Indian neural voices (`swara`, `neerja`, `dhwani`). |
+| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Implemented, not yet tested against a live Bolna agent** | Configured via `synthesizer_base_url` and `synthesizer_key`. Proxies Microsoft Edge-TTS (an unofficial cloud service) with Indian neural voices (`swara`, `neerja`, `dhwani`), with 100% offline local neural voice (`piper`) available. Supports MP3 and WAV output. |
 | **Realtime Transcriber (STT)** | OpenAI Realtime WebSocket protocol (`REALTIME_TRANSCRIBER_URL`) | **Not Implemented** | Bolna's streaming conversational pipeline requires full-duplex WebSocket connections. BolSamajh provides standard batch REST STT (`/v1/audio/transcriptions`), not the realtime WebSocket server. For Bolna agents, use a supported realtime provider (e.g., Deepgram) for STT and BolSamajh for TTS. |
 
 ```
@@ -125,9 +125,13 @@ transfer-encoding: chunked
 *Binary result: Writes `test_response.mp3` (25,341 bytes, MPEG ADTS / ID3 audio stream).*
 
 Supported voice mappings:
-- `swara` / `hi-IN-SwaraNeural`: Natural Hindi / Hinglish female voice.
-- `neerja` / `alloy` / `en-IN-NeerjaNeural`: Indian English accent.
-- `dhwani` / `gu-IN-DhwaniNeural`: Gujarati neural voice.
+- `swara` / `hi-IN-SwaraNeural`: Natural Hindi / Hinglish female voice (Microsoft Edge-TTS cloud service).
+- `neerja` / `alloy` / `en-IN-NeerjaNeural`: Indian English accent (Microsoft Edge-TTS cloud service).
+- `dhwani` / `gu-IN-DhwaniNeural`: Gujarati neural voice (Microsoft Edge-TTS cloud service).
+- `piper` / `piper-pratham` / `hi_in-pratham-medium`: 100% offline local neural voice using ONNX (`hi_IN-pratham-medium`).
+
+> [!NOTE]
+> **Cloud vs. Offline TTS:** The default voices proxy Microsoft Edge-TTS (an unofficial cloud endpoint). For 100% offline air-gapped deployments where audio must never leave the machine, set `voice="piper"` or `model="piper"` to route speech synthesis directly through local Piper ONNX models without network requests.
 
 ---
 

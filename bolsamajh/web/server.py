@@ -374,6 +374,28 @@ def resample_audio_to_16k_mono(audio_bytes: bytes) -> bytes:
     return wav_buf.getvalue()
 
 
+def convert_wav_to_mp3(wav_bytes: bytes) -> bytes:
+    """Encode 16-bit PCM WAV to MP3 using PyAV."""
+    import av
+    in_container = av.open(io.BytesIO(wav_bytes), "r")
+    if not in_container.streams.audio:
+        raise ValueError("No audio stream found in WAV data for MP3 conversion")
+    in_stream = in_container.streams.audio[0]
+
+    out_buf = io.BytesIO()
+    out_container = av.open(out_buf, "w", format="mp3")
+    out_stream = out_container.add_stream("libmp3lame", rate=in_stream.rate or 22050)
+    out_stream.layout = "mono"
+
+    for frame in in_container.decode(in_stream):
+        for packet in out_stream.encode(frame):
+            out_container.mux(packet)
+    for packet in out_stream.encode(None):
+        out_container.mux(packet)
+    out_container.close()
+    return out_buf.getvalue()
+
+
 # --- Request & Response schemas ---
 
 class URLDocRequest(BaseModel):
@@ -459,6 +481,9 @@ VOICE_MAP = {
     "gu-in-dhwanineural": "gu-IN-DhwaniNeural",
     "gu": "gu-IN-DhwaniNeural",
     "gujarati": "gu-IN-DhwaniNeural",
+    "piper": "piper",
+    "piper-pratham": "piper",
+    "hi_in-pratham-medium": "piper",
 }
 
 
@@ -806,12 +831,11 @@ async def openai_compatible_transcription(
 async def openai_compatible_speech(req: OpenAISpeechRequest):
     """OpenAI-compatible TTS endpoint for Bolna agent integration.
 
-    Generates natural Indian neural speech (Swara/Neerja/Dhwani) compatible with Bolna agents.
+    Generates natural Indian speech proxying Microsoft Edge-TTS (Swara/Neerja/Dhwani - unofficial cloud service)
+    or local offline Piper TTS (voice='piper' or model='piper' - 100% offline ONNX).
     Honors explicitly requested voice, response_format (mp3, wav), and speed.
-    Enforces maximum input length of 4,000 characters and returns clean HTTP 502 on upstream failure.
+    Enforces maximum input length of 4,000 characters and returns clean HTTP 502 on upstream/offline failure.
     """
-    import edge_tts
-
     if not req.input or not req.input.strip():
         raise HTTPException(status_code=400, detail="Input text cannot be empty.")
 
@@ -828,12 +852,45 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
             detail=f"Unsupported response_format '{req.response_format}'. Supported formats: 'mp3', 'wav'."
         )
 
+    requested_voice = req.voice.strip().lower()
+    req_model = (req.model or "").strip().lower()
+
+    # Route to local offline Piper TTS if requested
+    if requested_voice in ("piper", "piper-pratham", "hi_in-pratham-medium") or req_model in ("piper", "piper-tts"):
+        try:
+            from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+            piper_tts = PiperTTSAdapter(model_path=getattr(config.tts, "piper_model_path", ""))
+            wav_bytes = await asyncio.to_thread(piper_tts.synthesize_to_bytes, req.input)
+            if not wav_bytes:
+                raise RuntimeError("Piper offline TTS returned empty audio stream.")
+        except Exception as e:
+            log.error("Piper offline TTS speech synthesis failed: %s", e)
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "Piper TTS offline synthesis failed", "message": str(e)}
+            )
+
+        if fmt == "wav":
+            return StreamingResponse(io.BytesIO(wav_bytes), media_type="audio/wav")
+
+        try:
+            mp3_bytes = await asyncio.to_thread(convert_wav_to_mp3, wav_bytes)
+            return StreamingResponse(io.BytesIO(mp3_bytes), media_type="audio/mpeg")
+        except Exception as e:
+            log.error("Failed to convert synthesized Piper WAV audio to MP3: %s", e)
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "Audio format conversion to MP3 failed", "message": str(e)}
+            )
+
+    # Default path: Microsoft Edge-TTS (unofficial cloud endpoint)
+    import edge_tts
+
     # Compute rate string from speed (OpenAI API accepts speed from 0.25 to 4.0)
     clamped_speed = max(0.25, min(req.speed, 4.0))
     speed_pct = int(round((clamped_speed - 1.0) * 100))
     rate_str = f"+{speed_pct}%" if speed_pct >= 0 else f"{speed_pct}%"
 
-    requested_voice = req.voice.strip().lower()
     voice = VOICE_MAP.get(requested_voice, config.tts.edge_voice_hi)
 
     try:

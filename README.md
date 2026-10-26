@@ -8,7 +8,7 @@
 [![Zero Cloud Spend](https://img.shields.io/badge/Cloud_Spend-$0.00-brightgreen.svg)](#-privacy--architecture-transparency)
 [![Buildathon: Bolna x Symphony](https://img.shields.io/badge/Buildathon-Bolna_%C3%97_Symphony-orange.svg)](https://bolna.ai)
 
-BolSamajh is an open-source, local-first voice AI companion built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable page citations and sentence-streaming audio, and in-place voice editing — running natively on your hardware with optional cloud fallbacks and zero mandatory subscription fees.
+BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable page citations and sentence-streaming audio, and in-place voice editing — running natively on your hardware with optional cloud fallbacks and zero mandatory subscription fees.
 
 <div align="center">
 
@@ -37,7 +37,7 @@ To maintain absolute credibility for judges and users, here is a transparent bre
 | **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
 | **In-Place Voice Editing** | **Implemented, untested on hardware** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Physical hotkey and OS clipboard automation untested on this machine today; preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
 | **Voice Barge-In Interruption** | **Implemented, untested on hardware** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Untested on hardware speakers/headphones (no live 10-minute playback measurement on this machine); laptop built-in speakers at maximum volume can cause echo false-positives without headphones. |
-| **Bolna Agent Voice Gateway** | **Implemented, untested on hardware** | Exposes OpenAI-compatible `/v1/audio/speech` (TTS with mp3/wav and speed support) and `/v1/audio/transcriptions` (STT); Bearer token auth; bind security checks. Verified with test client, not yet tested against a live Bolna agent. | Real-time WebSocket streaming STT protocol (`REALTIME_TRANSCRIBER_URL`) is not implemented; Bolna uses batch transcription endpoints. |
+| **Bolna Agent Voice Gateway** | **Implemented, untested on hardware** | OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent). Exposes `/v1/audio/speech` (TTS gateway with Edge-TTS and offline Piper voices, mp3/wav and speed support) and `/v1/audio/transcriptions` (batch STT); Bearer token auth; bind security checks. Verified with test client. | Real-time WebSocket streaming STT protocol (`REALTIME_TRANSCRIBER_URL`) is not implemented; Bolna uses batch transcription endpoints; live cloud agent connection requires a tunnel. |
 | **100% Offline Air-Gapped Mode** | **Implemented, untested on hardware** | Zero-cloud execution pipeline implemented with Piper TTS (ONNX) + Ollama (Gemma 3) + faster-whisper with pinned model SHA-256. | Untested on hardware with network physically disconnected; Edge-TTS and Google AI Studio fallbacks require internet; Piper TTS requires initial one-time model download. |
 | **Real-time Bolna WebSocket STT** | **Not implemented** | None. | Full duplex streaming WebSocket transcriber (`REALTIME_TRANSCRIBER_URL`) not implemented; Bolna uses standard `/v1/audio/transcriptions`. |
 
@@ -68,7 +68,7 @@ Highlight text in any application and hold `Alt+Shift+C` to speak commands:
 - The LLM transforms the text **directly in-place**, replacing your selection via simulated clipboard operations without leaving your active window.
 
 ### 4. 🌐 Browser Web-Call & Bolna Voice Gateway
-Launch the built-in FastAPI web server for an interactive browser web-call mode, or point any Bolna voice agent directly to BolSamajh's OpenAI-compatible endpoints (`/v1/audio/transcriptions` and `/v1/audio/speech`).
+Launch the built-in FastAPI web server for an interactive browser web-call mode, or configure an OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent; batch STT `/v1/audio/transcriptions` and TTS `/v1/audio/speech` with Edge-TTS and offline Piper voices; tunnel required for cloud agents).
 
 ---
 
@@ -285,7 +285,7 @@ We provide complete transparency regarding where data is processed:
 | **RAG Embeddings & Vector Index** | Local (`multilingual-e5-base`) | None | Text chunk embeddings and FAISS index remain entirely on local disk and RAM. |
 | **Local LLM (Ollama)** | Local (`localhost:11434`) | None | Gemma 3 4B runs locally when Ollama is active. Zero external transmission. |
 | **Cloud LLM Fallback (Gemini)** | Cloud (Google AI Studio) | Prompt text sent to Google | Transmitted via HTTPS with `x-goog-api-key` header (never in URL). Suppressed httpx logging prevents key leaks. |
-| **Neural TTS (Edge-TTS)**| Cloud (Microsoft Speech API) | Answer text sent to Microsoft | Synthesizes speech using Microsoft Edge's Read Aloud service. Requires internet. |
+| **Neural TTS (Edge-TTS)**| Cloud (Microsoft Speech API) | Answer text sent to Microsoft | Synthesizes speech using Microsoft Edge's Read Aloud service (an unofficial cloud endpoint). Requires internet. |
 | **Offline TTS (Piper)** | Local (Piper ONNX) | None | 100% offline text-to-speech option using local ONNX Hindi models (`hi_IN-pratham-medium`). |
 
 ### 🛡️ 100% Offline Air-Gapped Mode

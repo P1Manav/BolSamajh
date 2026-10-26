@@ -157,3 +157,104 @@ def test_openai_speech_edge_tts_failure_502(monkeypatch):
     assert "detail" in data
     assert "Edge-TTS upstream synthesis failed" in str(data["detail"])
 
+
+def test_openai_speech_piper_voice_wav(monkeypatch):
+    """Verify /v1/audio/speech routes to Piper when voice='piper' and returns WAV."""
+    import wave
+    from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
+    def mock_synthesize(self, text):
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(22050)
+            wf.writeframes(b"\x00\x00" * 2205)
+        return buf.getvalue()
+
+    monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
+
+    response = client.post("/v1/audio/speech", json={
+        "model": "tts-1",
+        "input": "नमस्ते, Piper voice test.",
+        "voice": "piper",
+        "response_format": "wav",
+    })
+    assert response.status_code == 200
+    assert "audio/wav" in response.headers.get("content-type", "")
+    assert response.content[:4] == b"RIFF"
+
+
+def test_openai_speech_piper_voice_mp3(monkeypatch):
+    """Verify /v1/audio/speech routes to Piper when voice='piper' and returns converted MP3."""
+    import wave
+    from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
+    def mock_synthesize(self, text):
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(22050)
+            wf.writeframes(b"\x00\x00" * 2205)
+        return buf.getvalue()
+
+    monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
+
+    response = client.post("/v1/audio/speech", json={
+        "model": "tts-1",
+        "input": "Testing Piper MP3 output.",
+        "voice": "piper",
+        "response_format": "mp3",
+    })
+    assert response.status_code == 200
+    assert "audio/mpeg" in response.headers.get("content-type", "")
+    assert len(response.content) > 100
+
+
+def test_openai_speech_piper_model_routing(monkeypatch):
+    """Verify /v1/audio/speech routes to Piper when model='piper'."""
+    import wave
+    from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
+    called = []
+    def mock_synthesize(self, text):
+        called.append(text)
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(22050)
+            wf.writeframes(b"\x00\x00" * 2205)
+        return buf.getvalue()
+
+    monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
+
+    response = client.post("/v1/audio/speech", json={
+        "model": "piper",
+        "input": "Testing model routing to Piper.",
+        "voice": "alloy",
+        "response_format": "wav",
+    })
+    assert response.status_code == 200
+    assert len(called) == 1
+    assert "Testing model routing" in called[0]
+
+
+def test_openai_speech_piper_failure_502(monkeypatch):
+    """Verify clean 502 JSON error is returned if Piper synthesis fails."""
+    from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
+    def mock_synthesize(self, text):
+        raise RuntimeError("Simulated Piper ONNX model error")
+
+    monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
+
+    response = client.post("/v1/audio/speech", json={
+        "model": "tts-1",
+        "input": "Testing Piper failure.",
+        "voice": "piper",
+    })
+    assert response.status_code == 502
+    assert "Piper TTS offline synthesis failed" in str(response.json())
+

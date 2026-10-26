@@ -19,8 +19,8 @@
 #### Tier 4 — Sponsor Alignment (Bolna Voice Gateway)
 - [x] **OpenAI-Compatible STT & TTS Endpoints (`bolsamajh/web/server.py`):**
   - `POST /v1/audio/transcriptions` (Hinglish speech-to-text with auto-resampling).
-  - `POST /v1/audio/speech` (Natural Indian TTS supporting Swara/Neerja/Dhwani).
-- [x] **Bolna Integration Guide (`docs/bolna_integration.md`):** Complete walkthrough showing how Bolna agents can configure `base_url="http://localhost:8000/v1"` to use BolSamajh as a local speech provider.
+  - `POST /v1/audio/speech` (TTS gateway proxying Edge-TTS Swara/Neerja/Dhwani, plus local offline Piper voice).
+- [x] **Bolna Integration Guide (`docs/bolna_integration.md`):** Complete walkthrough showing how Bolna agents can configure `base_url="http://localhost:8000/v1"` (or a secure tunnel) to use BolSamajh as an OpenAI-compatible TTS gateway (not yet tested against a live agent).
 
 #### Tier 3 — Desktop & Web Robustness
 - [x] **Single-Threaded Tkinter Safety (`bolsamajh/overlay/hud.py`, `bolsamajh/main.py`):**

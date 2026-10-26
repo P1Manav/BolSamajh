@@ -6,6 +6,7 @@ import wave
 import hashlib
 import logging
 import threading
+import asyncio
 from pathlib import Path
 from typing import Literal
 
@@ -111,6 +112,48 @@ class PiperTTSAdapter(TextToSpeech):
         self._voice = PiperVoice.load(str(model_file), config_path=str(json_file))
         log.info("Piper offline voice loaded successfully.")
 
+    def synthesize_to_bytes(self, text: str) -> bytes:
+        """Synthesize text offline using Piper ONNX and return raw WAV bytes."""
+        if not text.strip():
+            return b""
+
+        self._load_voice()
+
+        # Piper Hindi voice expects Devanagari script.
+        # Only transliterate if the text is in another Indic script (e.g. Gujarati).
+        # Do not run ISO transliteration on Roman Hinglish.
+        has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
+        has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
+        if has_gujarati and not has_devanagari:
+            try:
+                from aksharamukha import transliterate
+                text = transliterate.process("Gujarati", "Devanagari", text)
+            except Exception as e:
+                log.debug("Transliteration to Devanagari skipped: %s", e)
+
+        wav_io = io.BytesIO()
+
+        # Support both Piper API shapes:
+        # Shape 1: voice.synthesize(text, wav_file)
+        # Shape 2: voice.synthesize(text) / voice.synthesize_stream_raw(text) yielding bytes
+        try:
+            with wave.open(wav_io, "wb") as wav_file:
+                self._voice.synthesize(text, wav_file)
+        except (TypeError, AttributeError):
+            raw = self._voice.synthesize(text)
+            if hasattr(raw, "__iter__") and not isinstance(raw, (bytes, bytearray)):
+                raw_bytes = b"".join(raw)
+            else:
+                raw_bytes = bytes(raw)
+            with wave.open(wav_io, "wb") as wav_file:
+                wav_file.setnchannels(1)
+                wav_file.setsampwidth(2)
+                sr = getattr(getattr(self._voice, "config", None), "sample_rate", 22050)
+                wav_file.setframerate(sr)
+                wav_file.writeframes(raw_bytes)
+
+        return wav_io.getvalue()
+
     async def speak(
         self,
         text: str,
@@ -124,47 +167,11 @@ class PiperTTSAdapter(TextToSpeech):
         self._speaking = True
 
         try:
-            self._load_voice()
-
-            # Piper Hindi voice expects Devanagari script.
-            # Only transliterate if the text is in another Indic script (e.g. Gujarati).
-            # Do not run ISO transliteration on Roman Hinglish.
-            has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
-            has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
-            if has_gujarati and not has_devanagari:
-                try:
-                    from aksharamukha import transliterate
-                    text = transliterate.process("Gujarati", "Devanagari", text)
-                except Exception as e:
-                    log.debug("Transliteration to Devanagari skipped: %s", e)
-
-            wav_io = io.BytesIO()
-
-            # Support both Piper API shapes:
-            # Shape 1: voice.synthesize(text, wav_file)
-            # Shape 2: voice.synthesize(text) / voice.synthesize_stream_raw(text) yielding bytes
-            try:
-                with wave.open(wav_io, "wb") as wav_file:
-                    self._voice.synthesize(text, wav_file)
-            except (TypeError, AttributeError):
-                # Shape 2
-                raw = self._voice.synthesize(text)
-                if hasattr(raw, "__iter__") and not isinstance(raw, (bytes, bytearray)):
-                    raw_bytes = b"".join(raw)
-                else:
-                    raw_bytes = bytes(raw)
-                with wave.open(wav_io, "wb") as wav_file:
-                    wav_file.setnchannels(1)
-                    wav_file.setsampwidth(2)
-                    sr = getattr(getattr(self._voice, "config", None), "sample_rate", 22050)
-                    wav_file.setframerate(sr)
-                    wav_file.writeframes(raw_bytes)
-
-            if self._stop_event.is_set():
+            wav_bytes = await asyncio.to_thread(self.synthesize_to_bytes, text)
+            if self._stop_event.is_set() or not wav_bytes:
                 return
 
-            wav_io.seek(0)
-            with wave.open(wav_io, "rb") as wf:
+            with wave.open(io.BytesIO(wav_bytes), "rb") as wf:
                 sr = wf.getframerate()
                 n_frames = wf.getnframes()
                 audio_bytes = wf.readframes(n_frames)
