@@ -24,6 +24,8 @@ import tempfile
 import asyncio
 import ipaddress
 import hmac
+import re
+import codecs
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin
 from typing import Optional, List, AsyncIterator
@@ -53,6 +55,14 @@ log = logging.getLogger("bolsamajh.web")
 _BACKGROUND_TASKS: set[asyncio.Task] = set()
 
 
+class HTTPFetchError(Exception):
+    """Raised when upstream server returns HTTP 4xx or 5xx."""
+    def __init__(self, status_code: int, reason: str = ""):
+        self.status_code = status_code
+        self.reason = reason
+        super().__init__(f"Failed to fetch URL (HTTP {status_code})")
+
+
 def track_task(task: asyncio.Task) -> asyncio.Task:
     """Store strong reference to background task until it completes."""
     _BACKGROUND_TASKS.add(task)
@@ -61,7 +71,9 @@ def track_task(task: asyncio.Task) -> asyncio.Task:
 
 
 def check_bind_security(host: Optional[str] = None) -> None:
-    """Refuse to start if server binds to anything but 127.0.0.1 and no API key is set."""
+    """Refuse to start if server binds to anything but loopback (127.0.0.1/localhost/::1) and no API key is set.
+    Supports IPv4/IPv6 loopbacks and wildcard addresses (0.0.0.0, ::, [::]).
+    """
     api_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
     if api_key:
         return
@@ -76,12 +88,14 @@ def check_bind_security(host: Optional[str] = None) -> None:
                 target_host = arg.split("=", 1)[1]
                 break
 
-    if target_host and target_host.strip().lower() not in ("127.0.0.1", "localhost", "::1"):
-        raise RuntimeError(
-            f"Security Error: Server configured to bind to '{target_host}' without BOLSAMAJH_API_KEY set. "
-            f"Binding to non-loopback addresses exposes the gateway publicly. "
-            f"Either set BOLSAMAJH_API_KEY or bind strictly to 127.0.0.1."
-        )
+    if target_host:
+        clean = target_host.strip().lower()
+        if clean not in ("127.0.0.1", "localhost", "::1", "[::1]"):
+            raise RuntimeError(
+                f"Security Error: Server configured to bind to '{target_host}' without BOLSAMAJH_API_KEY set. "
+                f"Binding to non-loopback addresses exposes the gateway publicly. "
+                f"Either set BOLSAMAJH_API_KEY or bind strictly to 127.0.0.1."
+            )
 
 
 @asynccontextmanager
@@ -214,10 +228,49 @@ def is_safe_external_url(url: str) -> bool:
         return False
 
 
-def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> str:
+def detect_charset(content_type_header: str, raw_bytes: bytes) -> str:
+    """Detect text encoding from Content-Type header or HTML <meta charset>, falling back to UTF-8."""
+    if content_type_header:
+        m = re.search(r"charset=['\"]?([a-zA-Z0-9_\-]+)", content_type_header, re.IGNORECASE)
+        if m:
+            candidate = m.group(1).strip()
+            try:
+                codecs.lookup(candidate)
+                return candidate
+            except LookupError:
+                pass
+
+    head = raw_bytes[:4096]
+    m = re.search(rb'<meta[^>]+charset=[\'"]?([a-zA-Z0-9_\-]+)', head, re.IGNORECASE)
+    if m:
+        try:
+            candidate = m.group(1).decode("ascii", errors="ignore").strip()
+            codecs.lookup(candidate)
+            return candidate
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    m2 = re.search(rb'<meta[^>]+http-equiv=[\'"]?content-type[\'"]?[^>]+content=[\'"][^;]*;\s*charset=([a-zA-Z0-9_\-]+)', head, re.IGNORECASE)
+    if m2:
+        try:
+            candidate = m2.group(1).decode("ascii", errors="ignore").strip()
+            codecs.lookup(candidate)
+            return candidate
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    return "utf-8"
+
+
+def safe_fetch_url(
+    url: str,
+    max_redirects: int = 3,
+    timeout: float = 10.0,
+    max_body_size: int = 5 * 1024 * 1024,
+) -> str:
     """Fetch URL safely: resolves hostname to IP, verifies IP is public/safe against SSRF,
     connects socket directly to the vetted IP (preserving Host header and TLS SNI) to prevent
-    DNS rebinding, and validates redirect hops.
+    DNS rebinding, enforces body size cap while reading, auto-detects charset, and validates redirect hops.
     """
     import ssl
     import http.client
@@ -259,9 +312,13 @@ def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> s
             if parsed.query:
                 path += f"?{parsed.query}"
 
+            # Include port in Host header when non-default
+            is_default_port = (parsed.scheme == "https" and port == 443) or (parsed.scheme == "http" and port == 80)
+            host_header = hostname if is_default_port else f"{hostname}:{port}"
+
             req_msg = (
                 f"GET {path} HTTP/1.1\r\n"
-                f"Host: {hostname}\r\n"
+                f"Host: {host_header}\r\n"
                 f"User-Agent: BolSamajh-DocLoader/1.0\r\n"
                 f"Accept-Encoding: gzip, deflate\r\n"
                 f"Connection: close\r\n\r\n"
@@ -279,18 +336,39 @@ def safe_fetch_url(url: str, max_redirects: int = 3, timeout: float = 10.0) -> s
                 continue
 
             if resp.status < 200 or resp.status >= 400:
-                raise ValueError(f"HTTP error {resp.status} {resp.reason}")
+                raise HTTPFetchError(resp.status, resp.reason)
 
-            body_bytes = resp.read()
+            # Cap response body while reading chunk by chunk to prevent memory exhaustion
+            body_chunks = []
+            total_read = 0
+            chunk_size = 65536
+            while True:
+                chunk = resp.read(chunk_size)
+                if not chunk:
+                    break
+                total_read += len(chunk)
+                if total_read > max_body_size:
+                    raise ValueError(f"Response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                body_chunks.append(chunk)
+            body_bytes = b"".join(body_chunks)
+
             encoding = resp.getheader("content-encoding", "").lower()
             if encoding == "gzip":
                 import gzip
                 body_bytes = gzip.decompress(body_bytes)
+                if len(body_bytes) > max_body_size:
+                    raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
             elif encoding == "deflate":
                 import zlib
                 body_bytes = zlib.decompress(body_bytes)
+                if len(body_bytes) > max_body_size:
+                    raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
 
-            return body_bytes.decode("utf-8", errors="replace")
+            charset = detect_charset(resp.getheader("content-type", ""), body_bytes)
+            try:
+                return body_bytes.decode(charset)
+            except (UnicodeDecodeError, LookupError):
+                return body_bytes.decode("utf-8", errors="replace")
         finally:
             sock.close()
 
@@ -573,6 +651,11 @@ async def load_url_endpoint(req: URLDocRequest):
     """Fetch and index a webpage URL with strict SSRF validation and redirect protection."""
     try:
         html_content = await asyncio.to_thread(safe_fetch_url, req.url)
+    except HTTPFetchError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to fetch URL (HTTP {e.status_code})",
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -932,3 +1015,16 @@ if STATIC_DIR.exists():
     async def serve_index():
         index_file = STATIC_DIR / "index.html"
         return FileResponse(index_file)
+
+
+if __name__ == "__main__":
+    import argparse
+    import uvicorn
+
+    parser = argparse.ArgumentParser(description="BolSamajh Web Server & API Gateway")
+    parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8000, help="Bind port (default: 8000)")
+    args = parser.parse_args()
+
+    check_bind_security(host=args.host)
+    uvicorn.run("bolsamajh.web.server:app", host=args.host, port=args.port)

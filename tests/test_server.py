@@ -109,18 +109,23 @@ def test_bind_security_check(monkeypatch):
 
     monkeypatch.delenv("BOLSAMAJH_API_KEY", raising=False)
 
-    # Binding to 127.0.0.1 without key is allowed
+    # Binding to 127.0.0.1, localhost, or ::1 without key is allowed
     check_bind_security(host="127.0.0.1")
     check_bind_security(host="localhost")
+    check_bind_security(host="::1")
+    check_bind_security(host="[::1]")
 
-    # Binding to 0.0.0.0 without key must raise RuntimeError
-    with pytest.raises(RuntimeError) as exc_info:
-        check_bind_security(host="0.0.0.0")
-    assert "Security Error" in str(exc_info.value)
+    # Binding to 0.0.0.0, ::, or [::] without key must raise RuntimeError
+    for wildcard in ("0.0.0.0", "::", "[::]"):
+        with pytest.raises(RuntimeError) as exc_info:
+            check_bind_security(host=wildcard)
+        assert "Security Error" in str(exc_info.value)
 
-    # Binding to 0.0.0.0 with key set is allowed
+    # Binding to wildcards with key set is allowed
     monkeypatch.setenv("BOLSAMAJH_API_KEY", "prod-key-xyz")
     check_bind_security(host="0.0.0.0")
+    check_bind_security(host="::")
+    check_bind_security(host="[::]")
 
 
 def test_background_task_tracking():
@@ -335,5 +340,163 @@ def test_tts_transliteration_preserves_hinglish():
     dev_text = "नमस्ते"
     guj_result = transliterate.process("Devanagari", "Gujarati", dev_text)
     assert any('\u0A80' <= c <= '\u0AFF' for c in guj_result)
+
+
+def test_safe_fetch_url_oversized_body_rejected(monkeypatch):
+    """Verify safe_fetch_url rejects response bodies exceeding max_body_size."""
+    import io
+    import socket
+    from bolsamajh.web.server import safe_fetch_url
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    class MockLargeSocket:
+        def __init__(self):
+            # Create a 6MB payload (exceeding default 5MB cap)
+            large_body = b"A" * (6 * 1024 * 1024)
+            header = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(large_body)}\r\nConnection: close\r\n\r\n".encode("utf-8")
+            self._response = header + large_body
+
+        def sendall(self, data):
+            pass
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockLargeSocket())
+
+    with pytest.raises(ValueError) as exc:
+        safe_fetch_url("http://example.com/oversized")
+    assert "Response body exceeds maximum allowed size" in str(exc.value)
+
+
+def test_safe_fetch_url_non_utf8_decoding(monkeypatch):
+    """Verify safe_fetch_url decodes non-UTF-8 pages via Content-Type header and <meta charset>."""
+    import io
+    import socket
+    from bolsamajh.web.server import safe_fetch_url
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    class MockCharsetSocket:
+        def __init__(self, raw_bytes):
+            self._response = raw_bytes
+
+        def sendall(self, data):
+            pass
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+
+    # Test 1: Content-Type header with ISO-8859-1
+    iso_body = (
+        b"HTTP/1.1 200 OK\r\n"
+        b"Content-Type: text/html; charset=iso-8859-1\r\n"
+        b"Connection: close\r\n\r\n"
+        b"Caf\xe9 cr\xe8me"
+    )
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockCharsetSocket(iso_body))
+    result1 = safe_fetch_url("http://example.com/iso")
+    assert result1 == "Café crème"
+
+    # Test 2: HTML <meta charset="windows-1252"> in body without Content-Type charset
+    win_body = (
+        b"HTTP/1.1 200 OK\r\n"
+        b"Content-Type: text/html\r\n"
+        b"Connection: close\r\n\r\n"
+        b"<html><head><meta charset=\"windows-1252\"></head><body>Smart \x93quote\x94</body></html>"
+    )
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockCharsetSocket(win_body))
+    result2 = safe_fetch_url("http://example.com/win1252")
+    assert "Smart “quote”" in result2
+
+
+def test_safe_fetch_url_non_default_port_in_host(monkeypatch):
+    """Verify safe_fetch_url includes non-default port in Host header and omits default port."""
+    import io
+    import socket
+    from bolsamajh.web.server import safe_fetch_url
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    captured_requests = []
+
+    class MockCaptureSocket:
+        def __init__(self):
+            self._response = (
+                b"HTTP/1.1 200 OK\r\n"
+                b"Content-Type: text/html\r\n"
+                b"Connection: close\r\n\r\n"
+                b"OK"
+            )
+
+        def sendall(self, data):
+            captured_requests.append(data.decode("utf-8", errors="ignore"))
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockCaptureSocket())
+
+    # Non-default port (8080) -> Host must be example.com:8080
+    safe_fetch_url("http://example.com:8080/test")
+    assert "Host: example.com:8080\r\n" in captured_requests[0]
+
+    # Default port (80) -> Host must be example.com
+    safe_fetch_url("http://example.com:80/test")
+    assert "Host: example.com\r\n" in captured_requests[1]
+
+
+def test_load_url_endpoint_404_error_message(monkeypatch):
+    """Verify upstream 404 is reported as 'Failed to fetch URL (HTTP 404)' and not SSRF error."""
+    import io
+    import socket
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    class Mock404Socket:
+        def __init__(self):
+            self._response = (
+                b"HTTP/1.1 404 Not Found\r\n"
+                b"Content-Type: text/html\r\n"
+                b"Connection: close\r\n\r\n"
+                b"Not Found"
+            )
+
+        def sendall(self, data):
+            pass
+
+        def makefile(self, *args, **kwargs):
+            return io.BytesIO(self._response)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("socket.getaddrinfo", mock_getaddrinfo)
+    monkeypatch.setattr("socket.create_connection", lambda *a, **kw: Mock404Socket())
+
+    resp = client.post("/api/documents/url", json={"url": "http://example.com/missing-page"})
+    assert resp.status_code == 400
+    detail = resp.json().get("detail", "")
+    assert detail == "Failed to fetch URL (HTTP 404)"
+    assert "SSRF" not in detail
+
 
 
