@@ -192,9 +192,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 33.49% <br><sub>[30.56–36.32%]</sub> | 76.77% <br><sub>[73.57–80.08%]</sub> | **49.82% <br><sub>[43.98–55.74%]</sub>** | 20.09% | **2900.4 ms** | **0.39x** |
-| **large-v3-turbo** | `int8_float16` | 26.0% <br><sub>[22.92–29.63%]</sub> | 65.1% <br><sub>[61.32–68.88%]</sub> | **38.59% <br><sub>[32.75–44.65%]</sub>** | 18.21% | **997.0 ms** | **0.131x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | 73.8% <br><sub>[71.22–76.62%]</sub> | 111.48% <br><sub>[108.45–114.53%]</sub> | **52.8% <br><sub>[48.47–57.96%]</sub>** | 29.08% | **386.9 ms** | **0.051x** |
+| **medium** | `int8_float16` | 33.63% <br><sub>[30.66–36.48%]</sub> | 77.65% <br><sub>[74.53–81.0%]</sub> | **50.31% <br><sub>[44.27–56.27%]</sub>** | 20.05% | **1973.5 ms** | **0.287x** |
+| **large-v3-turbo** | `int8_float16` | 25.94% <br><sub>[22.89–29.52%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | 18.2% | **779.2 ms** | **0.101x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | 20.42% | **105.5 ms** | **0.027x** |
 
 ### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
@@ -202,9 +202,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | **63.12%**<br><sub>[57.31–69.53%]</sub> | 65.4% | 56.02% | 78.62% | 65.5% | 44.97% | **1404.8 ms** | **0.267x** |
-| **large-v3-turbo** | `int8_float16` | **56.76%**<br><sub>[50.56–62.89%]</sub> | 64.88% | 46.15% | 68.39% | 58.05% | 37.89% | **517.7 ms** | **0.096x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **36.31%**<br><sub>[31.19–42.32%]</sub> | 22.9% | 34.03% | 68.76% | 28.52% | 30.7% | **213.9 ms** | **0.039x** |
+| **medium** | `int8_float16` | **61.54%**<br><sub>[56.05–67.32%]</sub> | 65.74% | 56.02% | 70.21% | 65.5% | 44.97% | **711.8 ms** | **0.136x** |
+| **large-v3-turbo** | `int8_float16` | **56.03%**<br><sub>[50.14–61.51%]</sub> | 64.88% | 46.15% | 64.72% | 58.05% | 37.89% | **327.9 ms** | **0.061x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **31.02%**<br><sub>[27.46–35.04%]</sub> | 22.9% | 33.32% | 43.01% | 28.52% | 30.7% | **97.7 ms** | **0.018x** |
 
 ### 3. Empirical Hardware & Latency Measurements
 

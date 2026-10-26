@@ -146,8 +146,10 @@ def evaluate_real_speech(
         dur = item.get("duration_sec", len(audio_np) / 16000.0)
         split = item.get("split", "general")
 
-        # Swift model was trained to emit Roman Hinglish when language='en'
+        # Swift model was trained strictly for Roman Hinglish code-switching; drop FLEURS read Hindi and Gujarati
         if model_key == "whisper-hinglish-swift":
+            if "code_switched" not in split:
+                continue
             hint = "en"
         else:
             hint = "gu" if "gujarati" in split else ("hi" if ("hindi" in split or "code_switched" in split) else None)
@@ -180,6 +182,20 @@ def evaluate_real_speech(
 
     all_wers = [c["wer"] for c in all_clips]
 
+    splits_dict = {
+        split: {
+            "count": len(clips),
+            "wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
+            "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
+            "cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
+            "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
+        }
+        for split, clips in splits_data.items()
+    }
+    if model_key == "whisper-hinglish-swift":
+        splits_dict["read_hindi"] = {"count": 0, "wer_pct": "N/A", "note": "Not applicable (Hinglish-only model)"}
+        splits_dict["read_gujarati"] = {"count": 0, "wer_pct": "N/A", "note": "Not applicable (Hinglish-only model)"}
+
     return {
         "total_clips": len(all_clips),
         "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
@@ -187,16 +203,7 @@ def evaluate_real_speech(
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
         "mean_rtf": round(float(np.mean([c["rtf"] for c in all_clips])), 3),
-        "splits": {
-            split: {
-                "count": len(clips),
-                "wer_pct": round(float(np.mean([c["wer"] for c in clips]) * 100), 2),
-                "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
-                "cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
-                "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
-            }
-            for split, clips in splits_data.items()
-        }
+        "splits": splits_dict,
     }
 
 
@@ -378,6 +385,11 @@ def main():
     from scripts.generate_readme_tables import update_readme
     update_readme()
     print("[OK] Updated README.md and benchmark tables from results JSON.")
+
+    # Update worst clips section in BENCHMARK_RESULTS.md
+    from scripts.dump_worst_clips import update_benchmark_results_markdown
+    update_benchmark_results_markdown()
+    print("[OK] Updated worst clips in BENCHMARK_RESULTS.md.")
 
 
 if __name__ == "__main__":

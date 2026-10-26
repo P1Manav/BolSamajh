@@ -67,6 +67,8 @@ def format_real_speech_table(real_results: dict) -> str:
 
         display_name = model_name
         if "swift" in model_name.lower():
+            hi_str = "— *(N/A: Hinglish-only)*"
+            gu_str = "— *(N/A: Hinglish-only)*"
             display_name = f"{model_name} <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>"
 
         lines.append(f"| **{display_name}** | `{prec}` | {hi_str} | {gu_str} | **{cs_str}** | {cer_str} | **{lat_str}** | **{rtf_str}** |")
@@ -260,6 +262,65 @@ def update_readme():
                 raise RuntimeError("Could not find end of benchmark section in README.md")
         else:
             raise RuntimeError("Could not find benchmark heading in README.md")
+
+    # Also update BENCHMARK_RESULTS.md Executive Summary table
+    update_benchmark_results_summary(real_results, synth_results)
+
+
+BENCHMARK_MD_PATH = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
+
+
+def update_benchmark_results_summary(real_results: dict, synth_results: dict):
+    if not BENCHMARK_MD_PATH.exists():
+        return
+
+    content = BENCHMARK_MD_PATH.read_text(encoding="utf-8")
+    meta = {
+        "large-v3-turbo": ("faster-whisper large-v3-turbo", "Whisper Large-v3-turbo CT2", "Apache-2.0"),
+        "medium": ("faster-whisper medium", "Whisper Medium CT2", "MIT"),
+        "whisper-hinglish-swift": ("whisper-hinglish-swift", "Whisper Small Hinglish CT2", "Apache-2.0"),
+    }
+
+    rows = [
+        "| Model | Architecture | License | Real Speech WER (95% CI) | Synthetic Stress WER (95% CI) | Latency (ms) | Real-Time Factor (RTF) |",
+        "| :--- | :--- | :--- | :---: | :---: | :---: | :---: |",
+    ]
+    for key in ["large-v3-turbo", "medium", "whisper-hinglish-swift"]:
+        name, arch, lic = meta[key]
+        r_data = real_results.get(key, {})
+        s_data = synth_results.get(key, {})
+
+        r_wer = r_data.get("mean_wer_pct", "—")
+        r_ci = r_data.get("mean_wer_ci_95")
+        r_str = f"**{r_wer}%**" if r_wer != "—" else "—"
+        if r_ci:
+            r_str += f" [{r_ci[0]}–{r_ci[1]}%]"
+
+        s_wer = s_data.get("mean_wer_pct", "—")
+        s_ci = s_data.get("mean_wer_ci_95")
+        s_str = f"**{s_wer}%**" if s_wer != "—" else "—"
+        if s_ci:
+            s_str += f" [{s_ci[0]}–{s_ci[1]}%]"
+
+        lat = s_data.get("mean_latency_ms", r_data.get("mean_latency_ms", "—"))
+        lat_str = f"{lat} ms" if lat != "—" else "—"
+        if key == "whisper-hinglish-swift":
+            lat_str = f"**{lat_str}**"
+
+        rtf = s_data.get("mean_rtf", r_data.get("mean_rtf", "—"))
+        rtf_str = f"{rtf}x" if rtf != "—" else "—"
+        if key != "medium":
+            rtf_str = f"**{rtf_str}**"
+
+        rows.append(f"| **{name}** | {arch} | {lic} | {r_str} | {s_str} | {lat_str} | {rtf_str} |")
+
+    table_str = "\n".join(rows)
+    pattern = r"## 1\. Executive Summary\s*\n\s*\| Model \|.*?\n(?=\n---|\n##)"
+    replacement = f"## 1. Executive Summary\n\n{table_str}\n"
+    new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+    BENCHMARK_MD_PATH.write_text(new_content, encoding="utf-8")
+    print("[OK] Successfully updated BENCHMARK_RESULTS.md Section 1 Executive Summary.")
+
 
 
 if __name__ == "__main__":
