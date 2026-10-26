@@ -2,6 +2,7 @@
 import pytest
 from bolsamajh.benchmark.normalization import (
     normalize_indic,
+    normalize_numbers,
     to_canonical_script,
     compute_normalized_wer_cer,
 )
@@ -153,4 +154,59 @@ def test_no_fused_decimals_in_per_clip_results():
                     })
 
     assert not fused_violations, f"Found {len(fused_violations)} fused decimal references: {fused_violations[:5]}"
+
+
+def test_phase3_strict_number_grammar_and_idempotence():
+    """Phase 3 requirements:
+    - 'nau do gyarah' (unchanged)
+    - 'so do sau' (unchanged or only the valid sub-run)
+    - 'do sau' -> 200
+    - 'teen lakh' -> 300000
+    - 'ek sau pachaas' -> 150
+    - 'I do so like it' (unchanged)
+    - Property-style test that normalization is idempotent
+    """
+    assert normalize_numbers("nau do gyarah") == "nau do gyarah"
+    assert normalize_numbers("so do sau") in ("so do sau", "so 200")
+    assert normalize_numbers("do sau") == "200"
+    assert normalize_numbers("teen lakh") == "300000"
+    assert normalize_numbers("ek sau pachaas") == "150"
+    assert normalize_numbers("I do so like it") == "I do so like it"
+
+    # Also verify via full canonical pipeline
+    assert to_canonical_script("nau do gyarah") == "nau do gyarah"
+    assert to_canonical_script("so do sau") in ("so do sau", "so 200")
+    assert to_canonical_script("do sau") == "200"
+    assert to_canonical_script("teen lakh") == "300000"
+    assert to_canonical_script("ek sau pachaas") == "150"
+    assert to_canonical_script("I do so like it") == "i do so like it"
+
+    # Property-style idempotence test across representative phrases
+    corpus = [
+        "nau do gyarah",
+        "so do sau",
+        "do sau",
+        "teen lakh",
+        "ek sau pachaas",
+        "I do so like it",
+        "Total 3.5 crore rupees in account 9876543210 at Rs. 150 per unit.",
+        "Flight 15th August ko subah 6:30 baje depart hogi",
+        "Petrol rate kal se ₹1.50 per litre increase ho gaya hai.",
+        "mujhe do teen din chahiye",
+        "yeh sat ek baje",
+        "ath sat",
+        "ek so pachas",
+        "one hundred fifty",
+        "पचास",
+        "एक लाख",
+    ]
+    for text in corpus:
+        norm1 = normalize_numbers(text)
+        norm2 = normalize_numbers(norm1)
+        assert norm1 == norm2, f"normalize_numbers is not idempotent on {text!r}: {norm1!r} != {norm2!r}"
+
+        canon1 = to_canonical_script(text)
+        canon2 = to_canonical_script(canon1)
+        assert canon1 == canon2, f"to_canonical_script is not idempotent on {text!r}: {canon1!r} != {canon2!r}"
+
 

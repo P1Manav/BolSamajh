@@ -34,7 +34,7 @@ To maintain absolute credibility for judges and users, here is a transparent bre
 | Feature / Component | Status | What Works | What Does Not / Known Limitations |
 | :--- | :---: | :--- | :--- |
 | **Multilingual STT Benchmarks** | **Verified** | <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> benchmark clips evaluated on RTX 3060 Ti GPU today; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at <!-- NUM:hw.stt_real_median_latency_ms -->510.1<!-- /NUM --> ms median (p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms, <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
-| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.89%<!-- /NUM --> on FLEURS). |
+| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.98%<!-- /NUM --> on FLEURS). |
 | **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
 | **In-Place Voice Editing** | **Implemented, untested on hardware** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Physical hotkey and OS clipboard automation untested on this machine today; preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
 | **Voice Barge-In Interruption** | **Implemented, untested on hardware** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Untested on hardware speakers/headphones (no live 10-minute playback measurement on this machine); laptop built-in speakers at maximum volume can cause echo false-positives without headphones. |
@@ -51,13 +51,13 @@ Hold `Alt+Shift+Space` in **any** Windows application (Notepad, VS Code, Slack, 
 - **Intelligent Text Cleanup:** Strips disfluencies (*umm*, *uhh*, *hmm*, *ahh*) without deleting valid colloquial words (`like`, `actually`, `matlab`, `accha`).
 - **Format Standardization:** Normalizes Indian currency (₹), percentages, dates, and phone numbers.
 - **Script Flexibility:** Choose Natural (as spoken), clean Roman Latin, or Devanagari from the system tray menu.
-- **Measured Latency:** ~<!-- NUM:hw.stt_synth_median_latency_ms -->703.0<!-- /NUM --> ms median per-sentence inference on an RTX 3060 Ti GPU (p95: <!-- NUM:hw.stt_synth_p95_latency_ms -->801.0<!-- /NUM --> ms, Real-Time Factor <!-- NUM:hw.stt_synth_rtf -->0.184<!-- /NUM -->x) with large-v3-turbo.
+- **Measured Latency:** ~<!-- NUM:hw.stt_synth_median_latency_ms -->461.7<!-- /NUM --> ms median per-sentence inference on an RTX 3060 Ti GPU (p95: <!-- NUM:hw.stt_synth_p95_latency_ms -->562.9<!-- /NUM --> ms, Real-Time Factor <!-- NUM:hw.stt_synth_rtf -->0.121<!-- /NUM -->x) with large-v3-turbo.
 
 ### 2. 📄 Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask)
 Load any PDF (including scanned PDFs with local OCR fallback), Word document (`.docx`), text/markdown file, or web URL. Hold `Alt+Shift+A` and ask voice questions in conversational Hinglish.
 - **Long-Context Multilingual RAG:** Powered by `intfloat/multilingual-e5-base` (512 token context limit, cross-page chunk merging) and local FAISS vector search (measured <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms mean retrieval latency, <!-- NUM:rag.hit_at_3 -->98.0%<!-- /NUM --> Hit@3 on Google XQuAD Hindi).
 - **Strict Grounding with Document Citations:** Answers only from verified source passages; cites exact page numbers for PDFs (*"Page 4 ke according..."*) and section headings for web/docx.
-- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with measured <!-- NUM:hw.tts_first_packet_ms -->798.7<!-- /NUM --> ms Edge-TTS first-packet latency (~<!-- NUM:hw.total_ttfa_ms -->1901.3<!-- /NUM --> ms end-to-end TTFA from question end to audio play). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
+- **Sentence-Streaming Audio with Voice Barge-In:** Streams LLM output sentence-by-sentence into TTS with measured <!-- NUM:hw.tts_first_packet_ms -->732.7<!-- /NUM --> ms Edge-TTS first-packet latency (~<!-- NUM:hw.total_ttfa_ms -->1592.6<!-- /NUM --> ms end-to-end TTFA from question end to audio play). User can interrupt anytime via voice barge-in (Silero VAD) or `Escape`.
 - **Multi-Turn Memory:** Supports conversational follow-ups (*"ruko, yeh dobara samjhao"*).
 
 ### 3. ⚡ In-App Voice Commands on Selection (`Alt+Shift+C`)
@@ -193,9 +193,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | FLEURS Hindi (100 clips) | FLEURS Gujarati (100 clips) | HiACC Hinglish (100 clips, comparable across all 3) | All Real Speech (300 clips) | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 33.78% <br><sub>[30.77–36.72%]</sub> | 77.43% <br><sub>[74.3–80.72%]</sub> | **50.2% <br><sub>[44.26–56.14%]</sub>** | 53.8% <br><sub>[50.81–56.88%]</sub> | **1529.9 ms** | **0.195x** |
-| **large-v3-turbo** | `int8_float16` | 25.89% <br><sub>[22.85–29.49%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | **43.47% <br><sub>[40.4–46.66%]</sub>** | **575.5 ms** | **0.08x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | — *(N/A: Hinglish-only)* | **100.6 ms** | **0.026x** |
+| **medium** | `int8_float16` | 33.59% <br><sub>[30.61–36.4%]</sub> | 77.6% <br><sub>[74.49–80.91%]</sub> | **50.73% <br><sub>[44.89–56.69%]</sub>** | 53.97% <br><sub>[51.01–56.98%]</sub> | **1370.9 ms** | **0.176x** |
+| **large-v3-turbo** | `int8_float16` | 25.98% <br><sub>[22.91–29.55%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | **43.5% <br><sub>[40.42–46.69%]</sub>** | **573.0 ms** | **0.079x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | — *(N/A: Hinglish-only)* | **100.0 ms** | **0.026x** |
 
 > **Recommended Default Engine:**  
 > **`large-v3-turbo` is the recommended default model.** On the directly comparable 100-clip conversational Hinglish split (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20%, +11.68% margin) and `whisper-hinglish-swift` (52.70%, +14.18% margin). Across the full 300-clip real-world evaluation, `large-v3-turbo` achieves **43.47% WER** with multilingual Hindi/Gujarati coverage at 316.7 ms latency (0.059x RTF, over 16x faster than realtime).
@@ -206,9 +206,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | **61.87%**<br><sub>[56.07–67.98%]</sub> | 65.74% | 56.02% | 71.88% | 65.5% | 44.97% | **660.6 ms** | **0.126x** |
-| **large-v3-turbo** | `int8_float16` | **56.03%**<br><sub>[50.14–61.51%]</sub> | 64.88% | 46.15% | 64.72% | 58.05% | 37.89% | **316.7 ms** | **0.059x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **31.39%**<br><sub>[27.89–35.14%]</sub> | 22.9% | 33.32% | 44.88% | 28.52% | 30.7% | **93.8 ms** | **0.017x** |
+| **medium** | `int8_float16` | **61.01%**<br><sub>[55.65–66.85%]</sub> | 65.74% | 56.02% | 70.77% | 65.5% | 40.73% | **630.9 ms** | **0.12x** |
+| **large-v3-turbo** | `int8_float16` | **55.93%**<br><sub>[50.03–61.46%]</sub> | 64.88% | 46.15% | 64.22% | 58.05% | 37.89% | **310.7 ms** | **0.058x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **31.39%**<br><sub>[27.89–35.14%]</sub> | 22.9% | 33.32% | 44.88% | 28.52% | 30.7% | **93.6 ms** | **0.017x** |
 
 ### 3. Empirical Hardware & Latency Measurements
 
@@ -216,13 +216,13 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Pipeline Component | Metric | Measured Value | Target / Baseline | Status |
 | :--- | :--- | :---: | :---: | :---: |
-| **STT Latency (Synthetic Audio)** | 3 runs (3.82s audio, CUDA `int8_float16`) | **703.0 ms** (p95: **801.0 ms**) | < 1,000 ms | **Passed** |
-| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.184x** | < 0.25x (4x realtime) | **Passed** |
+| **STT Latency (Synthetic Audio)** | 3 runs (3.82s audio, CUDA `int8_float16`) | **461.7 ms** (p95: **562.9 ms**) | < 1,000 ms | **Passed** |
+| **STT Real-Time Factor (Synthetic)** | Latency / duration ratio | **0.121x** | < 0.25x (4x realtime) | **Passed** |
 | **STT Latency (Real Speech)** | Median over 300 real speech clips (`cuda` `int8_float16`) | **510.1 ms** (p95: **1301.6 ms**) (RTF **0.061x**) | < 2,000 ms | **Passed** |
-| **GPU VRAM Overhead** | STT Model Allocation Delta | **1140.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
-| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **49.62 ms** | < 50 ms | **Passed** |
-| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **798.7 ms** | < 1,000 ms | **Passed** |
-| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **1901.3 ms** | < 2,000 ms | **Passed** |
+| **GPU VRAM Overhead** | STT Model Allocation Delta | **1192.0 MB** | < 2,048 MB (Fits 8GB) | **Passed** |
+| **Vector Retrieval Latency** | E5 Base (`multilingual-e5-base`) 20 chunks | **48.23 ms** | < 50 ms | **Passed** |
+| **Edge-TTS First-Packet Latency** | Time to first audio packet from speech service | **732.7 ms** | < 1,000 ms | **Passed** |
+| **Doc-QA True End-to-End TTFA** | Question end → first audio sample played | **1592.6 ms** | < 2,000 ms | **Passed** |
 
 > **Empirical Latency Notes:**
 > Measured across 3 runs with warmup (excluded). Host GPU state was recorded via nvidia-smi with background processes logged.

@@ -158,21 +158,26 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
     peak_used_vram = current_smi["used_vram_mb"]
     model_allocated_vram = max(0.0, peak_used_vram - baseline_vram)
 
-    # 1. Warm-up run (excluded from latency metrics)
-    print("    Running STT warm-up...")
-    _ = list(model.transcribe(audio, beam_size=5, vad_filter=True)[0])
+    lang_hint = "en" if "swift" in model_size.lower() else "hi"
 
-    # 2. Timed runs (3 separate runs, each measuring 5 iterations)
+    from bolsamajh.benchmark.timing import (
+        time_single_transcription,
+        benchmark_multi_length_clips,
+    )
+
+    # 1. Warm-up runs (2 runs, excluded from latency metrics)
+    print("    Running 2 STT warm-up runs...")
+    for _ in range(2):
+        _ = time_single_transcription(model, audio, lang_hint=lang_hint)
+
+    # 2. Timed runs (3 separate runs of 7 iterations each, 21 total >= 20)
     runs_data = []
     all_latencies = []
-    print("    Executing 3 measurement runs (5 iterations per run)...")
+    print("    Executing 3 measurement runs (7 iterations per run, 21 total)...")
     for run_idx in range(1, 4):
         run_lats = []
-        for _ in range(5):
-            t_start = time.perf_counter()
-            _ = list(model.transcribe(audio, beam_size=5, vad_filter=True)[0])
-            t_end = time.perf_counter()
-            lat_ms = (t_end - t_start) * 1000.0
+        for _ in range(7):
+            _, lat_ms = time_single_transcription(model, audio, lang_hint=lang_hint)
             run_lats.append(lat_ms)
             all_latencies.append(lat_ms)
 
@@ -193,7 +198,21 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
     overall_min = round(float(np.min(all_latencies)), 1)
     rtf = round(overall_median / (duration * 1000.0), 3)
 
-    # 3. Real speech empirical measurement across all evaluated real clips in per_clip_results.jsonl
+    # 3. Multi-length clip empirical benchmark (4s, 9s, 15s) with 20 timed runs each
+    print("    Benchmarking multi-length clips (4s, 9s, 15s) with >= 20 timed runs...")
+    multi_len_benchmark = benchmark_multi_length_clips(
+        model=model,
+        model_name=model_size,
+        device=actual_device,
+        compute_type=compute_type if actual_device == "cuda" else "int8",
+        gpu_name=smi_details["gpu_name"],
+        warmup_runs=2,
+        timed_runs=20,
+    )
+    for c_label, c_data in multi_len_benchmark["clips"].items():
+        print(f"      Clip {c_label} ({c_data['duration_sec']}s): median={c_data['median_latency_ms']} ms, p95={c_data['p95_latency_ms']} ms, RTF={c_data['rtf']}x")
+
+    # 4. Real speech empirical measurement across all evaluated real clips in per_clip_results.jsonl
     per_clip_path = ROOT_DIR / "benchmark_data" / "per_clip_results.jsonl"
     real_speech_metrics = {}
     if per_clip_path.exists():
@@ -241,6 +260,8 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
         "model_load_time_sec": round(load_time, 3),
         "test_clip_duration_sec": round(duration, 2),
         "warmup_excluded": True,
+        "warmup_runs_count": 2,
+        "timed_runs_count": len(all_latencies),
         "runs": runs_data,
         "latency_ms": {
             "mean": overall_mean,
@@ -249,6 +270,9 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
             "p95": overall_p95,
         },
         "real_time_factor_rtf": rtf,
+        "multi_length_clips": multi_len_benchmark["clips"],
+        "nvidia_smi_snapshot_before": multi_len_benchmark["nvidia_smi_before"],
+        "nvidia_smi_snapshot_after": multi_len_benchmark["nvidia_smi_after"],
         "other_gpu_processes_present": smi_details["other_gpu_processes_present"],
         "nvidia_smi_output": smi_details["nvidia_smi_output"],
         "vram_mb": {

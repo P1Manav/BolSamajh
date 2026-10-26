@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-26 14:07:45",
+  "timestamp": "2026-10-26 18:33:46",
   "gpu_specs": {
     "cuda_available": true,
     "device_name": "NVIDIA GeForce RTX 3060 Ti",
@@ -7,7 +7,7 @@
     "torch_version": "2.14.1+cpu",
     "cuda_version": "Direct CTranslate2 CUDA / cuBLAS",
     "other_gpu_processes_present": true,
-    "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   56C    P8             17W /  240W |    1478MiB /   8192MiB |     16%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+"
+    "nvidia_smi_output": "Mon Oct 26 18:26:48 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   60C    P5             23W /  240W |    1435MiB /   8192MiB |     38%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+"
   },
   "models": {
     "large-v3-turbo": {
@@ -15,42 +15,156 @@
       "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
       "device_used": "cuda",
       "compute_type": "int8_float16",
-      "model_load_time_sec": 6.096,
+      "model_load_time_sec": 6.849,
       "test_clip_duration_sec": 3.82,
       "warmup_excluded": true,
+      "warmup_runs_count": 2,
+      "timed_runs_count": 21,
       "runs": [
         {
           "run_index": 1,
-          "mean_latency_ms": 703.4,
-          "median_latency_ms": 706.6,
-          "p95_latency_ms": 709.5
+          "mean_latency_ms": 489.7,
+          "median_latency_ms": 459.4,
+          "p95_latency_ms": 568.0
         },
         {
           "run_index": 2,
-          "mean_latency_ms": 760.9,
-          "median_latency_ms": 701.9,
-          "p95_latency_ms": 945.7
+          "mean_latency_ms": 473.3,
+          "median_latency_ms": 469.4,
+          "p95_latency_ms": 502.6
         },
         {
           "run_index": 3,
-          "mean_latency_ms": 699.6,
-          "median_latency_ms": 702.6,
-          "p95_latency_ms": 712.2
+          "mean_latency_ms": 464.6,
+          "median_latency_ms": 461.7,
+          "p95_latency_ms": 480.5
         }
       ],
       "latency_ms": {
-        "mean": 721.3,
-        "median": 703.0,
-        "min": 684.6,
-        "p95": 801.0
+        "mean": 475.9,
+        "median": 461.7,
+        "min": 446.8,
+        "p95": 562.9
       },
-      "real_time_factor_rtf": 0.184,
+      "real_time_factor_rtf": 0.121,
+      "multi_length_clips": {
+        "4s": {
+          "relative_path": "benchmark_data/audio/sentence_001.wav",
+          "language_hint": "hi",
+          "duration_sec": 3.82,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            463.7,
+            464.4,
+            446.8,
+            439.8,
+            497.7,
+            470.9,
+            456.2,
+            489.5,
+            449.6,
+            448.9,
+            454.9,
+            456.4,
+            456.4,
+            444.2,
+            475.6,
+            446.3,
+            461.9,
+            463.1,
+            466.3,
+            440.4
+          ],
+          "mean_latency_ms": 459.6,
+          "median_latency_ms": 456.4,
+          "p95_latency_ms": 489.9,
+          "min_latency_ms": 439.8,
+          "max_latency_ms": 497.7,
+          "rtf": 0.1196,
+          "sample_hypothesis": "\u092f\u093e\u0930 \u0915\u0932 \u092e\u0940\u091f\u093f\u0902\u0917 \u0915\u093f\u0924\u0928\u0947 \u092c\u091c\u0947 \u0936\u0947\u0921\u094d\u092f\u0942\u0932 \u0915\u0940 \u0939\u0948?"
+        },
+        "9s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_068.wav",
+          "language_hint": "hi",
+          "duration_sec": 8.88,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            825.5,
+            851.0,
+            825.5,
+            807.4,
+            829.7,
+            834.4,
+            835.0,
+            806.3,
+            817.8,
+            782.3,
+            802.1,
+            830.7,
+            829.7,
+            796.9,
+            817.0,
+            862.4,
+            782.6,
+            818.7,
+            754.5,
+            806.5
+          ],
+          "mean_latency_ms": 815.8,
+          "median_latency_ms": 818.2,
+          "p95_latency_ms": 851.6,
+          "min_latency_ms": 754.5,
+          "max_latency_ms": 862.4,
+          "rtf": 0.0921,
+          "sample_hypothesis": "\u0915\u0908 \u0938\u093e\u092e\u093e\u0928 \u092a\u094d\u0930\u093e\u0930\u0942\u092b \u0909\u0927\u093e\u0930\u0928 \u0915\u0947 \u0932\u093f\u090f \u092a\u094d\u0930\u093e\u0930\u0942\u092b \u0915\u093e APS \u092a\u0930\u093f\u0935\u093e\u0930 \u0907\u0938 \u0905\u092d\u0940 \u092e\u0941\u0915\u0924\u093e \u0905\u0928\u0941\u092a\u093e\u0924 \u0915\u094b \u0932\u0917\u092d\u0917 \u092c\u0930\u093e\u092c\u0930 \u092f\u093e \u0909\u0938\u0915\u0947 \u0906\u0938\u092a\u093e\u0938 \u0939\u0948"
+        },
+        "15s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_026.wav",
+          "language_hint": "hi",
+          "duration_sec": 14.52,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            780.3,
+            771.2,
+            770.5,
+            778.5,
+            759.2,
+            778.3,
+            792.8,
+            788.1,
+            776.9,
+            817.4,
+            769.3,
+            747.8,
+            827.5,
+            745.0,
+            788.2,
+            796.8,
+            771.4,
+            788.7,
+            779.9,
+            764.0
+          ],
+          "mean_latency_ms": 779.6,
+          "median_latency_ms": 778.4,
+          "p95_latency_ms": 817.9,
+          "min_latency_ms": 745.0,
+          "max_latency_ms": 827.5,
+          "rtf": 0.0536,
+          "sample_hypothesis": "\u0939\u091c\u093e\u0930\u094b\u0902 \u0938\u093e\u0932 \u092a\u0939\u0932\u0947 \u092f\u0947 \u0930\u093f\u0937\u094d\u091f\u0930 \u091a\u0930\u094d\u0936 \u0928\u093e\u092e\u0915 \u090f\u0915 \u092c\u094d\u092f\u0915\u094d\u0924\u093f \u0928\u0947 \u0915\u0939\u093e \u0925\u093e \u0915\u093f \u0907\u0938 \u0938\u094b\u0930 \u092e\u0902\u0921\u0932 \u0938\u0942\u0930\u094d\u092f \u0915\u0947 \u091a\u093e\u0930\u094b\u0902 \u0914\u0930 \u0917\u0941\u092e\u0924\u093e \u0939\u0948"
+        }
+      },
+      "nvidia_smi_snapshot_before": "Mon Oct 26 18:27:07 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 67%   71C    P2            129W /  240W |    2675MiB /   8192MiB |     44%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_snapshot_after": "Mon Oct 26 18:27:52 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 75%   65C    P2            117W /  240W |    2627MiB /   8192MiB |     91%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "other_gpu_processes_present": true,
-      "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   55C    P8             17W /  240W |    1478MiB /   8192MiB |     13%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_output": "Mon Oct 26 18:26:48 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   60C    P5             23W /  240W |    1435MiB /   8192MiB |     38%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "vram_mb": {
-        "baseline_system_used": 1478.0,
-        "model_allocated_delta": 1140.0,
-        "peak_total_used": 2618.0
+        "baseline_system_used": 1435.0,
+        "model_allocated_delta": 1192.0,
+        "peak_total_used": 2627.0
       },
       "real_speech_comparison": {
         "clip_count": 300,
@@ -69,42 +183,156 @@
       "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
       "device_used": "cuda",
       "compute_type": "int8_float16",
-      "model_load_time_sec": 5.867,
+      "model_load_time_sec": 4.832,
       "test_clip_duration_sec": 3.82,
       "warmup_excluded": true,
+      "warmup_runs_count": 2,
+      "timed_runs_count": 21,
       "runs": [
         {
           "run_index": 1,
-          "mean_latency_ms": 1480.4,
-          "median_latency_ms": 1428.4,
-          "p95_latency_ms": 1603.3
+          "mean_latency_ms": 1128.1,
+          "median_latency_ms": 1134.5,
+          "p95_latency_ms": 1170.5
         },
         {
           "run_index": 2,
-          "mean_latency_ms": 1531.8,
-          "median_latency_ms": 1454.4,
-          "p95_latency_ms": 1684.3
+          "mean_latency_ms": 1151.1,
+          "median_latency_ms": 1142.1,
+          "p95_latency_ms": 1204.9
         },
         {
           "run_index": 3,
-          "mean_latency_ms": 1187.0,
-          "median_latency_ms": 1196.0,
-          "p95_latency_ms": 1204.3
+          "mean_latency_ms": 1172.7,
+          "median_latency_ms": 1178.8,
+          "p95_latency_ms": 1200.5
         }
       ],
       "latency_ms": {
-        "mean": 1399.7,
-        "median": 1428.4,
-        "min": 1154.5,
-        "p95": 1650.6
+        "mean": 1150.6,
+        "median": 1147.9,
+        "min": 1086.0,
+        "p95": 1204.4
       },
-      "real_time_factor_rtf": 0.374,
+      "real_time_factor_rtf": 0.301,
+      "multi_length_clips": {
+        "4s": {
+          "relative_path": "benchmark_data/audio/sentence_001.wav",
+          "language_hint": "hi",
+          "duration_sec": 3.82,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            1169.9,
+            1087.7,
+            1124.6,
+            1094.1,
+            1053.2,
+            1070.1,
+            1029.5,
+            1059.6,
+            1045.8,
+            1096.8,
+            1107.5,
+            988.4,
+            1067.5,
+            1086.3,
+            1034.1,
+            1041.1,
+            1104.4,
+            1064.0,
+            1007.8,
+            1027.2
+          ],
+          "mean_latency_ms": 1068.0,
+          "median_latency_ms": 1065.8,
+          "p95_latency_ms": 1126.9,
+          "min_latency_ms": 988.4,
+          "max_latency_ms": 1169.9,
+          "rtf": 0.2793,
+          "sample_hypothesis": "\u092f\u093e\u0930 \u0915\u0932 \u092e\u0940\u091f\u093f\u0902\u0917 \u0915\u093f\u0924\u0928\u0947 \u092c\u091c\u0947 \u0936\u0947\u0921\u0942\u0932 \u0915\u0940 \u0939\u0948\u0902?"
+        },
+        "9s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_068.wav",
+          "language_hint": "hi",
+          "duration_sec": 8.88,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            6957.1,
+            22938.9,
+            11174.0,
+            19187.7,
+            11198.5,
+            18396.2,
+            10514.3,
+            18858.2,
+            6710.0,
+            10610.1,
+            6786.8,
+            10728.7,
+            6702.5,
+            14273.6,
+            3226.0,
+            4983.5,
+            5076.3,
+            3667.2,
+            3729.6,
+            3530.5
+          ],
+          "mean_latency_ms": 9962.5,
+          "median_latency_ms": 8735.7,
+          "p95_latency_ms": 19375.2,
+          "min_latency_ms": 3226.0,
+          "max_latency_ms": 22938.9,
+          "rtf": 0.9838,
+          "sample_hypothesis": "\u0915\u0908 \u0938\u093e\u092e\u093e\u0928\u0947 \u092a\u094d\u0930\u093e\u0930\u0942\u092a \u0909\u0926\u0939\u0930\u0928 \u0915\u0947 \u0932\u093f\u090f \u092a\u094d\u0930\u093e\u0930\u0942\u092a \u0915\u093e APS \u092a\u0930\u093f\u0935\u093e\u0930 \u0907\u0938 \u0905\u092d\u0940\u092e\u0941\u0915\u0924\u093e \u0905\u0928\u0941\u092a\u093e\u0924 \u0915\u094b \u0932\u0917\u092d\u092d\u0930\u093e\u092c\u0930 \u092f\u093e \u0909\u0938\u0915\u0947 \u0906\u0938\u092a\u093e\u0938 \u0939\u0948"
+        },
+        "15s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_026.wav",
+          "language_hint": "hi",
+          "duration_sec": 14.52,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            1115.8,
+            1056.9,
+            1016.4,
+            1031.3,
+            1100.0,
+            1076.3,
+            1350.8,
+            1084.5,
+            1116.2,
+            1746.0,
+            1092.9,
+            1093.6,
+            1245.7,
+            1154.1,
+            1078.4,
+            1075.1,
+            1060.7,
+            1045.0,
+            1141.1,
+            1076.5
+          ],
+          "mean_latency_ms": 1137.9,
+          "median_latency_ms": 1088.7,
+          "p95_latency_ms": 1370.6,
+          "min_latency_ms": 1016.4,
+          "max_latency_ms": 1746.0,
+          "rtf": 0.075,
+          "sample_hypothesis": "\u0939\u091c\u093e\u0930\u094b \u0938\u093e\u0932 \u092a\u0939\u0932\u0947 \u090f\u0930\u093f\u0938\u094d\u0924\u0930\u094d\u091a\u094d\u092f\u0930\u094d\u0936 \u0928\u093e\u092e\u0915 \u090f\u0915 \u0935\u093f\u0930\u094d\u0924\u093f\u0928\u0947 \u0915\u0939\u093e \u0925\u093e  \u0915\u093f \u0907\u0938 \u0938\u094b\u0930 \u092e\u0902\u0921\u0932 \u0938\u0941\u0930\u094d\u092f \u0915\u0947 \u091a\u093e\u0930\u094b \u0935\u0930\u094d\u0917\u0941\u092e\u0924\u093e \u0939\u0948"
+        }
+      },
+      "nvidia_smi_snapshot_before": "Mon Oct 26 18:28:24 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 70%   59C    P2             93W /  240W |    2611MiB /   8192MiB |     37%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_snapshot_after": "Mon Oct 26 18:33:02 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 65%   64C    P2            117W /  240W |    2593MiB /   8192MiB |     60%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23828    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "other_gpu_processes_present": true,
-      "nvidia_smi_output": "Mon Oct 26 14:06:53 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 63%   68C    P2            133W /  240W |    1611MiB /   8192MiB |     40%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           27868      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_output": "Mon Oct 26 18:27:53 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 75%   62C    P2            107W /  240W |    1539MiB /   8192MiB |     31%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "vram_mb": {
-        "baseline_system_used": 1611.0,
-        "model_allocated_delta": 960.0,
-        "peak_total_used": 2571.0
+        "baseline_system_used": 1539.0,
+        "model_allocated_delta": 983.0,
+        "peak_total_used": 2522.0
       },
       "real_speech_comparison": {
         "clip_count": 300,
@@ -123,42 +351,156 @@
       "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
       "device_used": "cuda",
       "compute_type": "int8_float16",
-      "model_load_time_sec": 0.677,
+      "model_load_time_sec": 0.515,
       "test_clip_duration_sec": 3.82,
       "warmup_excluded": true,
+      "warmup_runs_count": 2,
+      "timed_runs_count": 21,
       "runs": [
         {
           "run_index": 1,
-          "mean_latency_ms": 190.6,
-          "median_latency_ms": 191.1,
-          "p95_latency_ms": 199.7
+          "mean_latency_ms": 76.1,
+          "median_latency_ms": 75.3,
+          "p95_latency_ms": 82.8
         },
         {
           "run_index": 2,
-          "mean_latency_ms": 179.3,
-          "median_latency_ms": 176.9,
-          "p95_latency_ms": 188.9
+          "mean_latency_ms": 76.2,
+          "median_latency_ms": 74.8,
+          "p95_latency_ms": 82.8
         },
         {
           "run_index": 3,
-          "mean_latency_ms": 182.7,
-          "median_latency_ms": 183.5,
-          "p95_latency_ms": 185.9
+          "mean_latency_ms": 72.9,
+          "median_latency_ms": 71.9,
+          "p95_latency_ms": 76.4
         }
       ],
       "latency_ms": {
-        "mean": 184.2,
-        "median": 183.5,
-        "min": 173.1,
-        "p95": 199.1
+        "mean": 75.1,
+        "median": 74.7,
+        "min": 70.1,
+        "p95": 84.1
       },
-      "real_time_factor_rtf": 0.048,
+      "real_time_factor_rtf": 0.02,
+      "multi_length_clips": {
+        "4s": {
+          "relative_path": "benchmark_data/audio/sentence_001.wav",
+          "language_hint": "en",
+          "duration_sec": 3.82,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            70.5,
+            73.6,
+            81.0,
+            72.5,
+            71.2,
+            72.8,
+            85.5,
+            69.9,
+            68.7,
+            71.6,
+            77.2,
+            112.5,
+            84.4,
+            76.5,
+            72.8,
+            87.0,
+            75.3,
+            73.7,
+            72.8,
+            70.3
+          ],
+          "mean_latency_ms": 77.0,
+          "median_latency_ms": 73.2,
+          "p95_latency_ms": 88.3,
+          "min_latency_ms": 68.7,
+          "max_latency_ms": 112.5,
+          "rtf": 0.0192,
+          "sample_hypothesis": "Yaar kal meeting kitne baje schedule ki hai?"
+        },
+        "9s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_068.wav",
+          "language_hint": "en",
+          "duration_sec": 8.88,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            190.0,
+            173.1,
+            169.8,
+            205.2,
+            187.1,
+            218.6,
+            214.2,
+            190.7,
+            211.0,
+            180.6,
+            180.6,
+            218.5,
+            180.3,
+            208.5,
+            197.4,
+            196.1,
+            193.3,
+            213.4,
+            199.2,
+            181.4
+          ],
+          "mean_latency_ms": 195.5,
+          "median_latency_ms": 194.7,
+          "p95_latency_ms": 218.5,
+          "min_latency_ms": 169.8,
+          "max_latency_ms": 218.6,
+          "rtf": 0.0219,
+          "sample_hypothesis": "Kai saamaany praaroop udaahran ke lie praaroop ka APS parivaar is abhimukt anupaat ko lagabhag baraabar ya uske aaspaas hai."
+        },
+        "15s": {
+          "relative_path": "benchmark_data/real_speech/fleurs_hi_in_026.wav",
+          "language_hint": "en",
+          "duration_sec": 14.52,
+          "timed_runs_count": 20,
+          "warmup_runs_count": 2,
+          "per_run_latencies_ms": [
+            210.3,
+            166.7,
+            162.8,
+            167.1,
+            163.6,
+            167.0,
+            164.1,
+            207.4,
+            251.7,
+            212.2,
+            176.7,
+            186.4,
+            167.8,
+            170.5,
+            165.0,
+            178.1,
+            161.7,
+            168.2,
+            171.7,
+            163.4
+          ],
+          "mean_latency_ms": 179.1,
+          "median_latency_ms": 168.0,
+          "p95_latency_ms": 214.2,
+          "min_latency_ms": 161.7,
+          "max_latency_ms": 251.7,
+          "rtf": 0.0116,
+          "sample_hypothesis": "Hazaaron saal pahle ehristacharsanaamak ek vyakti ne kaha tha ki is sau mandal soory ke chaaron aur ghoomta hai."
+        }
+      },
+      "nvidia_smi_snapshot_before": "Mon Oct 26 18:33:05 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 65%   63C    P2             97W /  240W |    1696MiB /   8192MiB |     49%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23828    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_snapshot_after": "Mon Oct 26 18:33:15 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 65%   61C    P2             91W /  240W |    1717MiB /   8192MiB |     51%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23828    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "other_gpu_processes_present": true,
-      "nvidia_smi_output": "Mon Oct 26 14:07:22 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 71%   61C    P2            102W /  240W |    1611MiB /   8192MiB |     31%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           27868      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+      "nvidia_smi_output": "Mon Oct 26 18:33:02 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 65%   64C    P2            117W /  240W |    1569MiB /   8192MiB |     60%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23828    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
       "vram_mb": {
-        "baseline_system_used": 1611.0,
-        "model_allocated_delta": 96.0,
-        "peak_total_used": 1707.0
+        "baseline_system_used": 1569.0,
+        "model_allocated_delta": 81.0,
+        "peak_total_used": 1650.0
       },
       "real_speech_comparison": {
         "clip_count": 100,
@@ -178,42 +520,156 @@
     "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
     "device_used": "cuda",
     "compute_type": "int8_float16",
-    "model_load_time_sec": 6.096,
+    "model_load_time_sec": 6.849,
     "test_clip_duration_sec": 3.82,
     "warmup_excluded": true,
+    "warmup_runs_count": 2,
+    "timed_runs_count": 21,
     "runs": [
       {
         "run_index": 1,
-        "mean_latency_ms": 703.4,
-        "median_latency_ms": 706.6,
-        "p95_latency_ms": 709.5
+        "mean_latency_ms": 489.7,
+        "median_latency_ms": 459.4,
+        "p95_latency_ms": 568.0
       },
       {
         "run_index": 2,
-        "mean_latency_ms": 760.9,
-        "median_latency_ms": 701.9,
-        "p95_latency_ms": 945.7
+        "mean_latency_ms": 473.3,
+        "median_latency_ms": 469.4,
+        "p95_latency_ms": 502.6
       },
       {
         "run_index": 3,
-        "mean_latency_ms": 699.6,
-        "median_latency_ms": 702.6,
-        "p95_latency_ms": 712.2
+        "mean_latency_ms": 464.6,
+        "median_latency_ms": 461.7,
+        "p95_latency_ms": 480.5
       }
     ],
     "latency_ms": {
-      "mean": 721.3,
-      "median": 703.0,
-      "min": 684.6,
-      "p95": 801.0
+      "mean": 475.9,
+      "median": 461.7,
+      "min": 446.8,
+      "p95": 562.9
     },
-    "real_time_factor_rtf": 0.184,
+    "real_time_factor_rtf": 0.121,
+    "multi_length_clips": {
+      "4s": {
+        "relative_path": "benchmark_data/audio/sentence_001.wav",
+        "language_hint": "hi",
+        "duration_sec": 3.82,
+        "timed_runs_count": 20,
+        "warmup_runs_count": 2,
+        "per_run_latencies_ms": [
+          463.7,
+          464.4,
+          446.8,
+          439.8,
+          497.7,
+          470.9,
+          456.2,
+          489.5,
+          449.6,
+          448.9,
+          454.9,
+          456.4,
+          456.4,
+          444.2,
+          475.6,
+          446.3,
+          461.9,
+          463.1,
+          466.3,
+          440.4
+        ],
+        "mean_latency_ms": 459.6,
+        "median_latency_ms": 456.4,
+        "p95_latency_ms": 489.9,
+        "min_latency_ms": 439.8,
+        "max_latency_ms": 497.7,
+        "rtf": 0.1196,
+        "sample_hypothesis": "\u092f\u093e\u0930 \u0915\u0932 \u092e\u0940\u091f\u093f\u0902\u0917 \u0915\u093f\u0924\u0928\u0947 \u092c\u091c\u0947 \u0936\u0947\u0921\u094d\u092f\u0942\u0932 \u0915\u0940 \u0939\u0948?"
+      },
+      "9s": {
+        "relative_path": "benchmark_data/real_speech/fleurs_hi_in_068.wav",
+        "language_hint": "hi",
+        "duration_sec": 8.88,
+        "timed_runs_count": 20,
+        "warmup_runs_count": 2,
+        "per_run_latencies_ms": [
+          825.5,
+          851.0,
+          825.5,
+          807.4,
+          829.7,
+          834.4,
+          835.0,
+          806.3,
+          817.8,
+          782.3,
+          802.1,
+          830.7,
+          829.7,
+          796.9,
+          817.0,
+          862.4,
+          782.6,
+          818.7,
+          754.5,
+          806.5
+        ],
+        "mean_latency_ms": 815.8,
+        "median_latency_ms": 818.2,
+        "p95_latency_ms": 851.6,
+        "min_latency_ms": 754.5,
+        "max_latency_ms": 862.4,
+        "rtf": 0.0921,
+        "sample_hypothesis": "\u0915\u0908 \u0938\u093e\u092e\u093e\u0928 \u092a\u094d\u0930\u093e\u0930\u0942\u092b \u0909\u0927\u093e\u0930\u0928 \u0915\u0947 \u0932\u093f\u090f \u092a\u094d\u0930\u093e\u0930\u0942\u092b \u0915\u093e APS \u092a\u0930\u093f\u0935\u093e\u0930 \u0907\u0938 \u0905\u092d\u0940 \u092e\u0941\u0915\u0924\u093e \u0905\u0928\u0941\u092a\u093e\u0924 \u0915\u094b \u0932\u0917\u092d\u0917 \u092c\u0930\u093e\u092c\u0930 \u092f\u093e \u0909\u0938\u0915\u0947 \u0906\u0938\u092a\u093e\u0938 \u0939\u0948"
+      },
+      "15s": {
+        "relative_path": "benchmark_data/real_speech/fleurs_hi_in_026.wav",
+        "language_hint": "hi",
+        "duration_sec": 14.52,
+        "timed_runs_count": 20,
+        "warmup_runs_count": 2,
+        "per_run_latencies_ms": [
+          780.3,
+          771.2,
+          770.5,
+          778.5,
+          759.2,
+          778.3,
+          792.8,
+          788.1,
+          776.9,
+          817.4,
+          769.3,
+          747.8,
+          827.5,
+          745.0,
+          788.2,
+          796.8,
+          771.4,
+          788.7,
+          779.9,
+          764.0
+        ],
+        "mean_latency_ms": 779.6,
+        "median_latency_ms": 778.4,
+        "p95_latency_ms": 817.9,
+        "min_latency_ms": 745.0,
+        "max_latency_ms": 827.5,
+        "rtf": 0.0536,
+        "sample_hypothesis": "\u0939\u091c\u093e\u0930\u094b\u0902 \u0938\u093e\u0932 \u092a\u0939\u0932\u0947 \u092f\u0947 \u0930\u093f\u0937\u094d\u091f\u0930 \u091a\u0930\u094d\u0936 \u0928\u093e\u092e\u0915 \u090f\u0915 \u092c\u094d\u092f\u0915\u094d\u0924\u093f \u0928\u0947 \u0915\u0939\u093e \u0925\u093e \u0915\u093f \u0907\u0938 \u0938\u094b\u0930 \u092e\u0902\u0921\u0932 \u0938\u0942\u0930\u094d\u092f \u0915\u0947 \u091a\u093e\u0930\u094b\u0902 \u0914\u0930 \u0917\u0941\u092e\u0924\u093e \u0939\u0948"
+      }
+    },
+    "nvidia_smi_snapshot_before": "Mon Oct 26 18:27:07 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 67%   71C    P2            129W /  240W |    2675MiB /   8192MiB |     44%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+    "nvidia_smi_snapshot_after": "Mon Oct 26 18:27:52 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n| 75%   65C    P2            117W /  240W |    2627MiB /   8192MiB |     91%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           14312      C   ...s\\Python\\Python312\\python.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
     "other_gpu_processes_present": true,
-    "nvidia_smi_output": "Mon Oct 26 14:06:34 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   55C    P8             17W /  240W |    1478MiB /   8192MiB |     13%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5800    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8816    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A            9600    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A            9612    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           11868    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12696    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           14220    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           15572    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           16444    C+G   ...zer Central\\Razer Central.exe      N/A      |\n|    0   N/A  N/A           16516    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           17212    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17632    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           19216    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           19928    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A           20200    C+G   ...App_cw5n1h2txyewy\\LockApp.exe      N/A      |\n|    0   N/A  N/A           22136    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23708    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           24200    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           24292    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26156    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           27132    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           29748    C+G   ...n1h2txyewy\\CHXSmartScreen.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
+    "nvidia_smi_output": "Mon Oct 26 18:26:48 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 617.42                 KMD Version: 617.42        CUDA UMD Version: 13.4     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 3060 Ti   WDDM  |   00000000:01:00.0  On |                  N/A |\n|  0%   60C    P5             23W /  240W |    1435MiB /   8192MiB |     38%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            5708    C+G   ...ffice6\\promecefpluginhost.exe      N/A      |\n|    0   N/A  N/A            8428    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           12516    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           12788    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A           12996    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           13252    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           13512    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           17380    C+G   ...mba6cd70vzyy\\ArmouryCrate.exe      N/A      |\n|    0   N/A  N/A           18100    C+G   ....0.4314.42\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           19736    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20180    C+G   ...IA app\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           20600    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           21592    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           23932    C+G   ...m Files\\NZXT CAM\\NZXT CAM.exe      N/A      |\n|    0   N/A  N/A           25076    C+G   ...26wp6bftszj\\TranslucentTB.exe      N/A      |\n|    0   N/A  N/A           27508    C+G   ...rams\\@alan-aidesktop\\Alan.exe      N/A      |\n|    0   N/A  N/A           28936    C+G   ...Chrome\\Application\\chrome.exe      N/A      |\n|    0   N/A  N/A           30216    C+G   ...SpotifyXboxGamebarWebView.exe      N/A      |\n|    0   N/A  N/A           30724    C+G   ...avity IDE\\Antigravity IDE.exe      N/A      |\n|    0   N/A  N/A           31008    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n+-----------------------------------------------------------------------------------------+",
     "vram_mb": {
-      "baseline_system_used": 1478.0,
-      "model_allocated_delta": 1140.0,
-      "peak_total_used": 2618.0
+      "baseline_system_used": 1435.0,
+      "model_allocated_delta": 1192.0,
+      "peak_total_used": 2627.0
     },
     "real_speech_comparison": {
       "clip_count": 300,
@@ -230,30 +686,30 @@
   "retrieval_performance": {
     "embedding_model": "intfloat/multilingual-e5-base",
     "indexed_chunks": 2,
-    "index_build_time_sec": 16.77,
+    "index_build_time_sec": 27.453,
     "query_latency_ms": {
-      "mean": 49.63,
-      "median": 49.62,
-      "min": 44.55,
-      "p95": 54.12
+      "mean": 50.99,
+      "median": 48.23,
+      "min": 43.17,
+      "p95": 65.27
     }
   },
   "edge_tts_first_packet_performance": {
     "tts_service": "edge-tts",
     "voice": "hi-IN-SwaraNeural",
     "test_text_char_count": 112,
-    "first_packet_latency_ms": 798.7,
-    "total_tts_time_ms": 1170.6,
+    "first_packet_latency_ms": 732.7,
+    "total_tts_time_ms": 1003.3,
     "audio_chunks_received": 79,
     "audio_bytes": 56304
   },
   "pipeline_end_to_end_ttfa": {
     "pipeline_description": "End-to-end question audio release -> first audio sample played",
-    "stt_latency_ms": 703.0,
-    "retrieval_latency_ms": 49.6,
+    "stt_latency_ms": 461.7,
+    "retrieval_latency_ms": 48.2,
     "llm_first_sentence_ms": 350.0,
-    "edge_tts_first_packet_ms": 798.7,
-    "total_pipeline_ttfa_ms": 1901.3,
+    "edge_tts_first_packet_ms": 732.7,
+    "total_pipeline_ttfa_ms": 1592.6,
     "target_ms": 2000.0
   }
 }

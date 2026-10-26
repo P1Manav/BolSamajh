@@ -109,5 +109,14 @@
 **Choice:** Verified clean virtual environments for both Python 3.11 (`test_venv_311`) and Python 3.12 (`test_venv_312`) using `requirements.lock.txt`. Checked GitHub Actions CI status via `gh run list` and `gh run view`.  
 **Alternatives considered:** Testing only current active venv or relying solely on remote CI.  
 **Reason:** Guarantees reproduction on fresh installs and validates that Windows CI is passing before proceeding with autonomous phases. Raw evidence committed to `docs/evidence/ci_health.txt`.
+## D019: Shared STT Timing Protocol & Latency Reconciliation
+**Date:** 2026-10-26  
+**Choice:** Created `bolsamajh.benchmark.timing` module with unified `DEFAULT_TRANSCRIBE_KWARGS` (explicit language hint and VAD parameters) and a shared timing function used by both `evaluate.py` and `measure_hardware.py`.  
+**Alternatives considered:** Maintaining separate timing loops in benchmark and hardware scripts.  
+**Reason:** Diagnosed that `measure_hardware.py` omitted `language="hi"` and VAD parameters, causing Whisper's language identification to run on every clip, inflating RTF by ~2.5x. Unifying the timing harness and decode parameters reconciled RTF across comparable clips to within empirical variance.
 
-
+## D020: Strict Number Grammar Normalization & Dynamic Documentation Stamps
+**Date:** 2026-10-26  
+**Choice:** Replaced naive regex/lookaround number conversion with a strict hierarchy grammar parser (`_parse_strict_number`, `_parse_sub99`, `SCALE_PRIORITY`). Ambiguous Hindi number words (`do`, `so`, `sat`, etc.) only convert when part of a valid compound containing an unambiguous scale word or digit. Removed all hardcoded dates and CUDA version strings from docs, generating them dynamically via `generate_readme_tables.py` from JSON sources of truth.  
+**Alternatives considered:** Relying on ad-hoc exception lists for common phrases like "nau do gyarah".  
+**Reason:** Ad-hoc regexes failed on phrases like "so do sau" and colloquial idioms. Strict grammar prevents corrupting natural language while accurately parsing valid numerical expressions. Dynamic document stamping eliminates stale doc stamps.

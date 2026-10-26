@@ -211,10 +211,77 @@ def format_retrieval_table(retrieval_data: dict) -> str:
 BENCHMARK_MD_PATH = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
 
 
-def update_benchmark_results_summary(real_results: dict, synth_results: dict, md_text: str = None) -> str:
+def format_ablation_table(full_results: dict) -> str:
+    """Format Number Word Normalization Ablation table."""
+    ablation = full_results.get("ablation", {})
+    if not ablation:
+        return ""
+    lines = [
+        "## 2. Number Word Normalization Ablation (Strict Grammar On vs Off)",
+        "",
+        "> Compares transcription WER with number word normalization enabled (strict grammar) versus disabled (raw phonetic number words). Normalizer follows strict language grammar without clip-specific metric tuning.",
+        "",
+        "| Model | Real Speech (Normalized) | Real Speech (Raw Numbers) | Real Δ | Synthetic Stress (Normalized) | Synthetic Stress (Raw Numbers) | Synth Δ |",
+        "| :--- | :---: | :---: | :---: | :---: | :---: | :---: |",
+    ]
+    meta = {
+        "large-v3-turbo": "faster-whisper large-v3-turbo",
+        "medium": "faster-whisper medium",
+        "whisper-hinglish-swift": "whisper-hinglish-swift",
+    }
+    for key, name in meta.items():
+        data = ablation.get(key, {})
+        r_norm = data.get("real_speech_wer_normalized_pct", "—")
+        r_raw = data.get("real_speech_wer_raw_pct", "—")
+        if r_norm != "—" and r_raw != "—" and isinstance(r_norm, (int, float)) and isinstance(r_raw, (int, float)):
+            r_diff = f"{round(r_norm - r_raw, 2):+.2f}%"
+            r_norm_str = f"{r_norm}%"
+            r_raw_str = f"{r_raw}%"
+        else:
+            r_diff = "—"
+            r_norm_str = f"{r_norm}%" if r_norm != "—" else "—"
+            r_raw_str = f"{r_raw}%" if r_raw != "—" else "—"
+
+        s_norm = data.get("synthetic_stress_wer_normalized_pct", "—")
+        s_raw = data.get("synthetic_stress_wer_raw_pct", "—")
+        if s_norm != "—" and s_raw != "—" and isinstance(s_norm, (int, float)) and isinstance(s_raw, (int, float)):
+            s_diff = f"{round(s_norm - s_raw, 2):+.2f}%"
+            s_norm_str = f"{s_norm}%"
+            s_raw_str = f"{s_raw}%"
+        else:
+            s_diff = "—"
+            s_norm_str = f"{s_norm}%" if s_norm != "—" else "—"
+            s_raw_str = f"{s_raw}%" if s_raw != "—" else "—"
+
+        lines.append(f"| **{name}** | {r_norm_str} | {r_raw_str} | {r_diff} | {s_norm_str} | {s_raw_str} | {s_diff} |")
+
+    return "\n".join(lines)
+
+
+def update_benchmark_results_summary(
+    real_results: dict,
+    synth_results: dict,
+    md_text: str = None,
+    full_results: dict = None,
+    hw_data: dict = None,
+) -> str:
     content = md_text if md_text is not None else (BENCHMARK_MD_PATH.read_text(encoding="utf-8") if BENCHMARK_MD_PATH.exists() else "")
     if not content:
         return ""
+
+    # Dynamic header stamps from empirical JSON truth
+    if full_results and "timestamp" in full_results:
+        run_date = full_results["timestamp"].split()[0]
+        content = re.sub(r">\s*\*\*Last Updated:\*\*.*", f"> **Last Updated:** {run_date}  ", content)
+    if hw_data and "gpu_specs" in hw_data:
+        gpu_name = hw_data["gpu_specs"].get("device_name", "NVIDIA GeForce RTX 3060 Ti")
+        vram_mb = int(hw_data["gpu_specs"].get("total_vram_mb", 8192))
+        cuda_version = hw_data["gpu_specs"].get("cuda_version", "Direct CTranslate2 CUDA / cuBLAS")
+        content = re.sub(
+            r">\s*\*\*Hardware:\*\*.*",
+            f"> **Hardware:** {gpu_name} ({vram_mb // 1024} GB VRAM), {cuda_version}, CTranslate2 `int8_float16`  ",
+            content,
+        )
 
     meta = {
         "large-v3-turbo": ("faster-whisper large-v3-turbo", "Whisper Large-v3-turbo CT2", "Apache-2.0"),
@@ -285,10 +352,26 @@ def update_benchmark_results_summary(real_results: dict, synth_results: dict, md
     pattern = r"## 1\. Executive Summary\s*\n\s*\| Model \|.*?\n(?=\n---|\n##)"
     replacement = f"## 1. Executive Summary\n\n{table_str}\n{recommendation}"
     new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+    if full_results and "ablation" in full_results:
+        ablation_table = format_ablation_table(full_results)
+        if "## 2. Number Word Normalization Ablation" in new_content:
+            new_content = re.sub(
+                r"## 2\. Number Word Normalization Ablation.*?(?=\n---|\n##)",
+                ablation_table + "\n",
+                new_content,
+                flags=re.DOTALL,
+            )
+        else:
+            new_content = new_content.replace(
+                "<!-- WORST_CLIPS_START -->",
+                f"{ablation_table}\n\n---\n\n<!-- WORST_CLIPS_START -->"
+            )
+
     return new_content
 
 
-def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, retrieval_data: dict) -> dict:
+def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, retrieval_data: dict, full_results: dict = None) -> dict:
     t_data = real_results.get("large-v3-turbo", {})
     t_splits = t_data.get("splits", {})
     t_synth = synth_results.get("large-v3-turbo", {})
@@ -390,6 +473,8 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
 
         # General
         "benchmark.total_clips": "1,000",
+        "benchmark.last_updated": str((full_results or {}).get("timestamp", "2026-10-26")).split()[0],
+        "benchmark.cuda_version": str(hw_data.get("gpu_specs", {}).get("cuda_version", "Direct CTranslate2 CUDA / cuBLAS")),
     }
     return metrics
 
@@ -438,7 +523,7 @@ def sync_all_documentation(check_only: bool = False) -> bool:
     with open(RETRIEVAL_PATH, "r", encoding="utf-8") as f:
         retrieval_data = json.load(f)
 
-    metrics = get_metrics_dict(real_results, synth_results, hw_data, retrieval_data)
+    metrics = get_metrics_dict(real_results, synth_results, hw_data, retrieval_data, full_results=full_results)
 
     has_diff = False
 
@@ -467,9 +552,11 @@ def sync_all_documentation(check_only: bool = False) -> bool:
             if re.search(pattern, updated_text, flags=re.DOTALL):
                 updated_text = re.sub(pattern, replacement, updated_text, flags=re.DOTALL)
 
-        # 2. Update BENCHMARK_RESULTS.md Section 1 Executive Summary
+        # 2. Update BENCHMARK_RESULTS.md Section 1 Executive Summary, Section 2 Ablation, and Header Stamps
         if doc_path == BENCHMARK_MD_PATH:
-            updated_text = update_benchmark_results_summary(real_results, synth_results, updated_text)
+            updated_text = update_benchmark_results_summary(
+                real_results, synth_results, updated_text, full_results=full_results, hw_data=hw_data
+            )
 
         # 3. Render all placeholders
         updated_text = render_placeholders_in_text(updated_text, metrics)

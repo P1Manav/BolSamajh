@@ -68,8 +68,8 @@ BolSamajh v0.1.3 is an audited, empirical release of the open-source voice AI co
 - Added regression test `test_no_fused_decimals_in_per_clip_results` and re-evaluated all <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> clips on NVIDIA RTX 3060 Ti GPU, eliminating all 12 fused decimals.
 
 ### 5. Single Set of Numbers & Large-v3-Turbo Default (Tier 4)
-- Set default CUDA STT model to `large-v3-turbo` with empirical hardware performance: **<!-- NUM:hw.stt_real_mean_latency_ms -->575.5<!-- /NUM --> ms** real speech mean latency (RTF **<!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x**, p95: **<!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms**) across <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, and **<!-- NUM:hw.stt_synth_latency_ms -->703.0<!-- /NUM --> ms** on synthetic sentences.
-- True end-to-end Doc-QA Time-To-First-Audio measured at **<!-- NUM:hw.total_ttfa_ms -->1901.3<!-- /NUM --> ms** (< 2000 ms target).
+- Set default CUDA STT model to `large-v3-turbo` with empirical hardware performance: **<!-- NUM:hw.stt_real_mean_latency_ms -->575.5<!-- /NUM --> ms** real speech mean latency (RTF **<!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x**, p95: **<!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms**) across <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, and **<!-- NUM:hw.stt_synth_latency_ms -->461.7<!-- /NUM --> ms** on synthetic sentences.
+- True end-to-end Doc-QA Time-To-First-Audio measured at **<!-- NUM:hw.total_ttfa_ms -->1592.6<!-- /NUM --> ms** (< 2000 ms target).
 - Automated synchronization of numbers across all files via `scripts/generate_readme_tables.py --check` and unit test `test_docs_sync.py` to prevent numbers drift.
 
 ### 6. Pitch Honesty & Local Piper Gateway (Tier 5)
@@ -93,7 +93,7 @@ BolSamajh v0.1.3 is an audited, empirical release of the open-source voice AI co
 
 ## ⚠️ Honest Known Limitations
 
-1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves fast inference, real spontaneous accented speech from the HiACC corpus exhibits <!-- NUM:stt.medium.hiacc_wer -->50.2%<!-- /NUM --> WER on Whisper medium and <!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on large-v3-turbo due to diverse Indian regional accents and colloquial loanwords.
+1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves fast inference, real spontaneous accented speech from the HiACC corpus exhibits <!-- NUM:stt.medium.hiacc_wer -->50.73%<!-- /NUM --> WER on Whisper medium and <!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on large-v3-turbo due to diverse Indian regional accents and colloquial loanwords.
 2. **Swift Model Conversion:** The model `MSpider3/whisper-hindi2hinglish-swift-ct2` is an unverified third-party CT2 conversion of Oriserve's Swift model.
 3. **Physical Hardware Execution:** Features such as physical microphone hotkey dictation, in-place OS clipboard pasting, and 100% offline air-gapped mode with physical network disconnection are implemented and verified via unit/integration tests with synthetic audio and stubs, but are marked **Implemented, untested on hardware** in README tables until manually verified via `docs/MANUAL_VERIFICATION.md`.
 4. **Bolna Live Integration:** The Bolna audio gateway endpoints (`/v1/audio/transcriptions` and `/v1/audio/speech`) are implemented and pass all integration tests against the OpenAI specification, but have not yet been tested against a live Bolna agent in production. Cloud agents require a tunnel (e.g. `cloudflared`) to reach localhost.

@@ -30,6 +30,11 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 from bolsamajh.benchmark.normalization import compute_normalized_wer_cer
+from bolsamajh.benchmark.timing import (
+    time_single_transcription,
+    DEFAULT_TRANSCRIBE_KWARGS,
+    benchmark_multi_length_clips,
+)
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
 
 setup_cuda_dlls()
@@ -78,30 +83,14 @@ def evaluate_clip(
     normalize_number_words: bool = True,
 ) -> Dict[str, Any]:
     """Transcribe a single audio clip with anti-repetition guards and compute script-normalized metrics."""
-    t_start = time.perf_counter()
-
-    # Guarded transcription parameters to prevent hallucination loops and Urdu misclassification
-    transcribe_kwargs = {
-        "beam_size": 5,
-        "vad_filter": True,
-        "vad_parameters": dict(min_silence_duration_ms=500),
-        "condition_on_previous_text": False,
-        "compression_ratio_threshold": 2.4,
-        "no_speech_threshold": 0.6,
-        "repetition_penalty": 1.1,
-    }
-    if lang_hint:
-        transcribe_kwargs["language"] = lang_hint
-
-    segments, info = model.transcribe(audio_np, **transcribe_kwargs)
-    hyp_text = " ".join(seg.text for seg in segments).strip()
-    t_end = time.perf_counter()
-
-    latency_ms = (t_end - t_start) * 1000.0
+    hyp_text, latency_ms = time_single_transcription(model, audio_np, lang_hint=lang_hint)
     rtf = (latency_ms / 1000.0) / duration_sec if duration_sec > 0 else 0.0
 
     wer, cer, canon_ref, canon_hyp = compute_normalized_wer_cer(
         reference, hyp_text, normalize_number_words=normalize_number_words
+    )
+    wer_raw, cer_raw, _, _ = compute_normalized_wer_cer(
+        reference, hyp_text, normalize_number_words=False
     )
 
     return {
@@ -114,6 +103,8 @@ def evaluate_clip(
         "rtf": round(rtf, 3),
         "wer": wer,
         "cer": cer,
+        "wer_raw": wer_raw,
+        "cer_raw": cer_raw,
     }
 
 
@@ -206,6 +197,7 @@ def evaluate_real_speech(
     return {
         "total_clips": len(all_clips),
         "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
+        "mean_wer_raw_pct": round(float(np.mean([c["wer_raw"] for c in all_clips]) * 100), 2),
         "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
@@ -287,6 +279,7 @@ def evaluate_synthetic_stress(
     return {
         "total_clips": len(all_clips),
         "mean_wer_pct": round(float(np.mean(all_wers) * 100), 2),
+        "mean_wer_raw_pct": round(float(np.mean([c["wer_raw"] for c in all_clips]) * 100), 2),
         "mean_wer_ci_95": compute_bootstrap_ci(all_wers),
         "mean_cer_pct": round(float(np.mean([c["cer"] for c in all_clips]) * 100), 2),
         "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in all_clips])), 1),
@@ -394,8 +387,32 @@ def main():
                 synth_res["compute_type"] = actual_compute
                 results["synthetic_stress"][model_key] = synth_res
 
+        # 3. Multi-length timing protocol (4s, 9s, 15s) for latency agreement
+        print(f"    Measuring multi-length clips (~4s, ~9s, ~15s) with shared timing function...")
+        timing_res = benchmark_multi_length_clips(
+            model=model,
+            model_name=model_key,
+            device=actual_device,
+            compute_type=actual_compute,
+            gpu_name="NVIDIA GeForce RTX 3060 Ti",
+            warmup_runs=2,
+            timed_runs=20,
+        )
+        results.setdefault("timing_measurements", {})[model_key] = timing_res
+
         # Free GPU memory between model evaluations
         del model
+
+    # Record normalizer ablation summary
+    results["ablation"] = {
+        model_key: {
+            "real_speech_wer_normalized_pct": results["real_speech"].get(model_key, {}).get("mean_wer_pct", "N/A"),
+            "real_speech_wer_raw_pct": results["real_speech"].get(model_key, {}).get("mean_wer_raw_pct", "N/A"),
+            "synthetic_stress_wer_normalized_pct": results["synthetic_stress"].get(model_key, {}).get("mean_wer_pct", "N/A"),
+            "synthetic_stress_wer_raw_pct": results["synthetic_stress"].get(model_key, {}).get("mean_wer_raw_pct", "N/A"),
+        }
+        for model_key in args.models
+    }
 
     # Save to JSON
     RESULTS_JSON.parent.mkdir(parents=True, exist_ok=True)

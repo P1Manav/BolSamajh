@@ -107,6 +107,96 @@ SCALE_WORDS_UNAMBIGUOUS = {
 
 DECIMAL_SEPARATORS = {"point", "dashamlav", "दशमलव", "દશાંશ"}
 
+SCALE_PRIORITY = {
+    "crore": 4, "crores": 4, "karod": 4, "करोड़": 4, "करोड": 4, "કરોડ": 4,
+    "lakh": 3, "lakhs": 3, "लाख": 3,
+    "hazar": 2, "hazaar": 2, "thousand": 2, "हज़ार": 2, "हजार": 2, "હજાર": 2,
+    "sau": 1, "so": 1, "hundred": 1, "सौ": 1, "સો": 1,
+}
+
+TENS_WORDS = {
+    "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+    "bees", "bis", "tees", "tis", "chalis", "pachaas", "pachas", "saath", "sath",
+    "sattar", "assi", "nabbe",
+    "बीस", "तीस", "चालीस", "पचास", "साठ", "सत्तर", "अस्सी", "नब्बे",
+    "વીસ", "ત્રીસ", "ચાલીસ", "પચાસ", "સાઇઠ", "સિત્તેર", "એંસી", "નેવું", "નેવુ",
+}
+
+
+def _parse_sub99(tokens: list, start_idx: int) -> tuple:
+    """Parse a valid 1..99 numeric expression starting at start_idx."""
+    if start_idx >= len(tokens):
+        return None, start_idx
+    tok = tokens[start_idx].lower()
+    if tok.isdigit():
+        val = int(tok)
+        if 1 <= val <= 99:
+            return val, start_idx + 1
+        return None, start_idx
+    if tok in TENS_WORDS:
+        val = UNITS_MAP[tok]
+        next_idx = start_idx + 1
+        if next_idx < len(tokens):
+            next_tok = tokens[next_idx].lower()
+            if (
+                next_tok in UNITS_MAP
+                and 1 <= UNITS_MAP[next_tok] <= 9
+                and next_tok not in TENS_WORDS
+                and next_tok not in SCALE_PRIORITY
+            ):
+                val += UNITS_MAP[next_tok]
+                return val, next_idx + 1
+        return val, next_idx
+    if tok in UNITS_MAP:
+        val = UNITS_MAP[tok]
+        if 1 <= val <= 19:
+            return val, start_idx + 1
+    return None, start_idx
+
+
+def _parse_strict_number(tokens: list) -> tuple:
+    """Parse tokens under strict grammar: scale periods in descending order + remainder.
+
+    Returns (is_valid, total_value, tokens_consumed).
+    """
+    idx = 0
+    total_val = 0
+    last_scale_prio = 999
+
+    while idx < len(tokens):
+        tok = tokens[idx].lower()
+        sub_val, next_idx = _parse_sub99(tokens, idx)
+        if sub_val is not None:
+            if next_idx < len(tokens) and tokens[next_idx].lower() in SCALE_PRIORITY:
+                scale_tok = tokens[next_idx].lower()
+                scale_prio = SCALE_PRIORITY[scale_tok]
+                if scale_prio >= last_scale_prio:
+                    return False, 0, 0
+                scale_mult = SCALES_MAP[scale_tok]
+                total_val += sub_val * scale_mult
+                last_scale_prio = scale_prio
+                idx = next_idx + 1
+                continue
+            else:
+                total_val += sub_val
+                idx = next_idx
+                break
+        elif tok in SCALE_PRIORITY:
+            scale_prio = SCALE_PRIORITY[tok]
+            if scale_prio >= last_scale_prio:
+                return False, 0, 0
+            scale_mult = SCALES_MAP[tok]
+            total_val += scale_mult
+            last_scale_prio = scale_prio
+            idx += 1
+        else:
+            break
+
+    if idx == 0:
+        return False, 0, 0
+
+    return True, total_val, idx
+
 
 def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
     """Normalize numeric expressions across references and hypotheses.
@@ -117,9 +207,9 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
     - If normalize_number_words is True:
         - Normalizes spoken decimals: 'tin dashamlav paanch' -> '3.5'.
         - Maps spoken single-digit word runs to digit strings: 'nau aath saat' -> '987'.
-        - Converts Hindi/English compound number phrases: 'ek sau pachaas' -> '150'.
-        - Protects ambiguous everyday words ('do', 'so', 'sat', 'ath', 'nau') unless in runs >= 3
-          or adjacent to a digit/unambiguous scale word.
+        - Converts Hindi/English compound number phrases under strict grammar: 'ek sau pachaas' -> '150'.
+        - Protects ambiguous everyday words ('do', 'so', 'sat', 'ath', 'nau') unless in a valid
+          grammar parse that includes a digit or scale word.
     """
     if not text:
         return ""
@@ -201,95 +291,61 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
             i += 1
     text = " ".join(new_tokens)
 
-    # 6. Compound numbers (e.g. "ek sau pachaas" -> "150", "one hundred fifty" -> "150", "पचास" -> "50")
+    # 6. Compound numbers and strict number grammar parsing
     tokens = text.split()
     out_tokens = []
     i = 0
     while i < len(tokens):
-        sub_i = i
-        current_val = 0
-        total_val = 0
-        has_compound = False
-        words_count = 0
-        parsed_tokens = []
-
-        while sub_i < len(tokens):
-            tok = tokens[sub_i].lower()
-            if tok in UNITS_MAP:
-                current_val += UNITS_MAP[tok]
-                words_count += 1
-                parsed_tokens.append(tok)
-                sub_i += 1
-            elif tok in SCALES_MAP:
-                scale = SCALES_MAP[tok]
-                if current_val == 0:
-                    current_val = 1
-                if scale >= 1000:
-                    total_val += current_val * scale
-                    current_val = 0
-                else:
-                    current_val *= scale
-                has_compound = True
-                words_count += 1
-                parsed_tokens.append(tok)
-                sub_i += 1
-            elif tok.isdigit() and sub_i + 1 < len(tokens) and tokens[sub_i + 1].lower() in SCALES_MAP:
-                current_val += int(tok)
-                words_count += 1
-                parsed_tokens.append(tok)
-                sub_i += 1
+        j = i
+        while j < len(tokens):
+            t = tokens[j].lower()
+            if t in UNITS_MAP or t in SCALES_MAP or t.isdigit():
+                j += 1
             else:
                 break
 
-        total_val += current_val
-
-        if words_count == 0:
+        if j == i:
             out_tokens.append(tokens[i])
             i += 1
-        elif words_count == 1:
-            tok = parsed_tokens[0]
-            if tok in SCALES_MAP or tok in AMBIGUOUS_ROMAN_WORDS:
-                out_tokens.append(tokens[i])
-                i += 1
-            elif tok in UNITS_MAP and UNITS_MAP[tok] >= 10:
-                out_tokens.append(str(total_val))
-                i = sub_i
-            else:
-                out_tokens.append(tokens[i])
-                i += 1
-        else:
-            ambig = [w for w in parsed_tokens if w in AMBIGUOUS_ROMAN_WORDS]
-            if ambig:
-                if words_count >= 3:
-                    out_tokens.append(str(total_val))
-                    i = sub_i
-                else:
-                    is_valid = False
-                    for idx, w in enumerate(parsed_tokens):
-                        if w in AMBIGUOUS_ROMAN_WORDS:
-                            other = parsed_tokens[1 - idx]
-                            if other in SCALE_WORDS_UNAMBIGUOUS or other.isdigit():
-                                is_valid = True
-                    if parsed_tokens[0] in AMBIGUOUS_ROMAN_WORDS and parsed_tokens[1] in AMBIGUOUS_ROMAN_WORDS:
-                        is_valid = False
-                    if ("do", "so") == (parsed_tokens[0], parsed_tokens[1]):
-                        is_valid = False
-                    if ("sat", "ek") == (parsed_tokens[0], parsed_tokens[1]):
-                        is_valid = False
+            continue
 
-                    if is_valid and total_val > 0:
-                        out_tokens.append(str(total_val))
-                        i = sub_i
-                    else:
-                        out_tokens.append(tokens[i])
-                        i += 1
-            else:
-                if has_compound or total_val > 0:
-                    out_tokens.append(str(total_val))
-                    i = sub_i
-                else:
-                    out_tokens.append(tokens[i])
-                    i += 1
+        run = tokens[i:j]
+        valid, val, end_idx = _parse_strict_number(run)
+
+        # Must parse the WHOLE contiguous candidate run
+        if not valid or end_idx != len(run):
+            out_tokens.extend(run)
+            i = j
+            continue
+
+        # Ambiguous words: {"do", "so", "sat", "ath", "nau"}
+        ambig = [w for w in run if w.lower() in AMBIGUOUS_ROMAN_WORDS]
+        has_digit = any(w.isdigit() for w in run)
+        has_scale_unambig = any(w.lower() in SCALE_WORDS_UNAMBIGUOUS for w in run)
+        has_unambig_tens_teens = any(
+            w.lower() in UNITS_MAP and UNITS_MAP[w.lower()] >= 10 and w.lower() not in AMBIGUOUS_ROMAN_WORDS
+            for w in run
+        )
+
+        if ambig and not (has_digit or has_scale_unambig or has_unambig_tens_teens):
+            out_tokens.extend(run)
+            i = j
+            continue
+
+        # Single word rule: leave single scale words and single units < 10 as words
+        if len(run) == 1:
+            tok = run[0].lower()
+            if tok in SCALES_MAP or tok in AMBIGUOUS_ROMAN_WORDS:
+                out_tokens.append(run[0])
+                i = j
+                continue
+            if tok in UNITS_MAP and UNITS_MAP[tok] < 10 and not tok.isdigit():
+                out_tokens.append(run[0])
+                i = j
+                continue
+
+        out_tokens.append(str(val))
+        i = j
 
     return " ".join(out_tokens)
 
