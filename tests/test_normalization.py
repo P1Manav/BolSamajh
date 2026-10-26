@@ -77,6 +77,44 @@ def test_spaced_and_spoken_number_normalization():
     assert to_canonical_script("ek so pachas") == "150"
 
 
+def test_number_word_grammar_and_ambiguity_guard():
+    """All Tier 1 required tests: ambiguous Roman words protected, grammar-based conversion valid."""
+    # Ambiguous Roman words protected (must remain unchanged)
+    assert to_canonical_script("I do so like it") == "i do so like it"
+    assert to_canonical_script("mujhe do teen din chahiye") == "mujhe do teen din chahiye"
+    assert to_canonical_script("yeh sat ek baje") == "yeh sat ek baje"
+    assert to_canonical_script("ath sat") == "ath sat"
+
+    # Compound and spoken numbers converted to digits
+    assert to_canonical_script("ek sau pachaas") == "150"
+    assert to_canonical_script("one hundred fifty") == "150"
+    assert to_canonical_script("tin dashamlav paanch") == "3.5"
+    assert to_canonical_script("पचास") == "50"
+    assert to_canonical_script("एक लाख") == "100000"
+
+    # Preserved decimals and scales
+    assert to_canonical_script("3.5") == "3.5"
+    assert to_canonical_script("36.6") == "36.6"
+    assert to_canonical_script("2.5 crore") == "2.5 crore"
+    assert to_canonical_script("9 8 7 6 5 4 3 2 1 0") == "9876543210"
+
+
+def test_normalize_number_words_flag():
+    """Verify that normalize_number_words=False disables number word conversion while keeping digit normalization."""
+    # When enabled (default):
+    assert to_canonical_script("ek sau pachaas", normalize_number_words=True) == "150"
+    assert to_canonical_script("पचास", normalize_number_words=True) == "50"
+
+    # When disabled:
+    assert to_canonical_script("ek sau pachaas", normalize_number_words=False) == "ek sau pachaas"
+    # 'पचास' transliterates to 'pacasa' under ISO when not converted beforehand
+    assert to_canonical_script("पचास", normalize_number_words=False) == "pacasa"
+
+    # Digit collapsing still works even when normalize_number_words=False
+    assert to_canonical_script("9 8 7 6 5 4 3 2 1 0", normalize_number_words=False) == "9876543210"
+    assert to_canonical_script("3.5", normalize_number_words=False) == "3.5"
+
+
 def test_no_fused_decimals_in_per_clip_results():
     """Regression test: verify no committed canonical reference fuses decimals into integers."""
     import json

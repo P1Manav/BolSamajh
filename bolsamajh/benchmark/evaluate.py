@@ -69,14 +69,13 @@ def load_audio_array(wav_path: Path) -> np.ndarray:
         frames = wf.readframes(wf.getnframes())
         audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
     return audio_np
-
-
 def evaluate_clip(
     model: WhisperModel,
     audio_np: np.ndarray,
     reference: str,
     duration_sec: float,
-    lang_hint: Optional[str] = None
+    lang_hint: Optional[str] = None,
+    normalize_number_words: bool = True,
 ) -> Dict[str, Any]:
     """Transcribe a single audio clip with anti-repetition guards and compute script-normalized metrics."""
     t_start = time.perf_counter()
@@ -101,7 +100,9 @@ def evaluate_clip(
     latency_ms = (t_end - t_start) * 1000.0
     rtf = (latency_ms / 1000.0) / duration_sec if duration_sec > 0 else 0.0
 
-    wer, cer, canon_ref, canon_hyp = compute_normalized_wer_cer(reference, hyp_text)
+    wer, cer, canon_ref, canon_hyp = compute_normalized_wer_cer(
+        reference, hyp_text, normalize_number_words=normalize_number_words
+    )
 
     return {
         "reference": reference,
@@ -122,6 +123,7 @@ def evaluate_real_speech(
     device: str = "cuda",
     max_clips: Optional[int] = None,
     per_clip_records: Optional[List[Dict[str, Any]]] = None,
+    normalize_number_words: bool = True,
 ) -> Dict[str, Any]:
     """Run evaluation on real-speech manifest (FLEURS hi/gu, HiACC) with bootstrap confidence intervals."""
     if not REAL_MANIFEST.exists():
@@ -154,7 +156,10 @@ def evaluate_real_speech(
         else:
             hint = "gu" if "gujarati" in split else ("hi" if ("hindi" in split or "code_switched" in split) else None)
 
-        res = evaluate_clip(model, audio_np, item["reference"], dur, lang_hint=hint)
+        res = evaluate_clip(
+            model, audio_np, item["reference"], dur, lang_hint=hint,
+            normalize_number_words=normalize_number_words
+        )
         splits_data.setdefault(split, []).append(res)
 
         if per_clip_records is not None:
@@ -213,6 +218,7 @@ def evaluate_synthetic_stress(
     device: str = "cuda",
     max_clips: Optional[int] = None,
     per_clip_records: Optional[List[Dict[str, Any]]] = None,
+    normalize_number_words: bool = True,
 ) -> Dict[str, Any]:
     """Run evaluation on 100 synthetic degraded stress sentences with bootstrap confidence intervals."""
     if not SYNTH_METADATA.exists():
@@ -242,7 +248,10 @@ def evaluate_synthetic_stress(
         deg = item.get("degradation", "clean")
 
         # Evaluate against Roman reference as ground truth
-        res = evaluate_clip(model, audio_np, item["reference_roman"], dur, lang_hint=hint)
+        res = evaluate_clip(
+            model, audio_np, item["reference_roman"], dur, lang_hint=hint,
+            normalize_number_words=normalize_number_words
+        )
         category_data.setdefault(cat, []).append(res)
         degradation_data.setdefault(deg, []).append(res)
 
@@ -307,11 +316,19 @@ def main():
     parser.add_argument("--device", default="cuda", help="Inference device (cuda or cpu)")
     parser.add_argument("--compute_type", default="int8_float16", help="Precision (int8_float16, int8, float16)")
     parser.add_argument("--max_clips", type=int, default=None, help="Limit number of clips for fast smoke test")
+    parser.add_argument(
+        "--no_normalize_number_words",
+        dest="normalize_number_words",
+        action="store_false",
+        default=True,
+        help="Disable spoken number word normalization to digits",
+    )
     args = parser.parse_args()
 
     results = {
         "benchmark_version": "v2.0",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "normalize_number_words": args.normalize_number_words,
         "hardware": {
             "device": args.device,
             "compute_type": args.compute_type
@@ -347,7 +364,8 @@ def main():
         if args.suite in ["real", "all"]:
             real_res = evaluate_real_speech(
                 model, model_key=model_key, device=actual_device,
-                max_clips=args.max_clips, per_clip_records=all_per_clip_records
+                max_clips=args.max_clips, per_clip_records=all_per_clip_records,
+                normalize_number_words=args.normalize_number_words
             )
             if real_res:
                 real_res["device"] = actual_device
@@ -358,7 +376,8 @@ def main():
         if args.suite in ["synthetic", "all"]:
             synth_res = evaluate_synthetic_stress(
                 model, model_key=model_key, device=actual_device,
-                max_clips=args.max_clips, per_clip_records=all_per_clip_records
+                max_clips=args.max_clips, per_clip_records=all_per_clip_records,
+                normalize_number_words=args.normalize_number_words
             )
             if synth_res:
                 synth_res["device"] = actual_device

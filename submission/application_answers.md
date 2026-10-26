@@ -43,11 +43,11 @@ All metrics originate from reproducible scripts in `benchmark_data/`:
 - **Document Retrieval (`retrieval_benchmark.json`):** **<!-- NUM:rag.hit_at_1 -->89.0%<!-- /NUM --> Hit@1, <!-- NUM:rag.hit_at_3 -->98.0%<!-- /NUM --> Hit@3, <!-- NUM:rag.hit_at_5 -->98.5%<!-- /NUM --> Hit@5** on Google XQuAD Hindi validation split with **<!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms mean latency** and calibrated refusal threshold of **<!-- NUM:rag.refusal_threshold -->0.785<!-- /NUM -->** (F1: <!-- NUM:rag.f1 -->0.8685<!-- /NUM -->, Precision: <!-- NUM:rag.precision -->81.86%<!-- /NUM -->, Recall: <!-- NUM:rag.recall -->92.5%<!-- /NUM -->).
 - **Time-To-First-Audio (`hardware_measurements.json`):** **<!-- NUM:hw.tts_first_packet_ms -->835.6<!-- /NUM --> ms** Edge-TTS first-packet latency; **<!-- NUM:hw.total_ttfa_ms -->1702.8<!-- /NUM --> ms** true end-to-end Doc-QA TTFA (question audio release → STT → RAG → LLM first sentence → audio playback).
 - **Real Speech Benchmark (`benchmark_results.json`):**
-  - Read Hindi (FLEURS `hi_in`): **<!-- NUM:stt.turbo.fleurs_hi_wer -->25.94%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_hi_wer -->33.63%<!-- /NUM --> WER** on `medium`.
-  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.hiacc_wer -->50.31%<!-- /NUM --> WER** on `medium`.
-  - Read Gujarati (FLEURS `gu_in`): **<!-- NUM:stt.turbo.fleurs_gu_wer -->66.01%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_gu_wer -->77.65%<!-- /NUM --> WER** on `medium`.
+  - Read Hindi (FLEURS `hi_in`): **<!-- NUM:stt.turbo.fleurs_hi_wer -->25.89%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_hi_wer -->33.78%<!-- /NUM --> WER** on `medium`.
+  - Spontaneous Hinglish Code-Switching (HiACC adult test eval): **<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.hiacc_wer -->50.2%<!-- /NUM --> WER** on `medium`.
+  - Read Gujarati (FLEURS `gu_in`): **<!-- NUM:stt.turbo.fleurs_gu_wer -->66.01%<!-- /NUM --> WER** on `large-v3-turbo`; **<!-- NUM:stt.medium.fleurs_gu_wer -->77.43%<!-- /NUM --> WER** on `medium`.
 - **Synthetic Stress Benchmark (`benchmark_results.json`, 100 sentences with noise & 8kHz phone filter):**
-  - Overall Synthetic Stress Set: **<!-- NUM:stt.swift.synth_wer -->31.02%<!-- /NUM --> WER** on `whisper-hinglish-swift` at **<!-- NUM:stt.swift.synth_latency_ms -->97.7<!-- /NUM --> ms latency** and **<!-- NUM:stt.swift.synth_rtf -->0.018<!-- /NUM -->x RTF**; **<!-- NUM:stt.turbo.synth_wer -->56.03%<!-- /NUM --> WER** on `large-v3-turbo`.
+  - Overall Synthetic Stress Set: **<!-- NUM:stt.swift.synth_wer -->31.39%<!-- /NUM --> WER** on `whisper-hinglish-swift` at **<!-- NUM:stt.swift.synth_latency_ms -->93.8<!-- /NUM --> ms latency** and **<!-- NUM:stt.swift.synth_rtf -->0.017<!-- /NUM -->x RTF**; **<!-- NUM:stt.turbo.synth_wer -->56.03%<!-- /NUM --> WER** on `large-v3-turbo`.
 
 ### 8. How does BolSamajh align with the Bolna ecosystem?
 BolSamajh directly supports Bolna's vision of autonomous voice agents:

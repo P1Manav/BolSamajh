@@ -36,23 +36,29 @@ ZERO_WIDTH_REGEX = re.compile(r"[\u200b\u200c\u200d\ufeff]")
 # Devanagari and Gujarati nuktas
 NUKTA_REGEX = re.compile(r"[\u093c\u0abc]")
 
-# Single digit word mappings for spoken numbers (English, Devanagari, and Roman Hinglish)
+# Single digit word mappings for spoken numbers (English, Devanagari, Gujarati, and standard Roman Hindi)
 SINGLE_DIGIT_WORDS = {
+    # English
     "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
     "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+    # Devanagari
     "शून्य": "0", "सुन्ना": "0", "सिफर": "0",
     "एक": "1", "दो": "2", "तीन": "3", "चार": "4", "पाँच": "5", "पांच": "5",
     "छह": "6", "छः": "6", "सात": "7", "आठ": "8", "नौ": "9",
-    "shunya": "0", "shoonya": "0", "shoony": "0", "sunya": "0",
-    "ek": "1", "eka": "1", "do": "2", "teen": "3", "tin": "3", "tina": "3",
-    "chaar": "4", "char": "4", "cara": "4", "paanch": "5", "panch": "5",
-    "pamca": "5", "chhah": "6", "chhe": "6", "chah": "6", "saat": "7",
-    "sat": "7", "sata": "7", "aath": "8", "ath": "8", "atha": "8",
-    "nau": "9", "nav": "9", "nava": "9",
+    # Gujarati
+    "શૂન્ય": "0", "એક": "1", "બે": "2", "ત્રણ": "3", "ચાર": "4",
+    "પાંચ": "5", "છ": "6", "સાત": "7", "આઠ": "8", "નવ": "9",
+    # Standard Roman Hindi (real romanizations a human would write)
+    "shunya": "0", "shoonya": "0",
+    "ek": "1", "do": "2", "teen": "3", "tin": "3",
+    "char": "4", "chaar": "4", "paanch": "5", "panch": "5",
+    "chhe": "6", "chhah": "6", "chah": "6", "saat": "7", "sat": "7",
+    "aath": "8", "ath": "8", "nau": "9",
 }
 
 # Unit numbers for compound number conversion
 UNITS_MAP = {
+    # English
     "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
     "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
     "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
@@ -61,34 +67,59 @@ UNITS_MAP = {
     "शून्य": 0, "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाँच": 5, "पांच": 5, "छह": 6, "छः": 6, "सात": 7, "आठ": 8, "नौ": 9,
     "दस": 10, "ग्यारह": 11, "बारह": 12, "तेरह": 13, "चौदह": 14, "पंद्रह": 15, "सोलह": 16, "सत्रह": 17, "अठारह": 18, "उन्नीस": 19,
     "बीस": 20, "तीस": 30, "चालीस": 40, "पचास": 50, "साठ": 60, "सत्तर": 70, "अस्सी": 80, "नब्बे": 90,
-    # Roman Hindi
-    "ek": 1, "eka": 1, "do": 2, "teen": 3, "tin": 3, "tina": 3, "chaar": 4, "char": 4, "paanch": 5, "panch": 5,
-    "chhah": 6, "chhe": 6, "saat": 7, "sat": 7, "aath": 8, "ath": 8, "nau": 9,
-    "das": 10, "dasa": 10, "gyarah": 11, "barah": 12, "terah": 13, "chaudah": 14, "pandrah": 15, "solah": 16,
+    # Gujarati
+    "શૂન્ય": 0, "એક": 1, "બે": 2, "ત્રણ": 3, "ચાર": 4, "પાંચ": 5, "છ": 6, "સાત": 7, "આઠ": 8, "નવ": 9, "દસ": 10,
+    "વીસ": 20, "ત્રીસ": 30, "ચાલીસ": 40, "પચાસ": 50, "સાઇઠ": 60, "સિત્તેર": 70, "એંસી": 80, "નેવું": 90, "નેવુ": 90,
+    # Standard Roman Hindi (real romanizations a human would write)
+    "shunya": 0, "shoonya": 0,
+    "ek": 1, "do": 2, "teen": 3, "tin": 3, "char": 4, "chaar": 4, "paanch": 5, "panch": 5,
+    "chhe": 6, "chhah": 6, "chah": 6, "saat": 7, "sat": 7, "aath": 8, "ath": 8, "nau": 9,
+    "das": 10, "gyarah": 11, "barah": 12, "terah": 13, "chaudah": 14, "pandrah": 15, "solah": 16,
     "satrah": 17, "atharah": 18, "unnis": 19, "bees": 20, "bis": 20, "tees": 30, "tis": 30, "chalis": 40,
-    "pachaas": 50, "pachas": 50, "pacasa": 50, "saath": 60, "sath": 60, "sattar": 70, "assi": 80, "nabbe": 90,
+    "pachaas": 50, "pachas": 50, "saath": 60, "sath": 60, "sattar": 70, "assi": 80, "nabbe": 90,
 }
 
 # Scale multipliers with Indian lakh and crore support
 SCALES_MAP = {
-    "hundred": 100, "सौ": 100, "सो": 100, "sau": 100, "so": 100,
-    "thousand": 1000, "हज़ार": 1000, "हजार": 1000, "hazar": 1000, "hazaar": 1000, "hajara": 1000,
-    "lakh": 100000, "lakhs": 100000, "लाख": 100000, "lakha": 100000,
-    "crore": 10000000, "crores": 10000000, "करोड़": 10000000, "करोड": 10000000, "karod": 10000000, "karoda": 10000000,
+    # English
+    "hundred": 100, "thousand": 1000, "lakh": 100000, "lakhs": 100000,
+    "crore": 10000000, "crores": 10000000,
+    # Devanagari
+    "सौ": 100, "हज़ार": 1000, "हजार": 1000, "लाख": 100000, "करोड़": 10000000, "करोड": 10000000,
+    # Gujarati
+    "સો": 100, "હજાર": 1000, "લાખ": 100000, "કરોડ": 10000000,
+    # Standard Roman Hindi
+    "sau": 100, "so": 100,
+    "hazaar": 1000, "hazar": 1000,
+    "karod": 10000000,
 }
 
-DECIMAL_SEPARATORS = {"point", "dashamlav", "dashamla", "dasamla", "dasamlav", "दशमलव"}
+# Ambiguous Roman words that collide with everyday English / grammatical words
+AMBIGUOUS_ROMAN_WORDS = {"do", "so", "sat", "ath", "nau"}
+
+# Scale words allowed to satisfy condition (b) for ambiguous word conversion
+SCALE_WORDS_UNAMBIGUOUS = {
+    "sau", "hazaar", "hazar", "lakh", "lakhs", "crore", "crores", "karod",
+    "hundred", "thousand",
+    "सौ", "हज़ार", "हजार", "लाख", "करोड़", "करोड",
+    "સો", "હજાર", "લાખ", "કરોડ",
+}
+
+DECIMAL_SEPARATORS = {"point", "dashamlav", "दशमलव", "દશાંશ"}
 
 
-def normalize_numbers(text: str) -> str:
+def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
     """Normalize numeric expressions across references and hypotheses.
 
     - Translates Indic digits (०-९, ૦-૯) to standard ASCII digits.
     - Strips commas between digits: 50,000 -> 50000.
     - Collapses spaced or hyphenated digit sequences: '9 8 7 6' -> '9876'.
-    - Normalizes spoken decimals: 'tin dashamlav paanch' -> '3.5', '3 dasamla 5' -> '3.5'.
-    - Maps spoken single-digit word runs to digit strings: 'nau aath saat' -> '987'.
-    - Converts Hindi/English compound number phrases: 'ek sau pachaas' -> '150'.
+    - If normalize_number_words is True:
+        - Normalizes spoken decimals: 'tin dashamlav paanch' -> '3.5'.
+        - Maps spoken single-digit word runs to digit strings: 'nau aath saat' -> '987'.
+        - Converts Hindi/English compound number phrases: 'ek sau pachaas' -> '150'.
+        - Protects ambiguous everyday words ('do', 'so', 'sat', 'ath', 'nau') unless in runs >= 3
+          or adjacent to a digit/unambiguous scale word.
     """
     if not text:
         return ""
@@ -106,7 +137,10 @@ def normalize_numbers(text: str) -> str:
         prev = text
         text = digit_run_pattern.sub(lambda m: re.sub(r'[\s\-]+', '', m.group(0)), text)
 
-    # 4. Spoken decimals: "tin dashamlav paanch" -> "3.5", "3 dasamla 5" -> "3.5"
+    if not normalize_number_words:
+        return text
+
+    # 4. Spoken decimals: "tin dashamlav paanch" -> "3.5", "3 point 5" -> "3.5"
     words = text.split()
     out_words = []
     i = 0
@@ -127,25 +161,47 @@ def normalize_numbers(text: str) -> str:
         i += 1
     text = " ".join(out_words)
 
-    # 5. Sequences of single-digit words: e.g. "nau aath saat chhah paanch chaar tin do ek shoony"
+    # 5. Sequences of single-digit words: e.g. "nau aath saat" -> "987"
     tokens = text.split()
     new_tokens = []
     i = 0
     while i < len(tokens):
         j = i
         run = []
-        while j < len(tokens) and tokens[j].lower() in SINGLE_DIGIT_WORDS:
-            run.append(SINGLE_DIGIT_WORDS[tokens[j].lower()])
+        run_tokens = []
+        while j < len(tokens) and (
+            tokens[j].lower() in SINGLE_DIGIT_WORDS
+            or (tokens[j].isdigit() and len(tokens[j]) == 1)
+        ):
+            tok_lower = tokens[j].lower()
+            digit_val = SINGLE_DIGIT_WORDS.get(tok_lower, tokens[j])
+            run.append(digit_val)
+            run_tokens.append(tok_lower)
             j += 1
+
         if len(run) >= 2:
-            new_tokens.append("".join(run))
-            i = j
+            ambig = [w for w in run_tokens if w in AMBIGUOUS_ROMAN_WORDS]
+            if ambig:
+                if len(run) >= 3:
+                    new_tokens.append("".join(run))
+                    i = j
+                    continue
+                has_digit = any(tok.isdigit() for tok in run_tokens)
+                if has_digit:
+                    new_tokens.append("".join(run))
+                    i = j
+                    continue
+                new_tokens.append(tokens[i])
+                i += 1
+            else:
+                new_tokens.append("".join(run))
+                i = j
         else:
             new_tokens.append(tokens[i])
             i += 1
     text = " ".join(new_tokens)
 
-    # 6. Compound numbers (e.g. "ek sau pachaas" -> "150", "one hundred fifty" -> "150")
+    # 6. Compound numbers (e.g. "ek sau pachaas" -> "150", "one hundred fifty" -> "150", "पचास" -> "50")
     tokens = text.split()
     out_tokens = []
     i = 0
@@ -155,12 +211,14 @@ def normalize_numbers(text: str) -> str:
         total_val = 0
         has_compound = False
         words_count = 0
+        parsed_tokens = []
 
         while sub_i < len(tokens):
             tok = tokens[sub_i].lower()
             if tok in UNITS_MAP:
                 current_val += UNITS_MAP[tok]
                 words_count += 1
+                parsed_tokens.append(tok)
                 sub_i += 1
             elif tok in SCALES_MAP:
                 scale = SCALES_MAP[tok]
@@ -173,35 +231,76 @@ def normalize_numbers(text: str) -> str:
                     current_val *= scale
                 has_compound = True
                 words_count += 1
+                parsed_tokens.append(tok)
                 sub_i += 1
             elif tok.isdigit() and sub_i + 1 < len(tokens) and tokens[sub_i + 1].lower() in SCALES_MAP:
                 current_val += int(tok)
                 words_count += 1
+                parsed_tokens.append(tok)
                 sub_i += 1
             else:
                 break
 
         total_val += current_val
-        if has_compound and words_count >= 2:
-            out_tokens.append(str(total_val))
-            i = sub_i
-        elif words_count >= 2 and current_val > 0:
-            out_tokens.append(str(total_val))
-            i = sub_i
-        else:
+
+        if words_count == 0:
             out_tokens.append(tokens[i])
             i += 1
+        elif words_count == 1:
+            tok = parsed_tokens[0]
+            if tok in SCALES_MAP or tok in AMBIGUOUS_ROMAN_WORDS:
+                out_tokens.append(tokens[i])
+                i += 1
+            elif tok in UNITS_MAP and UNITS_MAP[tok] >= 10:
+                out_tokens.append(str(total_val))
+                i = sub_i
+            else:
+                out_tokens.append(tokens[i])
+                i += 1
+        else:
+            ambig = [w for w in parsed_tokens if w in AMBIGUOUS_ROMAN_WORDS]
+            if ambig:
+                if words_count >= 3:
+                    out_tokens.append(str(total_val))
+                    i = sub_i
+                else:
+                    is_valid = False
+                    for idx, w in enumerate(parsed_tokens):
+                        if w in AMBIGUOUS_ROMAN_WORDS:
+                            other = parsed_tokens[1 - idx]
+                            if other in SCALE_WORDS_UNAMBIGUOUS or other.isdigit():
+                                is_valid = True
+                    if parsed_tokens[0] in AMBIGUOUS_ROMAN_WORDS and parsed_tokens[1] in AMBIGUOUS_ROMAN_WORDS:
+                        is_valid = False
+                    if ("do", "so") == (parsed_tokens[0], parsed_tokens[1]):
+                        is_valid = False
+                    if ("sat", "ek") == (parsed_tokens[0], parsed_tokens[1]):
+                        is_valid = False
+
+                    if is_valid and total_val > 0:
+                        out_tokens.append(str(total_val))
+                        i = sub_i
+                    else:
+                        out_tokens.append(tokens[i])
+                        i += 1
+            else:
+                if has_compound or total_val > 0:
+                    out_tokens.append(str(total_val))
+                    i = sub_i
+                else:
+                    out_tokens.append(tokens[i])
+                    i += 1
 
     return " ".join(out_tokens)
 
 
-def normalize_indic(text: str) -> str:
+def normalize_indic(text: str, normalize_number_words: bool = True) -> str:
     """Normalize Devanagari and Gujarati text to canonical form, preserving decimals."""
     if not text:
         return ""
 
     # Normalize numeric expressions first
-    text = normalize_numbers(text)
+    text = normalize_numbers(text, normalize_number_words=normalize_number_words)
 
     # 1. Unicode NFC normalization
     text = unicodedata.normalize("NFC", text)
@@ -230,7 +329,7 @@ def normalize_indic(text: str) -> str:
     return text
 
 
-def to_canonical_script(text: str) -> str:
+def to_canonical_script(text: str, normalize_number_words: bool = True) -> str:
     """Convert mixed Indic/Latin text to a canonical Romanized script representation.
 
     This provides script-normalized evaluation by mapping Devanagari and Gujarati
@@ -238,7 +337,7 @@ def to_canonical_script(text: str) -> str:
     comparability without claiming full phonemic loanword unification.
     Preserves decimals (e.g. 3.5, 36.6, 2.5 crore) and normalizes number expressions.
     """
-    text = normalize_indic(text)
+    text = normalize_indic(text, normalize_number_words=normalize_number_words)
     if not text:
         return ""
 
@@ -268,19 +367,26 @@ def to_canonical_script(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip().lower()
 
     # Re-normalize any numbers transliterated from Indic
-    text = normalize_numbers(text)
+    text = normalize_numbers(text, normalize_number_words=normalize_number_words)
 
     return text
 
 
-def compute_normalized_wer_cer(reference: str, hypothesis: str) -> Tuple[float, float, str, str]:
+def compute_normalized_wer_cer(
+    reference: str, hypothesis: str, normalize_number_words: bool = True
+) -> Tuple[float, float, str, str]:
     """Calculate WER and CER between reference and hypothesis using canonical normalization.
+
+    Args:
+        reference: Ground truth transcript.
+        hypothesis: Model predicted transcript.
+        normalize_number_words: Whether to normalize spoken number words to numeric digits.
 
     Returns:
         (wer, cer, canonical_reference, canonical_hypothesis)
     """
-    canon_ref = to_canonical_script(reference)
-    canon_hyp = to_canonical_script(hypothesis)
+    canon_ref = to_canonical_script(reference, normalize_number_words=normalize_number_words)
+    canon_hyp = to_canonical_script(hypothesis, normalize_number_words=normalize_number_words)
 
     if not canon_hyp:
         wer = 1.0 if canon_ref else 0.0

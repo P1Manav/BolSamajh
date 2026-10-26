@@ -33,7 +33,7 @@ To maintain absolute credibility for judges and users, here is a transparent bre
 | Feature / Component | Status | What Works | What Does Not / Known Limitations |
 | :--- | :---: | :--- | :--- |
 | **Multilingual STT Benchmarks** | **Verified** | <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> benchmark clips evaluated on RTX 3060 Ti GPU today; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at <!-- NUM:hw.stt_real_mean_latency_ms -->779.2<!-- /NUM --> ms (<!-- NUM:hw.stt_real_rtf -->0.101<!-- /NUM -->x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
-| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.94%<!-- /NUM --> on FLEURS). |
+| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.89%<!-- /NUM --> on FLEURS). |
 | **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
 | **In-Place Voice Editing** | **Implemented, untested on hardware** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Physical hotkey and OS clipboard automation untested on this machine today; preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
 | **Voice Barge-In Interruption** | **Implemented, untested on hardware** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Untested on hardware speakers/headphones (no live 10-minute playback measurement on this machine); laptop built-in speakers at maximum volume can cause echo false-positives without headphones. |
@@ -192,9 +192,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | FLEURS Hindi WER | FLEURS Gujarati WER | HiACC Hinglish WER | Mean CER | Mean Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | 33.63% <br><sub>[30.66–36.48%]</sub> | 77.65% <br><sub>[74.53–81.0%]</sub> | **50.31% <br><sub>[44.27–56.27%]</sub>** | 20.05% | **1973.5 ms** | **0.287x** |
-| **large-v3-turbo** | `int8_float16` | 25.94% <br><sub>[22.89–29.52%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | 18.2% | **779.2 ms** | **0.101x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | 20.42% | **105.5 ms** | **0.027x** |
+| **medium** | `int8_float16` | 33.78% <br><sub>[30.77–36.72%]</sub> | 77.43% <br><sub>[74.3–80.72%]</sub> | **50.2% <br><sub>[44.26–56.14%]</sub>** | 20.3% | **1529.9 ms** | **0.195x** |
+| **large-v3-turbo** | `int8_float16` | 25.89% <br><sub>[22.85–29.49%]</sub> | 66.01% <br><sub>[62.15–69.82%]</sub> | **38.52% <br><sub>[32.71–44.56%]</sub>** | 18.19% | **575.5 ms** | **0.08x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | — *(N/A: Hinglish-only)* | — *(N/A: Hinglish-only)* | **52.7% <br><sub>[48.41–57.86%]</sub>** | 20.53% | **100.6 ms** | **0.026x** |
 
 ### 2. Synthetic Stress Test Set (100 Sentences + DSP Degradations)
 
@@ -202,9 +202,9 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 
 | Model | Precision | Overall WER (95% CI) | Everyday | Technical | Numbers/₹ | Names | Code-Switch | Latency | RTF |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **medium** | `int8_float16` | **61.54%**<br><sub>[56.05–67.32%]</sub> | 65.74% | 56.02% | 70.21% | 65.5% | 44.97% | **711.8 ms** | **0.136x** |
-| **large-v3-turbo** | `int8_float16` | **56.03%**<br><sub>[50.14–61.51%]</sub> | 64.88% | 46.15% | 64.72% | 58.05% | 37.89% | **327.9 ms** | **0.061x** |
-| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **31.02%**<br><sub>[27.46–35.04%]</sub> | 22.9% | 33.32% | 43.01% | 28.52% | 30.7% | **97.7 ms** | **0.018x** |
+| **medium** | `int8_float16` | **61.87%**<br><sub>[56.07–67.98%]</sub> | 65.74% | 56.02% | 71.88% | 65.5% | 44.97% | **660.6 ms** | **0.126x** |
+| **large-v3-turbo** | `int8_float16` | **56.03%**<br><sub>[50.14–61.51%]</sub> | 64.88% | 46.15% | 64.72% | 58.05% | 37.89% | **316.7 ms** | **0.059x** |
+| **whisper-hinglish-swift <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>** | `int8_float16` | **31.39%**<br><sub>[27.89–35.14%]</sub> | 22.9% | 33.32% | 44.88% | 28.52% | 30.7% | **93.8 ms** | **0.017x** |
 
 ### 3. Empirical Hardware & Latency Measurements
 

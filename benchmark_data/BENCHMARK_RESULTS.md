@@ -11,9 +11,9 @@
 
 | Model | Architecture | License | Real Speech WER (95% CI) | Synthetic Stress WER (95% CI) | Latency (ms) | Real-Time Factor (RTF) |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **faster-whisper large-v3-turbo** | Whisper Large-v3-turbo CT2 | Apache-2.0 | **43.49%** [40.4–46.67%] | **56.03%** [50.14–61.51%] | 327.9 ms | **0.061x** |
-| **faster-whisper medium** | Whisper Medium CT2 | MIT | **53.86%** [50.92–56.9%] | **61.54%** [56.05–67.32%] | 711.8 ms | 0.136x |
-| **whisper-hinglish-swift** | Whisper Small Hinglish CT2 | Apache-2.0 | **52.7%** [48.41–57.86%] | **31.02%** [27.46–35.04%] | **97.7 ms** | **0.018x** |
+| **faster-whisper large-v3-turbo** | Whisper Large-v3-turbo CT2 | Apache-2.0 | **43.47%** [40.4–46.66%] | **56.03%** [50.14–61.51%] | 316.7 ms | **0.059x** |
+| **faster-whisper medium** | Whisper Medium CT2 | MIT | **53.8%** [50.81–56.88%] | **61.87%** [56.07–67.98%] | 660.6 ms | 0.126x |
+| **whisper-hinglish-swift** | Whisper Small Hinglish CT2 | Apache-2.0 | **52.7%** [48.41–57.86%] | **31.39%** [27.89–35.14%] | **93.8 ms** | **0.017x** |
 
 ---
 
@@ -27,72 +27,72 @@
 ### Model: `medium` (Total Evaluated Clips: 400)
 
 #### Clip 1: `hiacc_029` — WER: **171.43%**
-- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 1871.1 ms
+- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 845.3 ms
 - **Reference:** `और joy, happeniess, खुशियाँ, बहुत सारे relative`
 - **Raw Hypothesis:** `और joy, happiness, खुशीया, बहुत सारे relatives, बहुत सारे लोग, जिनके साथ party कर सकते हैं।`
 - **Normalized Reference:** `aura joy happeniess khusiyam bahuta sare relative`
 - **Normalized Hypothesis:** `aura joy happiness khusiya bahuta sare relatives bahuta sare loga jinake satha party kara sakate haim`
 
 #### Clip 2: `synth_stress_061` — WER: **133.33%**
-- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 1218.2 ms
+- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 1092.7 ms
 - **Reference:** `Train PNR number 2458910243 confirm ho gaya coach B4 seat 23 par.`
 - **Raw Hypothesis:** `ट्रें पियनार नमबर दो चार पाँज आथ नौ एक शुन्य दो चार तीन कंफर्म हो गया कोछ भी चार सीट तेइस पर`
 - **Normalized Reference:** `train pnr number 2458910243 confirm ho gaya coach b4 seat 23 par`
 - **Normalized Hypothesis:** `trem piyanara namabara 24 pamja atha 91 sunya 243 kampharma ho gaya kocha bhi cara sita teisa para`
 
-#### Clip 3: `synth_stress_065` — WER: **122.22%**
-- **Audio Duration:** 5.88 s | **Device:** `cuda` | **Latency:** 808.7 ms
+#### Clip 3: `synth_stress_068` — WER: **122.22%**
+- **Audio Duration:** 6.07 s | **Device:** `cuda` | **Latency:** 850.0 ms
+- **Reference:** `Speed test me download bandwidth 150 Mbps record hui.`
+- **Raw Hypothesis:** `स्पील टेस्ट में डाउनोर्ड बैंडविद एक सो पचास अम्भी पियस रेकोड हुई`
+- **Normalized Reference:** `speed test me download bandwidth 150 mbps record hui`
+- **Normalized Hypothesis:** `spila testa mem daunorda baimdavida eka so 50 ambhi piyasa rekoda hui`
+
+#### Clip 4: `synth_stress_065` — WER: **122.22%**
+- **Audio Duration:** 5.88 s | **Device:** `cuda` | **Latency:** 777.1 ms
 - **Reference:** `Total weight 3.5 kilograms hai baggage allowance ke andar.`
 - **Raw Hypothesis:** `तोटल विड् 3 दशम्ल और 5 किलोग्राम्स हैं बैगेज अलाउन्स के अंधर।`
 - **Normalized Reference:** `total weight 3.5 kilograms hai baggage allowance ke andar`
 - **Normalized Hypothesis:** `totala vid 3 dasamla aura 5 kilogramsa haim baigeja alaunsa ke amdhara`
 
-#### Clip 4: `fleurs_gu_in_017` — WER: **120.0%**
-- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 1057.6 ms
+#### Clip 5: `fleurs_gu_in_017` — WER: **120.0%**
+- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 1143.6 ms
 - **Reference:** `એફઆઈસી વેસ્ટ સ્ટોરની પેલે પાર સ્ટેન્લીમાં આવેલા ટાપુઓની એકમાત્ર બેંકમાં નાણાંનો વિનિમય કરી શકાય છે`
 - **Raw Hypothesis:** `FIC WEST REST STORE नि पेले पर स्टेनली मां आवेला टापो नि एक मात्र बेंक मा नाना नो विनेमे करी शकाए चे.`
 - **Normalized Reference:** `ephaaisi vesta storani pele para stenlimam avela tapuoni ekamatra bemkamam nanamno vinimaya kari sakaya che`
 - **Normalized Hypothesis:** `fic west rest store ni pele para stenali mam avela tapo ni eka matra bemka ma nana no vineme kari sakae ce`
 
-#### Clip 5: `synth_stress_067` — WER: **120.0%**
-- **Audio Duration:** 5.71 s | **Device:** `cuda` | **Latency:** 1025.1 ms
-- **Reference:** `Passport expiry date 14th March 2032 show ho rahi hai.`
-- **Raw Hypothesis:** `पास्पौर्ट इक्स्पाईवी देट फोटीन स्माज दू ठू थाल्डिन तर्टी तु शो हो रही हैं`
-- **Normalized Reference:** `passport expiry date 14th march 2032 show ho rahi hai`
-- **Normalized Hypothesis:** `paspaurta ikspaivi deta photina smaja du thu thaldina tarti tu so ho rahi haim`
-
 ### Model: `large-v3-turbo` (Total Evaluated Clips: 400)
 
 #### Clip 1: `hiacc_029` — WER: **171.43%**
-- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 466.0 ms
+- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 455.4 ms
 - **Reference:** `और joy, happeniess, खुशियाँ, बहुत सारे relative`
 - **Raw Hypothesis:** `और जॉय, हैपिनेस, खुशियां, बहुत सारे रेलेटिव्स, बहुत सारे लोग जिनके साथ पार्टी कर सकते हैं`
 - **Normalized Reference:** `aura joy happeniess khusiyam bahuta sare relative`
 - **Normalized Hypothesis:** `aura joya haipinesa khusiyam bahuta sare reletivsa bahuta sare loga jinake satha parti kara sakate haim`
 
 #### Clip 2: `fleurs_gu_in_091` — WER: **127.27%**
-- **Audio Duration:** 7.44 s | **Device:** `cuda` | **Latency:** 720.9 ms
+- **Audio Duration:** 7.44 s | **Device:** `cuda` | **Latency:** 679.0 ms
 - **Reference:** `વર્ષની સૌથી મોટી ટૂર્નામેન્ટ લાસ કેનિટાસના પોલો ફિલ્ડમાં ડિસેમ્બરમાં યોજાય છે`
 - **Raw Hypothesis:** `વર્ષને સોથી મોટે ટોરનામેટ લાસ કેની ટાસના પ�ોલો ફિલ્ડ માં ડિસેંબર માં યો જાઈ છે`
 - **Normalized Reference:** `varsani sauthi moti turnamenta lasa kenitasana polo phildamam disembaramam yojaya che`
 - **Normalized Hypothesis:** `varsane sothi mote toranameta lasa keni tasana pa olo philda mam disembara mam yo jai che`
 
 #### Clip 3: `synth_stress_040` — WER: **118.18%**
-- **Audio Duration:** 7.65 s | **Device:** `cuda` | **Latency:** 408.8 ms
+- **Audio Duration:** 7.65 s | **Device:** `cuda` | **Latency:** 392.7 ms
 - **Reference:** `Microservices communication ke liye gRPC ya RabbitMQ select kar sakte hain.`
 - **Raw Hypothesis:** `माइक्रो सर्विस कम्यूनिकेशन के लिए जी आर पीसी या रैबिट MQ सेलेक्ट कर सकते हैं.`
 - **Normalized Reference:** `microservices communication ke liye grpc ya rabbitmq select kar sakte hain`
 - **Normalized Hypothesis:** `maikro sarvisa kamyunikesana ke lie ji ara pisi ya raibita mq selekta kara sakate haim`
 
 #### Clip 4: `fleurs_gu_in_017` — WER: **113.33%**
-- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 1406.9 ms
+- **Audio Duration:** 9.0 s | **Device:** `cuda` | **Latency:** 722.7 ms
 - **Reference:** `એફઆઈસી વેસ્ટ સ્ટોરની પેલે પાર સ્ટેન્લીમાં આવેલા ટાપુઓની એકમાત્ર બેંકમાં નાણાંનો વિનિમય કરી શકાય છે`
 - **Raw Hypothesis:** `FIC West Restore ની પેલે પાર સ્ટેન લેમાં આવે લાટા �ોની એક માત્ર બેંગ માં નાણા નો વિને મે કરી શાકાય છે`
 - **Normalized Reference:** `ephaaisi vesta storani pele para stenlimam avela tapuoni ekamatra bemkamam nanamno vinimaya kari sakaya che`
 - **Normalized Hypothesis:** `fic west restore ni pele para stena lemam ave lata oni eka matra bemga mam nana no vine me kari sakaya che`
 
 #### Clip 5: `synth_stress_057` — WER: **111.11%**
-- **Audio Duration:** 8.93 s | **Device:** `cuda` | **Latency:** 361.3 ms
+- **Audio Duration:** 8.93 s | **Device:** `cuda` | **Latency:** 370.9 ms
 - **Reference:** `Account number 451298762341 me ₹50,000 transfer kar diye hain.`
 - **Raw Hypothesis:** `अकाउंट नमबर 45129-876-2341 में 50,000 रुपे ट्रांसफर कर दिये है`
 - **Normalized Reference:** `account number 451298762341 me 50000 transfer kar diye hain`
@@ -101,35 +101,35 @@
 ### Model: `whisper-hinglish-swift` (Total Evaluated Clips: 200)
 
 #### Clip 1: `hiacc_029` — WER: **214.29%**
-- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 140.3 ms
+- **Audio Duration:** 8.11 s | **Device:** `cuda` | **Latency:** 131.1 ms
 - **Reference:** `और joy, happeniess, खुशियाँ, बहुत सारे relative`
 - **Raw Hypothesis:** `Aur joy, happiness, khushiyaan bahut saare relatives, bahut saare log jinke saath party kar sakte hain.`
 - **Normalized Reference:** `aura joy happeniess khusiyam bahuta sare relative`
-- **Normalized Hypothesis:** `aur joy happiness khushiyaan bahut saare relatives bahut saare log jinke saath party kar sakte hain`
+- **Normalized Hypothesis:** `aur joy happiness khushiyaan bahut saare relatives bahut saare log jinke 60 party kar sakte hain`
 
-#### Clip 2: `synth_stress_064` — WER: **120.0%**
-- **Audio Duration:** 7.7 s | **Device:** `cuda` | **Latency:** 126.2 ms
+#### Clip 2: `synth_stress_064` — WER: **110.0%**
+- **Audio Duration:** 7.7 s | **Device:** `cuda` | **Latency:** 125.8 ms
 - **Reference:** `OTP 849201 hai, yeh 10 minutes ke liye valid rahega.`
 - **Raw Hypothesis:** `OTP aath laakh over upachaas hazaar bas sau ek hai ya das minute ke lie vaayalit rahega.`
 - **Normalized Reference:** `otp 849201 hai yeh 10 minutes ke liye valid rahega`
-- **Normalized Hypothesis:** `otp aath laakh over upachaas hazaar bas 101 hai ya das minute ke lie vaayalit rahega`
+- **Normalized Hypothesis:** `otp aath laakh over upachaas hazaar bas 101 hai ya 10 minute ke lie vaayalit rahega`
 
 #### Clip 3: `hiacc_078` — WER: **90.0%**
-- **Audio Duration:** 2.82 s | **Device:** `cuda` | **Latency:** 97.1 ms
+- **Audio Duration:** 2.82 s | **Device:** `cuda` | **Latency:** 96.4 ms
 - **Reference:** `we sit down and हम लोग सेवइयां खाते हैं`
 - **Raw Hypothesis:** `Visit down and ham log se vahin yahaan khaate hain.`
 - **Normalized Reference:** `we sit down and hama loga seva iyam khate haim`
 - **Normalized Hypothesis:** `visit down and ham log se vahin yahaan khaate hain`
 
 #### Clip 4: `hiacc_050` — WER: **83.33%**
-- **Audio Duration:** 2.59 s | **Device:** `cuda` | **Latency:** 73.0 ms
+- **Audio Duration:** 2.59 s | **Device:** `cuda` | **Latency:** 68.2 ms
 - **Reference:** `So चिंटू और राजू ने अपने`
 - **Raw Hypothesis:** `Sochantoo aur raajoo ne apne`
 - **Normalized Reference:** `so cimtu aura raju ne apane`
 - **Normalized Hypothesis:** `sochantoo aur raajoo ne apne`
 
 #### Clip 5: `hiacc_052` — WER: **83.33%**
-- **Audio Duration:** 2.59 s | **Device:** `cuda` | **Latency:** 68.4 ms
+- **Audio Duration:** 2.59 s | **Device:** `cuda` | **Latency:** 67.0 ms
 - **Reference:** `Veer and Diya. Veer बड़े भाई`
 - **Raw Hypothesis:** `We ran there, we are bade bhai.`
 - **Normalized Reference:** `veer and diya veer bade bhai`
@@ -157,6 +157,25 @@ To maintain absolute credibility, BolSamajh distinguishes between **script-norma
    - Diacritics are stripped via NFKD base-character extraction (e.g. `mīṭiṅga` → `mitinga`).
    - **Why this is Script-Normalized, Not Phonemic:**  
      An English word written in Devanagari (`मीटिंग`) becomes `mitinga` after ISO transliteration, while an English word written in Latin (`meeting`) remains `meeting`. Because `mitinga` and `meeting` are not orthographically identical, standard Levenshtein distance scores an error. Thus, we do **not** claim full phonemic unification; we accurately report **script-normalized WER**.
+
+### Normalizer Disclosure
+
+The number normalizer (`bolsamajh/benchmark/normalization.py`) was originally developed while inspecting model error cases on earlier test iterations. That early version inadvertently introduced entries that were ISO-transliterated, accent-stripped representations of Whisper's recognition errors (e.g., `dasamla`, `pacasa`, `karoda`, `eka`, `tina`, `cara`, `pamca`, `atha`, `nava`, `sunya`, `hajara`, `lakha`), and treated ambiguous everyday words (`do`, `so`, `sat`, `ath`, `nau`) as numbers unconditionally. That constituted metric tuning on the test set and caused corrupted normal sentences (e.g., "I do so like it" → "I 200 like it", "mujhe do teen din chahiye" → "mujhe 23 din chahiye").
+
+In this release:
+- **All transliteration artifact strings have been completely removed.**
+- The normalizer is strictly restricted to valid language and number-word grammar: Devanagari numerals, Gujarati numerals, English number words, and standard human Roman Hindi words (`ek`, `do`, `teen`, `char`, `paanch`, `chhe`, `saat`, `aath`, `nau`, `das`, `sau`, `hazaar`, `lakh`, `crore`).
+- **Ambiguity Guard:** The words `do`, `so`, `sat`, `ath`, `nau` are marked ambiguous. They are only converted if they appear in a run of $\ge 3$ number words, or are adjacent to a digit or an unambiguous scale word (`sau`, `hazaar`, `lakh`, `crore`) forming a valid number. Bare pairs such as "do so", "sat ek", or "ath sat" are never converted.
+- **Ablation — Metric with Normalizer Turned OFF:** The evaluation suite supports disabling number word normalization via `normalize_number_words=False` (passed to `compute_normalized_wer_cer`). Below is the empirical comparison of WER with the number normalizer turned **ON** vs turned **OFF**:
+
+| Model | Suite | Clips | Normalizer ON WER | Normalizer OFF WER | Delta |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **medium** | Real Speech | 300 | 53.80% | 53.83% | +0.03% |
+| **medium** | Synthetic Stress | 100 | 61.87% | 62.21% | +0.34% |
+| **large-v3-turbo** | Real Speech | 300 | 43.47% | 43.51% | +0.04% |
+| **large-v3-turbo** | Synthetic Stress | 100 | 56.03% | 55.93% | -0.10% |
+| **whisper-hinglish-swift** | Real Speech (HiACC) | 100 | 52.70% | 52.70% | 0.00% |
+| **whisper-hinglish-swift** | Synthetic Stress | 100 | 31.39% | 36.68% | +5.29% |
 
 ---
 
