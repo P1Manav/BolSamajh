@@ -82,6 +82,20 @@ curl -s http://localhost:8000/api/status
 
 ---
 
+### 1.1 Using the Web UI with BOLSAMAJH_API_KEY Configured
+
+When `BOLSAMAJH_API_KEY` is configured on the server, the Web UI on `http://localhost:8000` remains fully functional while protecting your endpoints against unauthenticated access:
+
+1. **Exempt Endpoints:** The root page (`/`), static assets (`/static/*`), and health check (`/api/status`) are public and load without requiring authentication.
+2. **In-Memory Key Input:** In the top navigation bar, enter your configured key into the **API Key** field and click **Set Key** (or press Enter).
+   - The key is retained **strictly in memory** for the browser session. It is never stored in `localStorage`, `sessionStorage`, or cookies.
+   - Once entered, a green `✓ Set` indicator is displayed.
+3. **Authenticated Operations:** All protected API endpoints (`/api/documents/upload`, `/api/documents/url`, `/api/qa`, `/api/qa/voice`, `/api/command`) automatically send `Authorization: Bearer <key>`.
+4. **Authenticated Audio Playback (Blob URLs):** Standard HTML `<audio src="...">` elements cannot send HTTP request headers. To prevent 401 Unauthorized errors during playback, the Web UI fetches audio data via an authenticated `fetchWithAuth()` request and converts it into a client-side Blob URL (`URL.createObjectURL(blob)`).
+5. **Clear Error Feedback:** If any API request encounters HTTP 401 Unauthorized, the UI displays an alert banner, highlights the key input, and focuses the field so you can enter the correct key.
+
+---
+
 ## 2. Verified Endpoint Interactions (Real Commands & Outputs)
 
 ### Text-to-Speech (`/v1/audio/speech`)

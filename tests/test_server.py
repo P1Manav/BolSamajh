@@ -177,6 +177,49 @@ def test_api_auth_protection(monkeypatch):
     assert "SSRF" in resp_ok.json()["detail"]
 
 
+def test_qa_endpoint_auth_enforcement(monkeypatch):
+    """Verify with BOLSAMAJH_API_KEY set: /api/status works without key,
+    /api/qa returns 401 without key and 200 with key.
+    """
+    from bolsamajh.web.server import retriever, llm
+    from bolsamajh.documents.chunker import Chunk
+
+    monkeypatch.setenv("BOLSAMAJH_API_KEY", "test-secret-key-42")
+
+    # 1. /api/status works without key -> 200
+    resp_status = client.get("/api/status")
+    assert resp_status.status_code == 200
+
+    # 2. /api/qa without key -> 401
+    resp_unauth = client.post("/api/qa", json={"question": "What is in the document?"})
+    assert resp_unauth.status_code == 401
+
+    # 3. Setup mock document & LLM response
+    monkeypatch.setattr(type(retriever), "is_loaded", property(lambda self: True))
+    monkeypatch.setattr(type(retriever), "document_title", property(lambda self: "Sample Document"))
+    monkeypatch.setattr(
+        retriever,
+        "retrieve",
+        lambda *args, **kwargs: [Chunk(text="Sample content", page_number=1, score=0.95)],
+    )
+
+    async def mock_gen(*args, **kwargs):
+        return "This is the answer from the document."
+
+    monkeypatch.setattr(llm, "generate", mock_gen)
+
+    # 4. /api/qa with key -> 200
+    resp_auth = client.post(
+        "/api/qa",
+        headers={"Authorization": "Bearer test-secret-key-42"},
+        json={"question": "What is in the document?", "language": "hinglish"},
+    )
+    assert resp_auth.status_code == 200
+    data = resp_auth.json()
+    assert data["answer"] == "This is the answer from the document."
+    assert "audio_url" in data
+
+
 def test_safe_fetch_url_dns_rebinding_prevention(monkeypatch):
     """Verify safe_fetch_url connects directly to the resolved IP so DNS rebinding cannot swap addresses,
     and blocks requests if DNS resolves to a private IP on subsequent lookup.

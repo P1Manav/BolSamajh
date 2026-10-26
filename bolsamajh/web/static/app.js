@@ -25,6 +25,81 @@ document.addEventListener('DOMContentLoaded', () => {
   const visualizerCanvas = document.getElementById('audioVisualizer');
   const latencyPill = document.getElementById('latencyPill');
 
+  // In-memory API key storage (strictly not in localStorage / sessionStorage)
+  let currentApiKey = '';
+
+  const apiKeyContainer = document.getElementById('apiKeyContainer');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const setApiKeyBtn = document.getElementById('setApiKeyBtn');
+  const apiKeyBadge = document.getElementById('apiKeyBadge');
+  const authAlertBanner = document.getElementById('authAlertBanner');
+  const authAlertText = document.getElementById('authAlertText');
+  const dismissAuthAlertBtn = document.getElementById('dismissAuthAlertBtn');
+
+  function setApiKey(key) {
+    currentApiKey = (key || '').trim();
+    if (currentApiKey) {
+      if (apiKeyBadge) apiKeyBadge.style.display = 'inline-block';
+      if (apiKeyContainer) apiKeyContainer.classList.remove('auth-error');
+      hideAuthError();
+    } else {
+      if (apiKeyBadge) apiKeyBadge.style.display = 'none';
+    }
+  }
+
+  if (setApiKeyBtn) {
+    setApiKeyBtn.addEventListener('click', () => setApiKey(apiKeyInput.value));
+  }
+  if (apiKeyInput) {
+    apiKeyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') setApiKey(apiKeyInput.value);
+    });
+  }
+  if (dismissAuthAlertBtn) {
+    dismissAuthAlertBtn.addEventListener('click', hideAuthError);
+  }
+
+  function showAuthError(msg) {
+    if (authAlertBanner) {
+      if (authAlertText) {
+        authAlertText.textContent = msg || '⚠️ Authentication required (HTTP 401). Please enter your BOLSAMAJH_API_KEY in the top bar.';
+      }
+      authAlertBanner.style.display = 'flex';
+    }
+    if (apiKeyContainer) {
+      apiKeyContainer.classList.add('auth-error');
+    }
+    if (apiKeyInput) {
+      apiKeyInput.focus();
+    }
+  }
+
+  function hideAuthError() {
+    if (authAlertBanner) authAlertBanner.style.display = 'none';
+    if (apiKeyContainer) apiKeyContainer.classList.remove('auth-error');
+  }
+
+  async function fetchWithAuth(url, options = {}) {
+    options = Object.assign({}, options);
+    const headers = options.headers
+      ? (options.headers instanceof Headers ? options.headers : Object.assign({}, options.headers))
+      : {};
+    if (currentApiKey) {
+      if (headers instanceof Headers) {
+        headers.set('Authorization', `Bearer ${currentApiKey}`);
+      } else {
+        headers['Authorization'] = `Bearer ${currentApiKey}`;
+      }
+    }
+    options.headers = headers;
+
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+      showAuthError('⚠️ Authentication required (HTTP 401 Unauthorized). Please set your BOLSAMAJH_API_KEY in the top bar.');
+    }
+    return res;
+  }
+
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
@@ -33,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let animFrameId = null;
 
   // 1. Check Initial Server Status
-  fetch('/api/status')
+  fetchWithAuth('/api/status')
     .then(r => r.json())
     .then(data => {
       const statusEl = document.getElementById('sttStatusText');
@@ -73,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setLoadingStatus('Uploading & indexing document...');
 
     try {
-      const res = await fetch('/api/documents/upload', {
+      const res = await fetchWithAuth('/api/documents/upload', {
         method: 'POST',
         body: formData,
       });
@@ -94,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setLoadingStatus('Fetching URL...');
 
     try {
-      const res = await fetch('/api/documents/url', {
+      const res = await fetchWithAuth('/api/documents/url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
@@ -164,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const assistantRow = addAssistantLoadingMessage();
 
     try {
-      const res = await fetch('/api/qa', {
+      const res = await fetchWithAuth('/api/qa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -240,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const assistantRow = addAssistantLoadingMessage();
 
     try {
-      const res = await fetch('/api/qa/voice', {
+      const res = await fetchWithAuth('/api/qa/voice', {
         method: 'POST',
         body: formData,
       });
@@ -315,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     commandOutput.innerText = '⚡ Processing command with LLM…';
 
     try {
-      const res = await fetch('/api/command', {
+      const res = await fetchWithAuth('/api/command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -370,16 +445,32 @@ document.addEventListener('DOMContentLoaded', () => {
       row.appendChild(citContainer);
     }
 
-    // Audio Playback
+    // Audio Playback via fetch -> Blob URL (supports Bearer auth header)
     if (data.audio_url) {
       const audioRow = document.createElement('div');
       audioRow.className = 'audio-player-row';
       const audio = document.createElement('audio');
       audio.controls = true;
-      audio.autoplay = true;
-      audio.src = data.audio_url;
       audioRow.appendChild(audio);
       row.appendChild(audioRow);
+
+      fetchWithAuth(data.audio_url)
+        .then(async (r) => {
+          if (!r.ok) {
+            throw new Error(`HTTP ${r.status}`);
+          }
+          const blob = await r.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          audio.src = blobUrl;
+          audio.autoplay = true;
+          audio.play().catch(() => {});
+        })
+        .catch((err) => {
+          const errSpan = document.createElement('span');
+          errSpan.className = 'audio-err-msg';
+          errSpan.innerText = `🔊 Audio unavailable (${err.message})`;
+          audioRow.appendChild(errSpan);
+        });
     }
 
     chatFeed.scrollTop = chatFeed.scrollHeight;

@@ -23,11 +23,24 @@
           <p class="tagline">Bolo. Samjho. — Voice Assistant for Bharat</p>
         </div>
       </div>
-      <div class="system-status">
-        <span class="status-indicator live"></span>
-        <span id="sttStatusText">Checking system status...</span>
+      <div class="nav-controls">
+        <div class="api-key-container" id="apiKeyContainer">
+          <input type="password" id="apiKeyInput" placeholder="API Key (optional)" class="api-key-input" autocomplete="off" />
+          <button type="button" id="setApiKeyBtn" class="btn btn-secondary btn-sm">Set Key</button>
+          <span id="apiKeyBadge" class="api-key-badge" style="display: none;">✓ Set</span>
+        </div>
+        <div class="system-status">
+          <span class="status-indicator live"></span>
+          <span id="sttStatusText">Checking system status...</span>
+        </div>
       </div>
     </header>
+
+    <!-- Global Auth / Notification Banner -->
+    <div id="authAlertBanner" class="auth-alert-banner" style="display: none;">
+      <span id="authAlertText">⚠️ Authentication required (HTTP 401). Please enter your BOLSAMAJH_API_KEY in the top bar.</span>
+      <button type="button" class="btn-dismiss" id="dismissAuthAlertBtn">✕</button>
+    </div>
 
     <!-- Main Grid Content -->
     <main class="main-grid">
