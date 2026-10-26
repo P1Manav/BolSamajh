@@ -1,19 +1,52 @@
-# BolSamajh v0.1.2 — Release Notes
+# BolSamajh v0.1.3 — Release Notes
 
-> **Release Tag:** `v0.1.2`  
+> **Release Tag:** `v0.1.3`  
 > **Release Date:** 2026-10-26  
 > **Buildathon:** Bolna × Symphony Voice AI Buildathon  
-> **Status:** All acceptance tests passing (69 non-slow, non-network unit & integration tests passing locally and in automated multi-OS CI across Python 3.11 and 3.12)
+> **Status:** All acceptance tests passing (75 non-slow, non-network unit & integration tests passing locally and in automated multi-OS CI across Python 3.11 and 3.12)
 
 ---
 
 ## 🚀 Overview
 
-BolSamajh v0.1.2 is an audited, empirical release of the open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) built for 500 million Hinglish and Indian-language speakers. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable citations, in-place voice editing, and standard OpenAI-compatible audio gateway endpoints for Bolna agents.
+BolSamajh v0.1.3 is an audited, empirical release of the open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) built for 500 million Hinglish and Indian-language speakers. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable citations, in-place voice editing, and standard OpenAI-compatible audio gateway endpoints for Bolna agents.
 
 ---
 
-## 🌟 Key Highlights & Fixes in v0.1.2 (Prompt v4 Audit)
+## 🌟 Key Highlights & Fixes in v0.1.3 (Prompt v5 Audit)
+
+### 1. Grammar-Based Number Normalizer Rewrite (Tier 1)
+- Purged all test-set transliteration artifacts (`dasamla`, `pacasa`, `karoda`, `eka`, `tina`, `cara`, `pamca`, `atha`, `nava`, `sunya`, `hajara`, `lakha`) from `bolsamajh/benchmark/normalization.py`.
+- Replaced heuristic mappings with strict, grammar-justified rules for Devanagari, Gujarati, English, and Roman Hindi numbers.
+- Implemented an Ambiguity Guard: everyday Roman Hindi words (`do`, `so`, `sat`, `ath`, `nau`) are never converted unless part of a run $\ge 3$ or adjacent to scale words forming valid numbers (e.g. "I do so like it" and "mujhe do teen din chahiye" remain untouched).
+- Added `normalize_number_words` ablation flag and published a full Normalizer Disclosure in `benchmark_data/BENCHMARK_RESULTS.md`.
+
+### 2. Fair Summary Tables & Disjoint Test Set Prevention (Tier 2)
+- Fixed summary tables so disparate test splits are never averaged into one misleading column.
+- Added explicit clip counts in headers: `FLEURS Hindi (100 clips)`, `FLEURS Gujarati (100 clips)`, `HiACC Hinglish (100 clips, comparable across all 3)`, and `All Real Speech (300 clips)`.
+- Enforced that Hinglish-only model (`whisper-hinglish-swift`) is marked `— *(N/A: Hinglish-only)*` in 300-clip columns.
+- Added regression test `test_comparison_columns_use_identical_clip_sets` asserting identical clip IDs across models in every comparison column.
+- Stated model recommendation (`large-v3-turbo`) using only comparable numbers.
+
+### 3. Latency Honesty & Multi-Run Empirical Benchmarking (Tier 3)
+- Updated `scripts/measure_hardware.py` and `evaluate.py` to benchmark 3 separate runs per model with warmup, recording per-run mean, median, p95, GPU name, and `nvidia-smi` state.
+- Reported median and p95 in README and documentation tables instead of single-run mean.
+- Deleted speculative explanations of latency variance. Added regression test `test_hardware_measurements_three_runs_and_median_p95`.
+
+### 4. Server Security & Piper Gateway Singleton (Tier 4)
+- **Gzip/Deflate Bomb Defense:** Rewrote `safe_fetch_url` to stream chunk-by-chunk using `zlib.decompressobj()`, enforcing the 5 MB limit on decompressed output without allocating full uncompressed buffers. Added bomb defense unit test.
+- **Piper Gateway Singleton:** Implemented lazy, thread-safe module-level cache `get_piper_adapter()` in `/v1/audio/speech`, eliminating ONNX model reloads per request. Added regression test asserting `_load_voice` is called once across multiple requests.
+- **Pinned HF Commit:** Pinned Piper Hugging Face repository URL to immutable commit SHA `5041a7a49ae5b3a0f30e6837769eb03fdbb231bd` with verified live SHA-256 hashes for both ONNX model and config.
+- **Eliminated Test Warnings:** Fixed async generator in Edge-TTS error test, passing `pytest -W error::ResourceWarning`.
+
+### 5. Honest External Claims (Tier 5)
+- Added `scripts/check_gemini.py` for live model verification; changed unbacked claims to "unverified — run `python scripts/check_gemini.py` with your key".
+- Replaced unbacked CI text with GitHub Actions CI status badge in README.
+- Clarified application timeline: this repository started on 2026-10-25; the first prototype overlay predates it.
+
+---
+
+## 🌟 Previous Highlights & Fixes in v0.1.2
 
 ### 1. CI & Environment Integrity (Tier 0)
 - Multi-OS CPU matrix workflow (Ubuntu + Windows across Python 3.11 and 3.12) running clean test suites from pinned `requirements.lock.txt`.
@@ -72,7 +105,7 @@ BolSamajh v0.1.2 is an audited, empirical release of the open-source voice AI co
 
 ## 🧪 Test Suite Status
 
-- **Total Test Cases:** 69 passed, 2 deselected slow (100% passing across 11 test modules).
+- **Total Test Cases:** 75 passed, 2 deselected slow (100% passing across 11 test modules).
 - **Verified Python Environments:** Python 3.11, Python 3.12 (clean venvs created from `requirements.lock.txt`).
 - **Platforms:** Ubuntu (CI), Windows (Local & CI).
 - **Documentation Verification:** `python scripts/generate_readme_tables.py --check` passing green.
