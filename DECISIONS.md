@@ -104,3 +104,10 @@
 **Alternatives considered:** Hardcoded single provider; API key in URL parameters (leaks to HTTP proxy logs).  
 **Reason:** Ensures zero prompt truncation on 8k context, zero key leakage in logs or URL traces, and automatic failover if local Ollama is not running.
 
+## D018: Dual-Venv Verification & Windows CI Health Check
+**Date:** 2026-10-26  
+**Choice:** Verified clean virtual environments for both Python 3.11 (`test_venv_311`) and Python 3.12 (`test_venv_312`) using `requirements.lock.txt`. Checked GitHub Actions CI status via `gh run list` and `gh run view`.  
+**Alternatives considered:** Testing only current active venv or relying solely on remote CI.  
+**Reason:** Guarantees reproduction on fresh installs and validates that Windows CI is passing before proceeding with autonomous phases. Raw evidence committed to `docs/evidence/ci_health.txt`.
+
+
