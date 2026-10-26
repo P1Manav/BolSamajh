@@ -13,8 +13,6 @@ import time
 import asyncio
 import logging
 import threading
-import re
-from typing import Optional
 
 from bolsamajh.config import AppConfig
 from bolsamajh.stt.base import SpeechToText
@@ -88,9 +86,7 @@ class VoiceCommandsPipeline:
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-                self._processing = False
-        else:
-            self._processing = False
+        self._processing = False
         self.hud.set_state("idle")
         log.info("Voice Command: cancelled by user")
 
@@ -124,7 +120,6 @@ class VoiceCommandsPipeline:
                 return
             # Ensure selection capture thread has completed
             self._selection_event.wait(timeout=1.0)
-            selected = self._selected_text
 
             # 1. Transcribe voice command
             result = self.stt.transcribe(wav_bytes)
@@ -175,6 +170,10 @@ class VoiceCommandsPipeline:
             log.info("Command completed in %.2fs. Replacing selection.", elapsed)
 
             # 5. Replace text in active window
+            if self._cancel_requested:
+                log.info("Voice command cancelled before insertion")
+                return
+
             insert_text(cleaned_output)
             self.hud.set_state("done", f"Done! ({elapsed:.1f}s)")
 
@@ -182,6 +181,5 @@ class VoiceCommandsPipeline:
             log.error("Voice command execution failed: %s", e, exc_info=True)
             self.hud.set_state("error")
         finally:
-            if not self._cancel_requested or (self._worker_thread and not self._worker_thread.is_alive()):
-                self._processing = False
+            self._processing = False
             self._selected_text = ""

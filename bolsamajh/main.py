@@ -3,9 +3,7 @@
 Run with:  python -m bolsamajh
 """
 
-import sys
 import time
-import asyncio
 import threading
 import logging
 try:

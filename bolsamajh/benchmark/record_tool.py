@@ -9,20 +9,18 @@ Adheres to Tier 1 Requirement 5:
   * 8 kHz telephony phone-codec simulation (300 Hz – 3,400 Hz bandpass filter)
 """
 
-import os
-import sys
 import json
 import time
 import io
 import wave
 import asyncio
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Optional
 
 import numpy as np
 import scipy.signal
 
-from bolsamajh.benchmark.sentences import SENTENCES, BenchmarkSentence
+from bolsamajh.benchmark.sentences import SENTENCES
 
 AUDIO_DIR = Path("benchmark_data/audio")
 METADATA_FILE = Path("benchmark_data/metadata.json")

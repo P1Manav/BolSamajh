@@ -8,10 +8,10 @@ Adheres strictly to Tier 5 Requirements:
 - Documents limitation for non-text clipboard data (bitmaps/files are replaced during insertion; text is never lost).
 """
 
+import sys
 import time
 import uuid
 import logging
-from typing import Set, Any
 import pyperclip
 
 log = logging.getLogger(__name__)
@@ -54,13 +54,38 @@ MODIFIER_KEYS = [
     Key.ctrl_r if Key else None,
 ]
 
+MODIFIER_VK_MAP = {
+    Key.shift if Key else None: 0x10,
+    Key.shift_r if Key else None: 0x10,
+    Key.ctrl if Key else None: 0x11,
+    Key.ctrl_r if Key else None: 0x11,
+    Key.alt if Key else None: 0x12,
+    Key.alt_r if Key else None: 0x12,
+    Key.alt_gr if Key else None: 0x12,
+}
+
 
 class ModifierGuard:
     """Context manager to safely release modifier keys during keyboard simulation and restore them."""
 
+    def __init__(self):
+        self._held_keys = []
+
     def __enter__(self):
+        self._held_keys = []
         if _keyboard is None or Key is None:
             return self
+
+        # Detect physically held modifiers before releasing them for shortcut simulation
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                for k, vk in MODIFIER_VK_MAP.items():
+                    if k is not None and (ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000):
+                        self._held_keys.append((k, vk))
+            except Exception as e:
+                log.debug("GetAsyncKeyState check failed: %s", e)
+
         for k in MODIFIER_KEYS:
             if k is not None:
                 try:
@@ -71,8 +96,20 @@ class ModifierGuard:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # We leave modifiers released so physical key states don't get stuck in a locked virtual state
-        pass
+        if _keyboard is None or Key is None:
+            return
+        # If the user is STILL physically holding modifier keys, restore their pressed state
+        if sys.platform == "win32" and self._held_keys:
+            try:
+                import ctypes
+                for k, vk in self._held_keys:
+                    if ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000:
+                        try:
+                            _keyboard.press(k)
+                        except Exception:
+                            pass
+            except Exception as e:
+                log.debug("Modifier restore failed: %s", e)
 
 
 def insert_text(text: str) -> None:

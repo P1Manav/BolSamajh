@@ -1,7 +1,6 @@
 """Edge-TTS adapter — free Microsoft Edge text-to-speech service."""
 
 import io
-import asyncio
 import logging
 import threading
 from typing import Literal

@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-10-26T19:51:58.040772",
+  "host": "Windows (RTX 3060 Ti)",
+  "vad_engine": "Silero VAD (ONNX preloaded, 512 chunks)",
+  "modes": {
+    "speaker_mode": {
+      "mode": "speakers",
+      "headphone_mode": false,
+      "device_id": 4,
+      "device_name": "ED320Q X (NVIDIA High Definitio",
+      "duration_seconds": 602.5,
+      "target_duration_seconds": 600.0,
+      "sentences_played": 93,
+      "false_triggers": 0,
+      "false_trigger_rate_per_min": 0.0,
+      "max_allowed_false_triggers": 3,
+      "status": "PASS",
+      "detection_latency_ms": {
+        "median": 231.5,
+        "p95": 231.6,
+        "min": 231.2,
+        "max": 231.6,
+        "trials": 5,
+        "latencies_ms": [
+          231.3,
+          231.6,
+          231.5,
+          231.2,
+          231.5
+        ]
+      }
+    },
+    "headphone_mode": {
+      "mode": "headphones",
+      "headphone_mode": true,
+      "device_id": 7,
+      "device_name": "Speakers (Razer Barracuda X)",
+      "duration_seconds": 602.1,
+      "target_duration_seconds": 600.0,
+      "sentences_played": 93,
+      "false_triggers": 0,
+      "false_trigger_rate_per_min": 0.0,
+      "max_allowed_false_triggers": 1,
+      "status": "PASS",
+      "detection_latency_ms": {
+        "median": 66.2,
+        "p95": 66.5,
+        "min": 66.0,
+        "max": 66.6,
+        "trials": 5,
+        "latencies_ms": [
+          66.5,
+          66.2,
+          66.2,
+          66.6,
+          66.0
+        ]
+      }
+    }
+  }
+}

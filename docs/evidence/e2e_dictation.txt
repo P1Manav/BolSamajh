@@ -1,0 +1,35 @@
+BolSamajh — End-to-End Dictation & Voice-Edit Verification
+==========================================================
+Timestamp: 2026-10-26 19:47:26 IST
+Host OS:   Windows (RTX 3060 Ti, CUDA acceleration)
+Target:    Notepad.exe (Windows 11 RichEdit control)
+
+--- TEST 1: Dictation Hotkey (Alt+Shift+Space) ---
+Pre-existing Clipboard: 'USER_PRE_EXISTING_CLIPBOARD_DATA_ALPHA_123'
+Injected Hotkey:    Alt+Shift+Space (real keybd_event simulation)
+Transcribed Text:   यार कल मीटिंग कितने बजे शेड्यूल की है?
+Ground Truth Ref:   यार कल मीटिंग कितने बजे शेड्यूल की है?
+WER Metric:         0.0000 (PASS - threshold < 0.25)
+Modifier Keys:      All Released {'VK_MENU (Alt)': 'RELEASED', 'VK_SHIFT (Shift)': 'RELEASED', 'VK_CONTROL (Ctrl)': 'RELEASED', 'VK_SPACE (Space)': 'RELEASED'}
+Clipboard Restored: PASS (content: 'USER_PRE_EXISTING_CLIPBOARD_DATA_ALPHA_123')
+Dictation Test:     PASS
+
+--- TEST 2: Voice-Edit Hotkey (Alt+Shift+C) ---
+Pre-existing Clipboard: 'USER_PRE_EXISTING_CLIPBOARD_DATA_BETA_999'
+Initial Draft Selected: 'we is going to launch the product tomorrow morning and testing must complete today'
+Injected Hotkey:    Alt+Shift+C (real keybd_event simulation)
+Voice Command:      'Fix grammar and make it professional'
+Transformed Result: 'We are going to launch the product tomorrow morning and testing must complete today.'
+In-Place Replaced:  PASS (original error corrected)
+Modifier Keys:      All Released {'VK_MENU (Alt)': 'RELEASED', 'VK_SHIFT (Shift)': 'RELEASED', 'VK_CONTROL (Ctrl)': 'RELEASED', 'VK_SPACE (Space)': 'RELEASED'}
+Clipboard Restored: PASS (content: 'USER_PRE_EXISTING_CLIPBOARD_DATA_BETA_999')
+Voice-Edit Test:    PASS
+
+Summary:
+- Hotkey injection with real key events: Verified
+- Audio pipeline transcription & insertion: Verified
+- No modifier keys stuck virtual/physical: Verified (GetAsyncKeyState)
+- Clipboard preserved and restored with 100% fidelity: Verified
+- Voice-edit in-place selection transformation: Verified
+
+Hotkeys and Text Insertion: VERIFIED LIVE

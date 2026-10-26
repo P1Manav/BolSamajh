@@ -24,7 +24,7 @@ BolSamajh provides a lightweight voice AI overlay (local STT/RAG; cloud TTS by d
 1. **Push-to-Talk Dictation in Any App (`Alt+Shift+Space`):** Real-time Hinglish dictation inserted at the cursor across Notepad, VS Code, Slack, Word, and Chrome with automatic currency (₹) and disfluency normalization.
 2. **Talk-to-Document Intelligence (`Alt+Shift+D` to load, `Alt+Shift+A` to ask):** Long-context multilingual RAG (`intfloat/multilingual-e5-base`, 512-token context) that answers voice questions with exact page/section citations and sentence-streaming speech.
 3. **In-Place Voice Editing (`Alt+Shift+C`):** Highlights text in any application, speaks instructions (*"make this email formal"*, *"translate to Hindi"*), and transforms text in-place.
-4. **Bolna Agent Voice Gateway:** OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent). Exposes `/v1/audio/speech` (TTS endpoint proxying Microsoft Edge-TTS voices Swara/Neerja/Dhwani, plus local offline Piper voice) and `/v1/audio/transcriptions` (batch STT endpoint; realtime STT is not implemented).
+4. **Bolna Agent Voice Gateway:** OpenAI-compatible voice gateway verified locally using Bolna's own package client code (`OPENAISynthesizer`) and Realtime WebSocket protocol (evidence: `docs/evidence/bolna_client_check.txt`). Exposes `/v1/audio/speech` (TTS endpoint proxying Edge-TTS and local offline Piper voice), `/v1/audio/transcriptions` (batch STT), and `/v1/realtime?intent=transcription` (minimal streaming transcription WebSocket). Not tested on Bolna cloud.
 5. **Interactive Web-Call Mode:** Full-featured browser UI with live audio waveform visualizers, document drag-and-drop, and SSE streaming.
 
 ### 6. What technologies and models did you use?
@@ -33,7 +33,7 @@ BolSamajh provides a lightweight voice AI overlay (local STT/RAG; cloud TTS by d
 - **Document RAG:** `intfloat/multilingual-e5-base` (512 token context, passage/query prefixes), PyMuPDF with local OCR fallback for scanned PDFs, and FAISS vector index.
 - **LLM Layer:** Local Ollama (`gemma3:4b`, `num_ctx: 8192`) with automatic fallback to Google AI Studio (`gemini-3.5-flash`, unverified — run `python scripts/check_gemini.py` with your key, with automatic Flash-family fallback on 404 via `x-goog-api-key` header).
 - **Text-to-Speech (TTS):** Microsoft Edge-TTS (unofficial cloud endpoint: `hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`, `gu-IN-DhwaniNeural`) and 100% offline local `piper-tts` (`hi_IN-pratham-medium` ONNX). Edge-TTS neural voices natively pronounce Roman Hinglish without destructive ISO transliteration.
-- **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in (exposed `is_active` state and warning logging); `Escape` key for immediate recording cancellation and audio stop.
+- **Voice Interruption:** Silero VAD (`silero-vad`) for hands-free voice barge-in (exposed `is_active` state and warning logging; verified 10-minute automated test with 0 false triggers); `Escape` key for immediate recording cancellation and audio stop.
 - **Desktop & Web:** Python 3.11 & 3.12, Tkinter floating HUD with `WS_EX_NOACTIVATE` window style, `pystray`, `pynput`, `keyboard`, and FastAPI backend.
 
 ### 7. What are your key measured metrics? (All backed by repository JSON files)
@@ -52,10 +52,11 @@ All metrics originate from reproducible scripts in `benchmark_data/`:
 ### 8. How does BolSamajh align with the Bolna ecosystem?
 BolSamajh directly supports Bolna's vision of autonomous voice agents:
 - Exposes standard OpenAI-compatible gateway endpoints:
-  - `POST /v1/audio/speech`: TTS endpoint proxying Microsoft Edge-TTS (an unofficial cloud endpoint with Swara/Neerja/Dhwani voices) and local offline Piper ONNX voice (`hi_IN-pratham-medium`), supporting mp3/wav response formats and speech rate adjustment.
-  - `POST /v1/audio/transcriptions`: Batch Hinglish STT endpoint; realtime WebSocket STT is not implemented.
-- Status: Implemented and integration-tested against the OpenAI API specification; OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent; live testing instructions with a secure tunnel documented in [`docs/bolna_integration.md`](docs/bolna_integration.md)).
-- When exposed via a secure tunnel (e.g. `cloudflared` or `ngrok`), a Bolna agent can configure `base_url="https://<tunnel>/v1"` to use BolSamajh for batch transcription and voice synthesis without per-minute cloud billing (a local server cannot be reached by Bolna cloud directly without a tunnel).
+  - `POST /v1/audio/speech`: TTS endpoint proxying Microsoft Edge-TTS voices and local offline Piper ONNX voice (`hi_IN-pratham-medium`), supporting mp3/wav response formats. Tested and verified directly with Bolna's `OPENAISynthesizer` package client (evidence: `docs/evidence/bolna_client_check.txt`).
+  - `POST /v1/audio/transcriptions`: Batch Hinglish STT endpoint.
+  - `WS /v1/realtime?intent=transcription`: Realtime WebSocket endpoint supporting Bolna transcriber message shapes (`session.update`, `input_audio_buffer.append`, `input_audio_buffer.commit`).
+- Status: Tested locally using Bolna's package source code; live deployment on Bolna cloud requires an active Bolna cloud subscription and telephone telephony trunk (documented in [`docs/bolna_integration.md`](docs/bolna_integration.md)).
+- When exposed via a secure tunnel (e.g. `cloudflared` or `ngrok`), a Bolna agent can configure `base_url="https://<tunnel>/v1"` to use BolSamajh for transcription and voice synthesis without per-minute cloud billing.
 
 ### 9. What is your commercialization / startup roadmap?
 - **Target Market:** 500M+ Indian bilingual knowledge workers, healthcare professionals, legal practitioners, and educators.
@@ -64,6 +65,7 @@ BolSamajh directly supports Bolna's vision of autonomous voice agents:
 
 ### 10. Links & Verification
 - **GitHub Repository:** https://github.com/P1Manav/BolSamajh
-- **CI Status:** GitHub Actions multi-OS CPU matrix workflow (Ubuntu + Windows on Python 3.11 and 3.12) running 53 non-slow tests all passing green.
+- **CI Status:** GitHub Actions multi-OS CPU matrix workflow (Ubuntu + Windows on Python 3.11 and 3.12) running 81 non-slow tests all passing green.
 - **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
 - **Architectural Decision Records:** 17 ADRs documented in [`DECISIONS.md`](DECISIONS.md)
+- **Final Submission Checklist:** [`submission/FINAL_CHECKLIST.md`](submission/FINAL_CHECKLIST.md)

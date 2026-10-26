@@ -208,6 +208,8 @@ def load_webpage(url: str, html_content: str | None = None) -> Document:
 
     # Split into paragraphs as "pages"
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if len(paragraphs) <= 1:
+        paragraphs = [p.strip() for p in text.splitlines() if p.strip()]
 
     pages = []
     for i, para in enumerate(paragraphs, 1):

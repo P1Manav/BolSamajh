@@ -44,9 +44,7 @@ class DictationPipeline:
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-                self._processing = False
-        else:
-            self._processing = False
+        self._processing = False
         self.hud.set_state("idle")
         log.info("Dictation: cancelled by user")
 
@@ -105,6 +103,10 @@ class DictationPipeline:
                 return
 
             # 3. Insert into active app
+            if self._cancel_requested:
+                log.info("Dictation cancelled before insertion")
+                return
+
             elapsed = time.time() - t0
             log.info("✅ Dictation: inserting %d chars (%.2fs total): %s",
                      len(cleaned), elapsed, cleaned[:80])
@@ -118,5 +120,4 @@ class DictationPipeline:
             self.hud.set_state("error")
 
         finally:
-            if not self._cancel_requested or (self._worker_thread and not self._worker_thread.is_alive()):
-                self._processing = False
+            self._processing = False

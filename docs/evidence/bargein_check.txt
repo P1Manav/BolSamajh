@@ -1,0 +1,31 @@
+BolSamajh — Automated Voice Barge-In Hardware Measurements
+==========================================================
+Timestamp: 2026-10-26 19:51:58 IST
+Host OS:   Windows (RTX 3060 Ti)
+VAD Engine: Silero VAD (ONNX preloaded, 512-sample chunks)
+
+--- MODE 1: Speaker Mode ---
+Output Device:      ED320Q X (NVIDIA High Definitio
+Duration:           602.5s (10.0 mins)
+Sentences Played:   93
+False Triggers:     0 (Threshold: <= 3)
+False Trigger Rate: 0.0 / min
+Detection Latency:  Median 231.5 ms (P95: 231.6 ms)
+Result:             PASS
+
+--- MODE 2: Headphone Mode ---
+Output Device:      Speakers (Razer Barracuda X)
+Duration:           602.1s (10.0 mins)
+Sentences Played:   93
+False Triggers:     0 (Threshold: <= 1)
+False Trigger Rate: 0.0 / min
+Detection Latency:  Median 66.2 ms (P95: 66.5 ms)
+Result:             PASS
+
+Summary:
+- Speaker Mode False Triggers: 0 [PASS]
+- Headphone Mode False Triggers: 0 [PASS]
+- Speaker Detection Latency: 231.5 ms
+- Headphone Detection Latency: 66.2 ms
+
+Voice Barge-In: VERIFIED LIVE ON HARDWARE

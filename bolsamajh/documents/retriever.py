@@ -8,7 +8,6 @@ Adheres to Tier 2 Requirement 12:
 
 import logging
 import time
-from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
@@ -159,10 +158,16 @@ class DocumentRetriever:
                 chunk = Chunk(
                     text=c.text,
                     page_number=c.page_number,
+                    page_start=c.page_start,
+                    page_end=c.page_end,
                     section=c.section,
+                    section_start=c.section_start,
+                    section_end=c.section_end,
                     source=c.source,
                     chunk_index=c.chunk_index,
+                    chunk_id=c.chunk_id,
                     score=score_val,
+                    doc_type=c.doc_type,
                 )
                 log.debug("  Score=%.3f  %s: %s…", score_val, chunk.citation, chunk.text[:60])
                 results.append(chunk)

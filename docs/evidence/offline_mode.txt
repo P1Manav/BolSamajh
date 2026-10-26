@@ -1,0 +1,27 @@
+BolSamajh — Offline Mode Automated Verification
+================================================
+Timestamp: 2026-10-26 19:32:54 IST
+Host OS:   Windows (RTX 3060 Ti)
+Guards:    HF_HUB_OFFLINE=1, TRANSFORMERS_OFFLINE=1, socket.connect outbound blocker
+
+1. Outbound Network Blocker: PASS
+2. Piper TTS Offline Synthesis: PASS (194604 bytes generated)
+3. Faster-Whisper STT Offline: PASS (Transcript: 'नमस्ति दुनिया बोल समझ पूरी तरह से आफलाइन काम कर रहा है')
+4. Local Ollama LLM Offline: PASS (Response: 'Currently, no, not.')
+5. Document Retriever (FAISS + E5) Offline: PASS (Citation: Section: Airgap Security Policy)
+6. Dictation Pipeline Offline: PASS (Normalized: 'I have 200 bottles and 150 rupees nau do gyarah')
+7. End-to-End Doc-QA Pipeline Offline: PASS (Answer: 'Yes, BolSamajh is designed to run completely air-gapped.')
+
+Component Summary Table:
+| Component | Offline Test Status | Details |
+|---|---|---|
+| Outbound Socket Blocker | Verified | Local execution verified with outbound network blocked |
+| Piper TTS Offline Synthesis | Verified | Local execution verified with outbound network blocked |
+| Faster-Whisper STT Offline | Verified | Local execution verified with outbound network blocked |
+| Local Ollama LLM Offline | Verified | Local execution verified with outbound network blocked |
+| Document Retriever Offline | Verified | Local execution verified with outbound network blocked |
+| Dictation Pipeline Offline | Verified | Local execution verified with outbound network blocked |
+| Doc-QA Pipeline Offline | Verified | Local execution verified with outbound network blocked |
+
+All 7 offline pipeline components verified successfully with zero external internet traffic.
+Offline Mode: VERIFIED LIVE

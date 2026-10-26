@@ -9,12 +9,11 @@ Adheres to Tier 2 Requirements 12, 15, and 16:
 - Escape cancels active recording and TTS.
 """
 
-import re
 import time
 import asyncio
 import logging
 import threading
-from typing import List, Literal, Tuple
+from typing import List, Tuple, Optional
 
 from bolsamajh.config import AppConfig
 from bolsamajh.documents.loader import Document, load_document
@@ -156,14 +155,12 @@ class DocQAPipeline:
             self.recorder.cancel()
         self.tts.stop()
 
-        # Join worker thread so _processing is cleared only when worker actually exits
+        # Join worker thread
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-                self._processing = False
-        else:
-            self._processing = False
+        self._processing = False
 
         self.hud.set_state("idle")
         log.info("Doc Q&A: cancelled by user")
@@ -248,8 +245,7 @@ class DocQAPipeline:
             log.error("Doc Q&A error: %s", e, exc_info=True)
             self.hud.set_state("error")
         finally:
-            if not self._cancel_requested or (self._worker_thread and not self._worker_thread.is_alive()):
-                self._processing = False
+            self._processing = False
 
     async def _stream_and_speak(
         self,

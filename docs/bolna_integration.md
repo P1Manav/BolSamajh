@@ -1,7 +1,7 @@
 # Bolna Voice Agent Integration with BolSamajh
 
-> **Integration Status:** **Implemented, not yet tested against a live Bolna agent.**  
-> The gateway endpoints (`/v1/audio/speech` and `/v1/audio/transcriptions`) strictly implement the OpenAI HTTP REST specification required by Bolna, but have not been exercised end-to-end against a live agent on the Bolna cloud/self-hosted orchestrator. See Section 4 below for steps to verify against a live Bolna agent.
+> **Integration Status:** **Verified locally with Bolna package client; not tested on Bolna cloud.**  
+> The gateway endpoints (`/v1/audio/speech`, `/v1/audio/transcriptions`, and `/v1/realtime?intent=transcription`) were tested directly using Bolna's own `OPENAISynthesizer` and OpenAI Realtime WebSocket protocol client against a running BolSamajh server. Empirical proof is committed at [docs/evidence/bolna_client_check.txt](file:///d:/Projects/BolSamajh/docs/evidence/bolna_client_check.txt). Testing against a live call from the Bolna cloud orchestrator was not performed as it requires a Bolna cloud account and telephone telephony setup.
 
 This guide explains how to connect an autonomous conversational voice agent built on [Bolna](https://github.com/bolna-ai/bolna) to **BolSamajh**'s open-source Indian voice gateway.
 
@@ -27,8 +27,9 @@ Bolna orchestrates voice agents using two distinct audio channels:
 
 | Component | Bolna Protocol | BolSamajh Support | Notes |
 |:---|:---|:---|:---|
-| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Implemented, not yet tested against a live Bolna agent** | Configured via `synthesizer_base_url` and `synthesizer_key`. Proxies Microsoft Edge-TTS (an unofficial cloud service) with Indian neural voices (`swara`, `neerja`, `dhwani`), with 100% offline local neural voice (`piper`) available. Supports MP3 and WAV output. |
-| **Realtime Transcriber (STT)** | OpenAI Realtime WebSocket protocol (`REALTIME_TRANSCRIBER_URL`) | **Not Implemented** | Bolna's streaming conversational pipeline requires full-duplex WebSocket connections. BolSamajh provides standard batch REST STT (`/v1/audio/transcriptions`), not the realtime WebSocket server. For Bolna agents, use a supported realtime provider (e.g., Deepgram) for STT and BolSamajh for TTS. |
+| **Synthesizer (TTS)** | OpenAI-compatible HTTP POST `/v1/audio/speech` | **Verified** ([evidence](file:///d:/Projects/BolSamajh/docs/evidence/bolna_client_check.txt)) | Tested directly using Bolna's `OPENAISynthesizer` client code. Configured via `synthesizer_base_url` and `synthesizer_key`. Proxies Microsoft Edge-TTS with Indian neural voices (`swara`, `neerja`, `dhwani`), or 100% offline local neural voice (`piper`). Verified playable output via PyAV for Hindi and English. |
+| **Batch Transcriber (STT)** | OpenAI HTTP POST `/v1/audio/transcriptions` | **Verified** ([evidence](file:///d:/Projects/BolSamajh/docs/evidence/bolna_client_check.txt)) | Tested using OpenAI client against BolSamajh `/v1/audio/transcriptions` on benchmark clips. |
+| **Realtime Transcriber (STT)** | OpenAI Realtime WebSocket protocol (`/v1/realtime?intent=transcription`) | **Verified** ([evidence](file:///d:/Projects/BolSamajh/docs/evidence/bolna_client_check.txt)) | Minimal Realtime-compatible transcription WebSocket supporting Bolna's message flow: `session.update`, `input_audio_buffer.append` (24 kHz linear16 PCM), `input_audio_buffer.commit`, and `conversation.item.input_audio_transcription.completed`. Powered by local faster-whisper. |
 
 ```
 ┌─────────────────────────────────┐
@@ -42,6 +43,8 @@ Bolna orchestrates voice agents using two distinct audio channels:
 │        BolSamajh Gateway        │
 │   (synthesizer_base_url:        │
 │    http://localhost:8000/v1)    │
+│   (realtime transcriber:        │
+│    ws://localhost:8000/v1/realtime)
 └─────────────────────────────────┘
 ```
 

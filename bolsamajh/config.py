@@ -1,9 +1,12 @@
 """BolSamajh configuration — hotkeys, adapter selection, model paths."""
 
 import os
+import logging
 from dataclasses import dataclass, field
 from typing import Literal
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -111,7 +114,9 @@ def load_config() -> AppConfig:
     if os.getenv("BOLSAMAJH_STT_MODEL"):
         config.stt.model_size = os.getenv("BOLSAMAJH_STT_MODEL")
     if os.getenv("BOLSAMAJH_STT_DEVICE"):
-        config.stt.device = os.getenv("BOLSAMAJH_STT_DEVICE")
+        config.stt.device = os.getenv("BOLSAMAJH_STT_DEVICE").lower()
+        if config.stt.device == "cpu" and config.stt.compute_type in ("int8_float16", "float16"):
+            config.stt.compute_type = "int8"
     else:
         # Auto-detect optimal device, compute type, and model
         try:
@@ -121,8 +126,10 @@ def load_config() -> AppConfig:
             config.stt.compute_type = comp
             if not os.getenv("BOLSAMAJH_STT_MODEL"):
                 config.stt.model_size = model
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning("Device auto-detection failed, defaulting to CPU: %s", e)
+            config.stt.device = "cpu"
+            config.stt.compute_type = "int8"
 
     if os.getenv("BOLSAMAJH_LLM_ENGINE"):
         config.llm.engine = os.getenv("BOLSAMAJH_LLM_ENGINE")

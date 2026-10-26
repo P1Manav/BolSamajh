@@ -1,0 +1,48 @@
+BolSamajh — Bolna Client Integration Empirical Verification
+=========================================================
+Timestamp: 2026-10-26 20:06:49 IST
+Host OS:   Windows (RTX 3060 Ti)
+Framework: Bolna (tested directly using Bolna package source code)
+Gateway:   http://127.0.0.1:8008/v1 (Auth: Bearer bolna_te...)
+
+--- TEST 1: Bolna OPENAISynthesizer Client Verification ---
+1A. Hindi Synthesis (via Bolna OPENAISynthesizer):
+    Input Text:   'नमस्ते, बोलसमझ और बोलना का एकीकरण पूरी तरह से सफल हुआ।'
+    Audio Output: 18,407 bytes (fltp)
+    Duration:     4.48s (Sample Rate: 22050 Hz)
+    Latency:      3306.8 ms
+    Playable:     PASS (verified via PyAV)
+
+1B. English Synthesis (via Bolna OPENAISynthesizer):
+    Input Text:   'BolSamajh local voice AI gateway is running seamlessly with Bolna.'
+    Audio Output: 16,526 bytes (fltp)
+    Duration:     4.02s (Sample Rate: 22050 Hz)
+    Latency:      151.5 ms
+    Playable:     PASS (verified via PyAV)
+
+--- TEST 2: Batch STT Endpoint (/v1/audio/transcriptions) ---
+Batch STT Audio Transcription:
+    Audio File:   sentence_001.wav
+    Transcript:   'यार कल मीटिंग कितने बजे शेड्यूल की है?'
+    Latency:      4426.4 ms
+    Status:       PASS
+
+--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---
+Realtime WebSocket Protocol Message Flow:
+    1. Client -> Server: session.update (configured model=large-v3-turbo, language=hi)
+    2. Server -> Client: session.updated [ACK]
+    3. Client -> Server: input_audio_buffer.append (streamed 24 kHz linear16 PCM audio)
+    4. Client -> Server: input_audio_buffer.commit
+    5. Server -> Client: conversation.item.input_audio_transcription.completed
+       Transcript:       'यार कल मीटिंग कितने बजे शेडिूल की है?'
+       Inference Time:   262.6 ms
+    WebSocket Status:    PASS
+
+Integration Summary:
+- Bolna OPENAISynthesizer HTTP integration: VERIFIED LIVE
+- Bolna OpenAI-compatible Batch STT endpoint: VERIFIED LIVE
+- Bolna OpenAI-compatible Realtime WebSocket: VERIFIED LIVE
+- Tested on host machine with Bolna package source code against local BolSamajh server.
+- Note: Not tested on Bolna cloud (no cloud account / credentials required).
+
+Bolna Local Integration: VERIFIED LIVE

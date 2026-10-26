@@ -12,6 +12,8 @@ venv/
 .venv/
 env/
 test_venv_*/
+bolna_venv/
+scratch/
 
 # IDE
 .vscode/

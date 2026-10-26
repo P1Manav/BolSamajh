@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-from bolsamajh.documents.loader import Document, DocumentPage
+from bolsamajh.documents.loader import Document
 from bolsamajh.utils.sentence_splitter import split_sentences
 
 log = logging.getLogger(__name__)
@@ -59,12 +59,12 @@ class Chunk:
             return f"Chunk {self.chunk_index + 1}"
 
         # DOCX, Web, TXT, Markdown: strictly 'Section'
+        if self.section_start and self.section_end and self.section_start != self.section_end:
+            return f"Sections {self.section_start}–{self.section_end}"
         if self.section:
             if not self.section.lower().startswith("section"):
                 return f"Section: {self.section}"
             return self.section
-        elif self.section_start and self.section_end and self.section_start != self.section_end:
-            return f"Sections {self.section_start}–{self.section_end}"
         elif self.section_start:
             return f"Section {self.section_start}"
         return f"Section {self.chunk_index + 1}"

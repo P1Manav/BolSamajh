@@ -15,16 +15,15 @@ from typing import List, Tuple, Optional
 COMMON_ABBREVIATIONS = {
     "dr", "mr", "mrs", "ms", "prof", "sr", "jr", "rs", "vs", "approx",
     "eg", "ie", "etc", "no", "vol", "dept", "ltd", "corp", "inc",
+    "st", "ave", "gen", "col", "gov",
     # Hindi abbreviations (without nukta / with nukta)
     "डॉ", "पं", "रु", "प्रो", "क्र",
 }
 
 # Regex to detect sentence boundaries
-# Group 1: sentence terminator (., ?, !, ।, ॥, or \n\n)
-# Must not be preceded by known abbreviation or digits on both sides
 _SENTENCE_END_RE = re.compile(
     r'(?<![A-Za-z0-9\u0900-\u097F]\.[A-Za-z0-9\u0900-\u097F])'  # not inside e.g. / i.e.
-    r'(?<!\b\d)'                                                 # not immediately preceded by digit (handled with lookahead)
+    r'(?<!\b\d)'                                                 # not immediately preceded by digit
     r'([.?!।॥]+|\n\n+)'
     r'(?:\s+|$)'
 )
@@ -40,12 +39,16 @@ def _is_abbreviation_or_decimal(text: str, match_start: int) -> bool:
             if prev_char.isdigit() and (next_char.isdigit() or next_char in ",%"):
                 return True
 
-    # 2. Abbreviation check: look back up to 10 chars for preceding word
+    # 2. Abbreviation and initial check: look back up to 10 chars for preceding word
     if text[match_start] == ".":
         lookback = text[max(0, match_start - 10):match_start]
         m = re.search(r'([A-Za-z\u0900-\u097F]+)$', lookback)
         if m:
-            word = m.group(1).lower()
+            raw_word = m.group(1)
+            # Single-letter initials like "A.", "M.", "डॉ."
+            if len(raw_word) == 1 and raw_word.isupper():
+                return True
+            word = raw_word.lower()
             if word in COMMON_ABBREVIATIONS:
                 return True
 
@@ -73,6 +76,9 @@ def split_sentences(text: str) -> List[str]:
         end = match.end()
         # Include any consecutive punctuation (e.g. ... or !?)
         while end < len(text) and text[end] in ".?!।॥":
+            end += 1
+        # Include trailing closing quotes/brackets (e.g. "!", '?', .", .')
+        while end < len(text) and text[end] in "\"'”’)]}":
             end += 1
 
         sentence = text[start:end].strip()
@@ -108,8 +114,12 @@ def extract_next_sentence(buffer: str) -> Tuple[Optional[str], str]:
 
         # Valid sentence boundary
         end = match.end()
-        sentence = buffer[:match.start() + len(match.group(1))].strip()
-        remaining = buffer[end:]
+        # Include trailing closing quotes/brackets
+        boundary_end = match.start() + len(match.group(1))
+        while boundary_end < len(buffer) and buffer[boundary_end] in "\"'”’)]}":
+            boundary_end += 1
+        sentence = buffer[:boundary_end].strip()
+        remaining = buffer[max(end, boundary_end):]
         if sentence:
             return sentence, remaining
 

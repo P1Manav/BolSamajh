@@ -1,7 +1,6 @@
 """Piper TTS adapter — 100% offline local text-to-speech using ONNX models."""
 
 import io
-import os
 import wave
 import hashlib
 import logging
@@ -144,22 +143,29 @@ class PiperTTSAdapter(TextToSpeech):
 
         wav_io = io.BytesIO()
 
-        # Support both Piper API shapes:
-        # Shape 1: voice.synthesize(text, wav_file)
-        # Shape 2: voice.synthesize(text) / voice.synthesize_stream_raw(text) yielding bytes
+        # Support Piper API:
+        # Prefer voice.synthesize_wav(text, wav_file) which properly configures Wave_write
         try:
             with wave.open(wav_io, "wb") as wav_file:
-                self._voice.synthesize(text, wav_file)
-        except (TypeError, AttributeError):
-            raw = self._voice.synthesize(text)
-            if hasattr(raw, "__iter__") and not isinstance(raw, (bytes, bytearray)):
-                raw_bytes = b"".join(raw)
-            else:
-                raw_bytes = bytes(raw)
+                if hasattr(self._voice, "synthesize_wav"):
+                    self._voice.synthesize_wav(text, wav_file)
+                else:
+                    self._voice.synthesize(text, wav_file)
+        except Exception:
+            chunks = []
+            for chunk in self._voice.synthesize(text):
+                if hasattr(chunk, "audio_int16_bytes"):
+                    chunks.append(chunk.audio_int16_bytes)
+                elif hasattr(chunk, "audio"):
+                    chunks.append(bytes(chunk.audio))
+                elif isinstance(chunk, (bytes, bytearray)):
+                    chunks.append(bytes(chunk))
+            raw_bytes = b"".join(chunks)
+            sr = getattr(getattr(self._voice, "config", None), "sample_rate", 22050)
+            wav_io = io.BytesIO()
             with wave.open(wav_io, "wb") as wav_file:
                 wav_file.setnchannels(1)
                 wav_file.setsampwidth(2)
-                sr = getattr(getattr(self._voice, "config", None), "sample_rate", 22050)
                 wav_file.setframerate(sr)
                 wav_file.writeframes(raw_bytes)
 

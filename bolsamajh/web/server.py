@@ -27,14 +27,14 @@ import hmac
 import re
 import codecs
 import threading
-import zlib
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin
 from typing import Optional, List, AsyncIterator
 from contextlib import asynccontextmanager
 
+import base64
 import numpy as np
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,15 +42,13 @@ from pydantic import BaseModel
 
 from bolsamajh import __version__
 from bolsamajh.config import load_config, AppConfig
-from bolsamajh.documents.loader import load_document, load_webpage, Document
+from bolsamajh.documents.loader import load_document, load_webpage
 from bolsamajh.documents.retriever import DocumentRetriever
-from bolsamajh.documents.chunker import Chunk
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
 from bolsamajh.llm.factory import create_llm_adapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
 from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
 from bolsamajh.pipeline.doc_qa import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
-from bolsamajh.utils.cuda_setup import auto_detect_device
 
 log = logging.getLogger("bolsamajh.web")
 
@@ -1059,6 +1057,89 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
             )
 
     return StreamingResponse(io.BytesIO(mp3_bytes), media_type="audio/mpeg")
+
+
+@app.websocket("/v1/realtime")
+async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: str = "transcription"):
+    """OpenAI Realtime-compatible WebSocket transcription endpoint for Bolna agent integration.
+    
+    Supports:
+    - session.update (model, language configuration)
+    - input_audio_buffer.append (streaming base64 24kHz linear16 PCM)
+    - input_audio_buffer.commit (triggers Faster-Whisper inference on committed audio)
+    - conversation.item.input_audio_transcription.completed (returns final transcript)
+    """
+    await websocket.accept()
+
+    expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
+    if expected_key:
+        auth_header = websocket.headers.get("authorization", "")
+        scheme, _, token = auth_header.partition(" ")
+        if scheme.lower() != "bearer" or not token or not hmac.compare_digest(token.strip(), expected_key):
+            await websocket.close(code=1008, reason="Unauthorized: invalid or missing Bearer token")
+            return
+
+    import json
+    import scipy.signal
+
+    audio_buffer = bytearray()
+    language = "auto"
+    item_counter = 0
+
+    try:
+        while True:
+            msg_text = await websocket.receive_text()
+            data = json.loads(msg_text)
+            event_type = data.get("type", "")
+
+            if event_type == "session.update":
+                session_cfg = data.get("session", {})
+                audio_input = session_cfg.get("audio", {}).get("input", {})
+                transcription_cfg = audio_input.get("transcription", {})
+                language = transcription_cfg.get("language", language)
+                await websocket.send_text(json.dumps({
+                    "type": "session.updated",
+                    "session": session_cfg,
+                }))
+
+            elif event_type == "input_audio_buffer.append":
+                b64_audio = data.get("audio", "")
+                if b64_audio:
+                    pcm_chunk = base64.b64decode(b64_audio)
+                    audio_buffer.extend(pcm_chunk)
+
+            elif event_type == "input_audio_buffer.commit":
+                item_counter += 1
+                item_id = f"item_{item_counter}"
+                committed_bytes = bytes(audio_buffer)
+                audio_buffer.clear()
+
+                transcript = ""
+                if len(committed_bytes) > 0:
+                    audio_np = np.frombuffer(committed_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                    gcd = int(np.gcd(24000, 16000))
+                    audio_16k = scipy.signal.resample_poly(audio_np, 16000 // gcd, 24000 // gcd).astype(np.float32)
+                    lang_param = None if language in ("auto", "", None) else language
+                    if stt._model is None:
+                        stt.load_model()
+                    segments, info = await asyncio.to_thread(
+                        stt._model.transcribe,
+                        audio_16k,
+                        language=lang_param,
+                        beam_size=1,
+                    )
+                    transcript = " ".join(s.text for s in segments).strip()
+
+                await websocket.send_text(json.dumps({
+                    "type": "conversation.item.input_audio_transcription.completed",
+                    "item_id": item_id,
+                    "transcript": transcript,
+                }))
+
+    except (WebSocketDisconnect, asyncio.CancelledError):
+        pass
+    except Exception as e:
+        log.error("Realtime WebSocket error: %s", e)
 
 
 # --- Static Web Frontend ---

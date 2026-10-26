@@ -1,0 +1,27 @@
+BolSamajh — Piper Offline TTS Live Empirical Verification
+==========================================================
+Input Text: नमस्ते, यह बोलसमझ का ऑफलाइन टेक्स्ट टू स्पीच परीक्षण है।
+
+1. Model Artifact Verification:
+   Filename:      hi_IN-pratham-medium.onnx
+   Bytes:         63516050
+   SHA-256:       169964b0871667f6793416d4b35e97357a68ba1ad01df8580c28048989ee7693
+   Pinned SHA:    169964b0871667f6793416d4b35e97357a68ba1ad01df8580c28048989ee7693
+   Verified:      PASS
+
+2. Config Artifact Verification:
+   Filename:      hi_IN-pratham-medium.onnx.json
+   Bytes:         4970
+   SHA-256:       b68edd2cd7950dd436314013b7cd12e9699e5a3f6fe5af5af94294cf6aa7b9fd
+   Pinned SHA:    b68edd2cd7950dd436314013b7cd12e9699e5a3f6fe5af5af94294cf6aa7b9fd
+   Verified:      PASS
+
+3. Real Audio Synthesis Output:
+   WAV Total Bytes: 199212
+   Channels:        1
+   Sample Width:    16-bit
+   Sample Rate:     22050 Hz
+   Frames:          99584
+   Duration:        4.52 seconds
+   WAV SHA-256:     58b904bcb17b8c91e1dc506242255a7ecc7829d9f3aa5f9b401c47e53a0d5587
+   Status:          VERIFIED LIVE (no mock)

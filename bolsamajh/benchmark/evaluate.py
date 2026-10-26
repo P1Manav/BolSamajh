@@ -13,14 +13,12 @@ Adheres strictly to Tier 1 Guidelines:
 - Outputs comprehensive benchmark JSON to benchmark_data/benchmark_results.json.
 """
 
-import os
 import sys
 import json
 import time
 import wave
 import argparse
 from pathlib import Path
-from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -32,7 +30,6 @@ from faster_whisper import WhisperModel
 from bolsamajh.benchmark.normalization import compute_normalized_wer_cer
 from bolsamajh.benchmark.timing import (
     time_single_transcription,
-    DEFAULT_TRANSCRIBE_KWARGS,
     benchmark_multi_length_clips,
 )
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
@@ -344,9 +341,9 @@ def main():
 
     for model_key in args.models:
         model_id = MODEL_MAP.get(model_key, model_key)
-        print(f"\n==================================================================")
+        print("\n==================================================================")
         print(f" Loading Engine: {model_key} ({model_id}) on {args.device} ({args.compute_type})")
-        print(f"==================================================================")
+        print("==================================================================")
 
         actual_device = args.device
         actual_compute = args.compute_type
@@ -356,8 +353,8 @@ def main():
             print("\n" + "!" * 72)
             print(f"LOUD WARNING: Requested device '{args.device}' with precision '{args.compute_type}' FAILED!")
             print(f"Exception: {e}")
-            print(f"FALLING BACK TO CPU (compute_type='int8').")
-            print(f"Latency and Real-Time Factor (RTF) will be severely degraded on CPU.")
+            print("FALLING BACK TO CPU (compute_type='int8').")
+            print("Latency and Real-Time Factor (RTF) will be severely degraded on CPU.")
             print("!" * 72 + "\n")
             actual_device = "cpu"
             actual_compute = "int8"
@@ -388,7 +385,7 @@ def main():
                 results["synthetic_stress"][model_key] = synth_res
 
         # 3. Multi-length timing protocol (4s, 9s, 15s) for latency agreement
-        print(f"    Measuring multi-length clips (~4s, ~9s, ~15s) with shared timing function...")
+        print("    Measuring multi-length clips (~4s, ~9s, ~15s) with shared timing function...")
         timing_res = benchmark_multi_length_clips(
             model=model,
             model_name=model_key,

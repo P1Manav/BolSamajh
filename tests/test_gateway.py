@@ -173,13 +173,19 @@ def test_openai_speech_piper_singleton_load_voice_once(monkeypatch):
         import unittest.mock
         stub_voice = unittest.mock.MagicMock()
 
-        def mock_synth(text, wav_file):
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(22050)
-            wav_file.writeframes(b"\x00\x00" * 100)
+        def mock_synth(text, wav_file=None):
+            if wav_file is not None:
+                wav_file.setnchannels(1)
+                wav_file.setsampwidth(2)
+                wav_file.setframerate(22050)
+                wav_file.writeframes(b"\x00\x00" * 100)
+                return None
+            mock_chunk = unittest.mock.MagicMock()
+            mock_chunk.audio_int16_bytes = b"\x00\x00" * 100
+            return [mock_chunk]
 
         stub_voice.synthesize = mock_synth
+        stub_voice.synthesize_wav = mock_synth
         self._voice = stub_voice
 
     monkeypatch.setattr(PiperTTSAdapter, "_load_voice", stub_load_voice)

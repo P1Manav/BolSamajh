@@ -219,8 +219,8 @@ class GoogleAIAdapter(LLMAdapter):
                 else:
                     self.disabled = True
                     err_msg = (
-                        f"Google AI model returned HTTP 404 and no available Flash-family fallback could be selected. "
-                        f"Set GOOGLE_AI_MODEL in your environment to a currently available model."
+                        "Google AI model returned HTTP 404 and no available Flash-family fallback could be selected. "
+                        "Set GOOGLE_AI_MODEL in your environment to a currently available model."
                     )
                     log.warning(err_msg)
                     raise RuntimeError(err_msg)
@@ -312,8 +312,8 @@ class GoogleAIAdapter(LLMAdapter):
                     if not found_stream:
                         self.disabled = True
                         err_msg = (
-                            f"Google AI model returned HTTP 404 and no available Flash-family fallback could be selected. "
-                            f"Set GOOGLE_AI_MODEL in your environment to a currently available model."
+                            "Google AI model returned HTTP 404 and no available Flash-family fallback could be selected. "
+                            "Set GOOGLE_AI_MODEL in your environment to a currently available model."
                         )
                         log.warning(err_msg)
                         raise RuntimeError(err_msg)

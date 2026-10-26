@@ -4,8 +4,6 @@ Provides identical decode options, timing boundaries, warmup protocols,
 and multi-clip duration evaluations across benchmark evaluators and hardware scripts.
 """
 
-import os
-import sys
 import time
 import wave
 import subprocess
