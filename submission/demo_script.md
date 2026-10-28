@@ -2,8 +2,9 @@
 
 > **Event:** Bolna x Symphony Voice AI Buildathon  
 > **Tagline:** *"Bolo. Samjho."* — Speak to write and act in any app, talk to any document in your language.  
-> **Target Duration:** Exactly 90 seconds (1 min 30 sec)  
-> **Presenter:** Manav (Solo Builder, Ahmedabad)
+> **Target Duration:** Exactly 90 seconds (189 spoken words, pace ~125 wpm)  
+> **Presenter:** Manav (Solo Builder, Ahmedabad)  
+> **Note:** Video recording is a MANUAL task for the repository owner; follow the shot list and script below.
 
 ---
 
@@ -11,21 +12,26 @@
 
 | Timecode | Visual / Screen Action | Spoken Voiceover (Script) | Key On-Screen Callout |
 | :--- | :--- | :--- | :--- |
-| **0:00 – 0:12** *(12s)* | **Screen:** BolSamajh HUD overlay glowing on desktop. Quick demonstration of everyday code-switched speech ("Chai peene chalte hain, meeting 3:45 baje hai") typed out cleanly. | *"500 million Indians speak Hinglish every single day — mixing Hindi grammar with English vocabulary. Yet standard voice tools either force pure English or output phonetic garble. Meet BolSamajh: Bolo. Samjho — speech intelligence engineered for Indian language workflows."* | **500M+ Hinglish Speakers Need Grounded Voice AI** |
-| **0:12 – 0:32** *(20s)* | **Screen:** Open Notepad or VS Code. Hold **Alt+Shift+Space**. Overlay turns green with 🎤 "Listening...". Speak naturally: *"Yaar client presentation review karni hai, kal subah 10:30 AM par meeting schedule kar do."* Release key. Instant text insertion at cursor. | *"Feature 1: Push-to-Talk Dictation in ANY desktop app. Hold Alt+Shift+Space, speak fluid Hinglish. BolSamajh uses local faster-whisper on an RTX 3060 Ti with intelligent filler removal and script flexibility. Dictated text inserts right at your cursor with <!-- NUM:hw.stt_real_median_latency_ms -->510.1<!-- /NUM --> ms median latency (RTF <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x, p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms) across <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> real speech clips on large-v3-turbo, or <!-- NUM:hw.stt_synth_median_latency_ms -->461.7<!-- /NUM --> ms on synthetic sentences — completely local STT on your hardware, zero API bill."* | **Local GPU STT: <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x RTF • <!-- NUM:hw.stt_synth_median_latency_ms -->461.7<!-- /NUM -->ms Synth • Zero Cloud Cost** |
-| **0:32 – 0:54** *(22s)* | **Screen:** Press **Alt+Shift+D**, load a sample PDF document (e.g. *Insurance Policy / Tax Guidelines*). Press **Alt+Shift+A** and ask via mic: *"Is policy me health checkup aur claim reimbursement ka kya rule hai?"* BolSamajh streams sentence-by-sentence audio with page citation pill. Speak over audio or hit **Escape** to demonstrate voice barge-in / instant stop. | *"Feature 2: Talk-to-Document Intelligence. Load any PDF, Word doc, or webpage. Press Alt+Shift+A to ask questions in voice. Our multilingual vector retriever indexes context with <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms retrieval latency. BolSamajh cites the exact page number, explains it in conversational Hinglish, and streams audio sentence-by-sentence with <!-- NUM:hw.tts_first_packet_ms -->732.7<!-- /NUM --> ms Edge-TTS first-packet latency (~<!-- NUM:hw.total_ttfa_ms -->1592.6<!-- /NUM --> ms true end-to-end TTFA) and voice barge-in. Hit Escape or speak over to interrupt anytime."* | **Grounded RAG: <!-- NUM:rag.latency_ms -->22.31<!-- /NUM -->ms Search • <!-- NUM:hw.tts_first_packet_ms -->732.7<!-- /NUM -->ms TTS Packet • <!-- NUM:hw.total_ttfa_ms -->1592.6<!-- /NUM -->ms E2E TTFA • VAD Barge-In** |
-| **0:54 – 1:12** *(18s)* | **Screen:** Highlight rough text in an email or Slack. Press **Alt+Shift+C**, speak: *"Make this email formal and concise."* The highlighted text immediately rewrites in-place to polished professional English/Hinglish. | *"Feature 3: In-App Voice Commands. Select text anywhere, hold Alt+Shift+C, and speak your intent — rewrite, shorten, translate to Hindi or Gujarati. The LLM modifies your selection directly inside your active window without touching a browser tab."* | **In-Place Voice Editing in Any Application** |
-| **1:12 – 1:30** *(18s)* | **Screen:** Switch to BolSamajh Web-Call UI (`localhost:8000`) showing glowing audio visualizer, interactive chat cards, OpenAI-compatible `/v1` gateway for Bolna agents, and the real-speech + synthetic stress benchmark tables. | *"We didn't just build a wrapper — we evaluated <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> real speech and synthetic stress clips across three models on an RTX 3060 Ti GPU, committed every per-clip result to per_clip_results.jsonl, and built an OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent). BolSamajh: Bolo. Samjho. Thank you!"* | **<!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> Benchmark Clips • Per-Clip JSONL Logs • Bolna Gateway • 100% Free** |
+| **0:00 – 0:15** *(15s)* | **Screen:** Desktop view with floating BolSamajh HUD docked in system tray. Show title card and prompt overlay. | *"Over 500 million Indians speak Hinglish every day, but existing voice tools force an unnatural choice between pure English and formal Hindi. Meet BolSamajh: Bolo. Samjho — open-source, private voice intelligence built for Indian language workflows."* | **500M+ Hinglish Speakers • Open-Source & Private** |
+| **0:15 – 0:35** *(20s)* | **Screen:** Open Notepad. Hold **`Alt+Shift+Space`**. HUD glows green (🎤 *Listening*). Speak: *"Yaar client review ke liye kal subah 10:30 par meeting schedule kar do."* Release key. Clean text inserts at cursor. | *"First, Push-to-Talk Dictation in any application. Hold Alt+Shift+Space and speak naturally. Release, and it types instantly at your cursor. Running locally with Whisper turbo at under 0.1 Real-Time Factor — fast, private, and zero cloud API cost."* | **Local GPU STT: ~0.06x RTF • Alt+Shift+Space Dictation** |
+| **0:35 – 0:55** *(20s)* | **Screen:** Press **`Alt+Shift+D`** to open file dialog and select a sample PDF policy. Press **`Alt+Shift+A`**, speak: *"Health checkup reimbursement ka kya rule hai?"* Audio streams back with green `Page 2` citation pill. Press **`Escape`** to interrupt. | *"Second, Talk-to-Document. Press Alt+Shift+D to load any PDF or policy, then hold Alt+Shift+A to ask voice questions. BolSamajh answers in natural Hinglish with exact page citations, streaming audio sentence-by-sentence. Hit Escape or speak over to interrupt anytime."* | **Grounded RAG • Exact Page Citations • Silero Barge-In** |
+| **0:55 – 1:12** *(17s)* | **Screen:** Highlight rough text in an email draft. Hold **`Alt+Shift+C`**, speak: *"Make this email formal and concise."* Selection updates in-place to polished text. | *"Third, in-place voice editing. Highlight text in an email or Slack, press Alt+Shift+C, and speak your intent. The LLM rewrites your text directly in-place without switching windows or compromising your clipboard."* | **Alt+Shift+C • In-Place Voice Editing Anywhere** |
+| **1:12 – 1:30** *(18s)* | **Screen:** Switch to Web UI (`http://localhost:8000`) showing audio waveforms and chat history. Show `.env` setting `BOLSAMAJH_TTS_ENGINE=piper` for air-gapped mode. | *"Finally, a strictly 100% offline air-gapped mode with local Piper TTS and Ollama, plus an OpenAI-compatible audio gateway for Bolna voice agents. BolSamajh: Bolo. Samjho. 100% free and open-source. Thank you!"* | **100% Offline Air-Gapped Mode • Bolna Voice Gateway** |
 
 ---
 
-## Recording Tips for Manav
+## Step-by-Step Recording Checklist (Manual Task)
 
-1. **Audio Setup:** Use a clean USB or headset mic in a quiet room.
-2. **Screen Resolution:** Record at 1920x1080 (1080p 60fps) with OBS Studio.
-3. **Cursor Visibility:** Enable cursor highlight or large pointer so hotkeys and text insertion are clear.
-4. **App Sequence:**
-   - Notepad (Dictation demo)
-   - BolSamajh Document Q&A (PDF loaded)
-   - Browser / Email draft (Voice Command demo)
-   - BolSamajh Web UI (`http://localhost:8000`)
+1. **Hardware & Microphone:** Use a USB or headset mic; select default recording device in Windows sound settings.
+2. **Screen Capture:** Open OBS Studio (1920x1080 @ 60fps), capture main display, enable cursor capture.
+3. **App Windows Pre-arranged:**
+   - Left half: Notepad with empty document.
+   - Right half: Sample multi-page PDF (`scratch/doc_qa_e2e/sample_policy.pdf`).
+   - Browser tab ready on `http://localhost:8000`.
+4. **Hotkey Practice:**
+   - `Alt+Shift+Space` (Dictate)
+   - `Alt+Shift+D` (Load Doc)
+   - `Alt+Shift+A` (Ask Doc)
+   - `Alt+Shift+C` (Voice Edit Selection)
+   - `Escape` (Interrupt Audio)
+5. **Upload:** Upload video to YouTube or Loom as Unlisted (90 seconds max), copy link into submission form.

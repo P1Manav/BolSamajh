@@ -101,7 +101,7 @@
   - Implemented 3-turn short conversational memory in `DocQAPipeline` to enable natural follow-ups (*"ruko, yeh dobara samjhao"*).
 - [x] **Voice Latency, Offline TTS & Voice Barge-In (`bolsamajh/pipeline/doc_qa.py`, `bolsamajh/tts/`, `bolsamajh/utils/vad.py`):**
   - Implemented sentence-by-sentence streaming from LLM generator into TTS, reporting Time-To-First-Audio (TTFA).
-  - Transliterates Roman Hinglish to Devanagari via `aksharamukha` before sending to `hi-IN-SwaraNeural` for natural Hindi phonology.
+  - Routes Roman Hinglish directly to neural voice (`en-IN-NeerjaNeural` or `hi-IN-SwaraNeural`) as-is without destructive ISO transliteration.
   - Implemented `PiperTTSAdapter` (`bolsamajh/tts/piper_adapter.py`) supporting 100% offline local TTS with verified MIT-licensed Piper Hindi voices (`hi_IN-pratham-medium`).
   - Added voice barge-in with Silero VAD (`BargeInMonitor` in `bolsamajh/utils/vad.py`) to stop TTS immediately when user speaks.
   - Wired `Escape` key to abort active microphone recording across all pipelines in addition to halting TTS.

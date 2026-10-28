@@ -630,6 +630,21 @@ def sync_all_documentation(check_only: bool = False) -> bool:
                 doc_path.write_text(updated_text, encoding="utf-8")
                 print(f"[OK] Synced {doc_path.name} with benchmark metrics.")
 
+        # If processing application_answers.md, also produce clean paste-ready application_answers_RENDERED.md
+        if doc_path.name == "application_answers.md":
+            rendered_path = doc_path.parent / "application_answers_RENDERED.md"
+            clean_rendered = re.sub(r"<!--\s*NUM:[^>]*-->|<!--\s*/NUM\s*-->", "", updated_text)
+            orig_rendered = rendered_path.read_text(encoding="utf-8") if rendered_path.exists() else ""
+            if clean_rendered != orig_rendered:
+                if check_only:
+                    print(
+                        f"[CHECK FAILED] File {rendered_path.name} differs from generated output."
+                    )
+                    has_diff = True
+                else:
+                    rendered_path.write_text(clean_rendered, encoding="utf-8")
+                    print(f"[OK] Generated paste-ready {rendered_path.name} (zero NUM tags).")
+
     return not has_diff
 
 

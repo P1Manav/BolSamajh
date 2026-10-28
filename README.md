@@ -33,14 +33,14 @@ To maintain absolute credibility for judges and users, here is a transparent bre
 
 | Feature / Component | Status | What Works | What Does Not / Known Limitations |
 | :--- | :---: | :--- | :--- |
-| **Multilingual STT Benchmarks** | **Verified** | <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> benchmark clips evaluated on RTX 3060 Ti GPU today; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at <!-- NUM:hw.stt_real_median_latency_ms -->510.1<!-- /NUM --> ms median (p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms, <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
-| **Push-to-Talk Dictation** | **Implemented, untested on hardware** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, lakh/crore, and dates; integration tested with synthetic audio. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.98%<!-- /NUM --> on FLEURS). |
-| **Talk-to-Document (RAG)** | **Implemented, untested on hardware** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
-| **In-Place Voice Editing** | **Implemented, untested on hardware** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. | Physical hotkey and OS clipboard automation untested on this machine today; preserves text clipboard contents with sentinels, but active clipboard bitmap images/file handles are overwritten during paste. |
-| **Voice Barge-In Interruption** | **Implemented, untested on hardware** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Untested on hardware speakers/headphones (no live 10-minute playback measurement on this machine); laptop built-in speakers at maximum volume can cause echo false-positives without headphones. |
-| **Bolna Agent Voice Gateway** | **Implemented, untested on hardware** | OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent). Exposes `/v1/audio/speech` (TTS gateway with Edge-TTS and offline Piper voices, mp3/wav and speed support) and `/v1/audio/transcriptions` (batch STT); Bearer token auth; bind security checks. Verified with test client. | Real-time WebSocket streaming STT protocol (`REALTIME_TRANSCRIBER_URL`) is not implemented; Bolna uses batch transcription endpoints; live cloud agent connection requires a tunnel. |
-| **100% Offline Air-Gapped Mode** | **Implemented, untested on hardware** | Zero-cloud execution pipeline implemented with Piper TTS (ONNX) + Ollama (Gemma 3) + faster-whisper with pinned model SHA-256. | Untested on hardware with network physically disconnected; Edge-TTS and Google AI Studio fallbacks require internet; Piper TTS requires initial one-time model download. |
-| **Real-time Bolna WebSocket STT** | **Not implemented** | None. | Full duplex streaming WebSocket transcriber (`REALTIME_TRANSCRIBER_URL`) not implemented; Bolna uses standard `/v1/audio/transcriptions`. |
+| **Multilingual STT Benchmarks** | **Verified (automated evidence)** | <!-- NUM:benchmark.total_clips -->1,000<!-- /NUM --> benchmark clips evaluated on RTX 3060 Ti GPU; exact per-clip metrics committed in `per_clip_results.jsonl`. Real speech latency measured at <!-- NUM:hw.stt_real_median_latency_ms -->510.1<!-- /NUM --> ms median (p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms, <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x RTF). | Swift model is an unverified third-party CT2 conversion (`MSpider3/whisper-hindi2hinglish-swift-ct2`). |
+| **Push-to-Talk Dictation** | **Implemented, pending manual hardware verification** | Dictates into any Windows application (VS Code, Slack, WhatsApp, Word); removes hesitations (*umm, uhh*); formats ₹ currency, percentages, and phone numbers; integration tested with synthetic audio and automated keystrokes. | Physical microphone capture untested on this machine today; spontaneous regional accents show higher WER (<!-- NUM:stt.turbo.hiacc_wer -->38.52%<!-- /NUM --> on HiACC) than read speech (<!-- NUM:stt.turbo.fleurs_hi_wer -->25.98%<!-- /NUM --> on FLEURS). |
+| **Talk-to-Document (RAG)** | **Implemented, pending manual hardware verification** | Indexes PDFs, Word docs, web pages; <!-- NUM:rag.latency_ms -->22.31<!-- /NUM --> ms local FAISS search; grounded answers with exact `Page X` / `Pages X–Y` citations; sentence-streaming audio. | Physical mic input untested on this machine today; scanned PDFs require Tesseract installed on system with Hindi data for OCR; PDFs with corrupted text layers fall back to OCR or reject. |
+| **In-Place Voice Editing** | **Implemented, pending manual hardware verification** | Highlights selection in any app, transforms text with local Ollama or Gemini, releases hotkey modifiers (Alt+Shift) cleanly, replaces in-place. Preserves clipboard with sentinel-safe restoration. | Physical user hotkey press in third-party apps pending manual verification; active clipboard bitmap images/file handles are cleared during paste. |
+| **Voice Barge-In Interruption** | **Implemented, pending manual hardware verification** | Preloaded Silero VAD stops playback when user speaks; generation ID drops older answers; ~300 ms initial sentence echo muting; configurable headphone mode; `is_active` status exposed. | Live physical speaker/headphone acoustic feedback pending manual check; laptop built-in speakers at maximum volume can cause echo false-positives without headphones (no AEC). |
+| **Bolna Agent Voice Gateway** | **Verified (automated evidence)** | OpenAI-compatible TTS gateway for Bolna. Exposes `/v1/audio/speech` (TTS gateway with Edge-TTS and offline Piper voices, mp3/wav and speed support) and `/v1/audio/transcriptions` (batch STT); Bearer token auth; bind security checks. Verified with Bolna's `OPENAISynthesizer` package client. | Live telephony call from Bolna cloud orchestrator requires a public tunnel and paid Bolna cloud account (pending manual verification). |
+| **Real-time Bolna WebSocket STT** | **Verified (automated evidence)** | Minimal OpenAI Realtime-compatible transcription WebSocket protocol (`/v1/realtime?intent=transcription`) accepting `session.update`, streaming 24 kHz linear16 PCM via `input_audio_buffer.append`, committing, and returning transcription completed events. | Tested locally as protocol compatibility check against our test client (Bolna does not ship a standalone realtime transcriber client); full-duplex speech-to-speech audio generation is **Not implemented**. |
+| **100% Offline Air-Gapped Mode** | **Implemented, pending manual hardware verification** | Zero-cloud execution pipeline implemented with Piper TTS (ONNX) + Ollama (Gemma 3) + faster-whisper with pinned model SHA-256 and outbound socket blocker. | Live physical network cable disconnection check pending manual verification; Piper TTS model requires one-time download prior to air-gapping. |
 
 ---
 
@@ -69,7 +69,7 @@ Highlight text in any application and hold `Alt+Shift+C` to speak commands:
 - The LLM transforms the text **directly in-place**, replacing your selection via simulated clipboard operations without leaving your active window.
 
 ### 4. 🌐 Browser Web-Call & Bolna Voice Gateway
-Launch the built-in FastAPI web server for an interactive browser web-call mode, or configure an OpenAI-compatible TTS gateway for Bolna (not yet tested against a live agent; batch STT `/v1/audio/transcriptions` and TTS `/v1/audio/speech` with Edge-TTS and offline Piper voices; tunnel required for cloud agents).
+Launch the built-in FastAPI web server for an interactive browser web-call mode, or configure an OpenAI-compatible gateway for Bolna (exposing TTS `/v1/audio/speech` with Edge-TTS and offline Piper voices, batch STT `/v1/audio/transcriptions`, and minimal Realtime WebSocket transcription `/v1/realtime`; public tunnel required for cloud agents).
 
 ---
 
@@ -93,7 +93,7 @@ graph TD
     end
 
     subgraph Engines & Adapters
-        STT["STT: faster-whisper (medium, INT8/FP16 CUDA)"]
+        STT["STT: faster-whisper (large-v3-turbo, INT8/FP16 CUDA)"]
         LLM["LLM: Ollama (gemma3:4b local) / Gemini 3.5 Flash Free Fallback (unverified — run python scripts/check_gemini.py with your key)"]
         TTS["TTS: Edge-TTS (Swara/Neerja/Dhwani) / Piper (Offline ONNX)"]
         RAG["RAG: multilingual-e5-base (512 ctx) + FAISS"]
@@ -130,6 +130,7 @@ graph TD
 
     BolnaAgent -->|/v1/audio/transcriptions| STT
     BolnaAgent -->|/v1/audio/speech| TTS
+    BolnaAgent -->|/v1/realtime?intent=transcription| STT
 ```
 
 ---
@@ -137,8 +138,8 @@ graph TD
 ## 🚀 Quick Start & Installation
 
 ### Prerequisites
-- **Operating System:** Windows 10/11 x64 (or Linux/macOS for Web API)
-- **Python:** 3.10+ (tested on Python 3.12)
+- **Operating System:** Windows 10/11 x64 (Desktop app is Windows-only; Linux/macOS supported via Web UI and FastAPI server)
+- **Python:** 3.11 and 3.12 (supported and tested)
 - **Local LLM Engine:** [Ollama](https://ollama.com) installed and running locally
 - **Hardware:** NVIDIA GPU with 6+ GB VRAM recommended (RTX 3060 Ti tested; CPU execution supported with int8 fallback)
 
@@ -191,7 +192,7 @@ python -m uvicorn bolsamajh.web.server:app --port 8000
 - Open `http://localhost:8000` for browser voice chat.
 - See [docs/bolna_integration.md](docs/bolna_integration.md) to integrate with Bolna agents.
 
-> **Note on First-Run Downloads:** On first startup, Hugging Face and CTranslate2 models (~1.5 GB for whisper medium, ~400 MB for multilingual-e5-base) are downloaded and cached locally in `~/.cache/huggingface/hub`. All subsequent runs load 100% locally from disk.
+> **Note on First-Run Downloads:** On first startup, Hugging Face and CTranslate2 models (~1.6 GB for whisper large-v3-turbo, ~400 MB for multilingual-e5-base) are downloaded and cached locally in `~/.cache/huggingface/hub`. All subsequent runs load 100% locally from disk.
 
 ---
 
@@ -326,11 +327,14 @@ When configured with these flags:
 
 ## ⚠️ Known Limitations & Honest Evidence
 
-1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus still exhibits 52.84% WER on Whisper medium due to diverse Indian regional accents and colloquial loanwords.
-2. **Numerical Digit Variations:** ASR output alternates between written Hindi words (*"पंद्रह"*) and ASCII digits (*"15"*), which increases raw word error rates on numerical test sets.
-3. **Orthographic vs Phonetic Variants:** Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"* vs *"मीटिंग"*). While BolSamajh uses canonical script-normalized transliteration to bridge Devanagari and Latin scripts without penalizing alphabet mismatches, it does not phonemically collapse loanword spelling variants, which contributes to higher measured WER on code-switched splits.
-4. **Hardware Requirements:** Real-time GPU execution (RTF ~0.18x) requires an NVIDIA GPU (RTX 3060 Ti tested). CPU execution is functional using int8 quantization, but latency increases to 1.5–2.5 seconds per sentence.
-5. **TTS Script Routing:** Edge-TTS neural voices (`hi-IN-SwaraNeural`, `en-IN-NeerjaNeural`) natively pronounce Roman Hinglish; text is synthesized as-is without destructive ISO transliteration. Transliteration is only performed for cross-script Indic text (e.g., Gujarati to Devanagari).
+1. **Spontaneous Code-Switching Accuracy:** While synthetic code-switched Hinglish achieves 12.48% WER on fast models, real spontaneous accented speech from the HiACC corpus still exhibits 38.52% WER on Whisper large-v3-turbo and 50.73% on medium due to diverse Indian regional accents and colloquial loanwords.
+2. **Gujarati ASR Accuracy:** Whisper models exhibit higher error rates on Gujarati (66.01% on FLEURS Gujarati vs 25.98% on FLEURS Hindi for large-v3-turbo).
+3. **Retrieval Benchmark Corpus Size:** Google XQuAD Hindi validation corpus used for empirical threshold calibration contains 60 unique passages.
+4. **Offline Voice Coverage:** Local offline Piper TTS (`hi_IN-pratham-medium`) supports Hindi only; it does not ship Gujarati or English voices. Non-Hindi inputs routed to Piper warn or fall back to Edge-TTS.
+5. **Acoustic Echo Cancellation (AEC):** Silero VAD runs on raw microphone audio without hardware-level AEC; while a ~300 ms echo mute window is applied from the start of playback, laptop built-in speakers at high volume can cause acoustic feedback without headphones. Headphone mode (`BOLSAMAJH_BARGEIN_HEADPHONE_MODE=true`) is recommended.
+6. **Edge-TTS Cloud Endpoint & Rate Limits:** Default online TTS uses Microsoft Edge's Read Aloud service (an unofficial cloud endpoint without an official SLA or API key); it may be subject to rate limits under continuous heavy usage. For production or 100% offline environments, use local Piper ONNX. Roman Hinglish voice pronunciation is pending an ear listening test.
+7. **Windows-Only Desktop App:** The desktop app (system tray, low-latency global hotkeys, no-activate HUD, and Win32 clipboard restoration) requires Windows 10/11 x64. On Linux and macOS, only the Web UI and FastAPI server endpoints are supported.
+8. **Numerical & Spelling Variants:** ASR output alternates between written Hindi words (*"पंद्रह"*) and ASCII digits (*"15"*), and Hinglish English loanwords lack a single standardized spelling (e.g., *"meeting"* vs *"miting"* vs *"मीटिंग"*).
 
 ---
 

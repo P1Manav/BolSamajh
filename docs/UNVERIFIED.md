@@ -1,22 +1,61 @@
-# BolSamajh — Unverified Items & Limitations Log
+# BolSamajh — Unverified Items & Manual Verification Log
 
-> Under the strict honesty policy of BolSamajh, any capability, integration, external credential, or environment feature that has not been empirically verified with committed raw evidence on this machine is catalogued here.
+> Under the strict honesty policy of BolSamajh, any capability, integration, external credential, or environment feature that has not been empirically verified with committed raw evidence generated directly from physical hardware on this machine is catalogued here as **pending manual verification**.
 
-## 1. Google Gemini AI Studio (`GOOGLE_AI_API_KEY`)
-- **Status:** Unverified (no API key configured in environment).
-- **What was attempted:** Ran `python scripts/check_gemini.py`. The environment variable `GOOGLE_AI_API_KEY` is not set.
-- **Safety / Default:** BolSamajh automatically disables cloud LLM fallback, logs a single clear warning at startup, and runs 100% locally on Ollama (`gemma3:4b`). `/api/status` reports `"LLM fallback unavailable"`. All mock error paths (missing key, 404 live model fallback, 429 rate limit backoff) are covered by automated unit tests.
-- **How to verify personally:** Set `GOOGLE_AI_API_KEY=your_key` in `.env` and run `python scripts/check_gemini.py`.
+---
 
-## 2. Bolna Cloud End-to-End Live Call
-- **Status:** Unverified on Bolna Cloud (no Bolna cloud account / outbound telephony credits).
-- **What was verified:** Verified locally using Bolna's official client library (`bolna` package) against BolSamajh's OpenAI-compatible Speech synthesis endpoint (`/v1/audio/speech`). Synthesized both Hindi and English sentences, verified playable audio (>0.5s duration and 24kHz sample rate).
-- **Limitation:** Bolna's cloud voice agents interact via WebSocket. BolSamajh supports OpenAI-compatible HTTP speech synthesis and transcription; live deployment on Bolna cloud requires an active Bolna cloud agent and outbound telephony trunk.
+## 1. Physical Microphone Audio Capture & Hotkey Keystrokes
+- **Status:** Pending manual verification on host hardware.
+- **What was verified:** Automated simulated keystrokes via `keybd_event` and `pywinauto` into Notepad, Win32 modifier release check via `GetAsyncKeyState`, and 100% clipboard restoration with UUID sentinels.
+- **Pending:** Physical user microphone audio input and physical keystrokes across real third-party applications (Notepad, VS Code, Google Chrome).
+- **How to verify:** Run `python -m bolsamajh`, hold `Alt+Shift+Space` (Dictate) or `Alt+Shift+C` (Voice Edit) in Notepad/VS Code/Chrome. Step-by-step instructions in [docs/MANUAL_VERIFICATION.md](MANUAL_VERIFICATION.md).
 
-## 3. Scanned PDF OCR via Tesseract
-- **Status:** Evaluated based on local system presence.
-- **What was attempted:** Checked system PATH for `tesseract.exe`.
-- **Safety / Default:** If Tesseract is not installed on the host machine, text-based PDFs and DOCX are parsed via PyMuPDF and python-docx. Scanned OCR fallback is marked as optional/untested on environments without system Tesseract binary.
+## 2. Voice Barge-In Physical Acoustic Feedback (Speakers & Headphones)
+- **Status:** Pending manual verification on physical speakers/headphones.
+- **What was verified:** Automated 10-minute continuous playback test with simulated audio stream (93 sentences, 0 false triggers in speaker mode, 0 in headphone mode).
+- **Pending:** True physical acoustic coupling through open-air room acoustics using laptop built-in speakers and USB headphones.
+- **How to verify:** Run `python scripts/measure_bargein.py --mode headphones --duration 600` and `python scripts/measure_bargein.py --mode speakers --duration 600`.
 
-## 4. Hardware Discrepancy Reconciliation
-- **Status:** Resolved in Phase 2 with unified measurement benchmark.
+## 3. Google Gemini AI Studio (`GOOGLE_AI_API_KEY`) Live Validation
+- **Status:** Pending manual verification with user's personal API key.
+- **What was verified:** Fail-soft LLM fallback adapter, startup warnings, 404 Flash discovery, exponential backoff cooldown retry on 429, and mock streaming tests.
+- **Pending:** Live network call to Google AI Studio using a valid API key.
+- **How to verify:** Set `GOOGLE_AI_API_KEY=your_key` in `.env` and run `python scripts/check_gemini.py`.
+
+## 4. Bolna Cloud End-to-End Telephony Call
+- **Status:** Pending manual verification on Bolna cloud platform.
+- **What was verified:** Local HTTP `/v1/audio/speech` (TTS) and `/v1/audio/transcriptions` (batch STT) using Bolna's own `OPENAISynthesizer` package client; minimal OpenAI Realtime WebSocket protocol `/v1/realtime?intent=transcription` verified as protocol compatibility check.
+- **Pending:** Inbound/outbound telephony phone call initiated from Bolna cloud orchestrator through a public tunnel (requires paid Bolna cloud account & telephony trunk).
+- **How to verify:** Expose local server via `cloudflared tunnel --url http://127.0.0.1:8000`, configure agent in Bolna dashboard, place test call. Detailed in [docs/bolna_integration.md](bolna_integration.md).
+
+## 5. Scanned PDF OCR with Tesseract
+- **Status:** Pending manual verification on host machine.
+- **What was verified:** PyMuPDF native digital PDF extraction, DOCX table and text extraction, encrypted PDF detection, page count (30) and size (50MB) bounds checking.
+- **Pending:** Tesseract OCR binary (`tesseract.exe`) with Hindi language training data (`hin.traineddata`) was not pre-installed on host PATH.
+- **How to verify:** Install Tesseract OCR from UB-Mannheim with Hindi language data, add to PATH, and load a scanned Hindi PDF via `Alt+Shift+D`.
+
+## 6. Physical Air-Gap Disconnection Test
+- **Status:** Pending manual verification by physically disconnecting network.
+- **What was verified:** Outbound socket blocker intercepting non-loopback connections, with all 7 pipeline components executed with zero internet.
+- **Pending:** Physical unplugging of Ethernet cable / turning off Wi-Fi adapter.
+- **How to verify:** Set `BOLSAMAJH_TTS_ENGINE=piper`, `BOLSAMAJH_LLM_ENGINE=ollama`, `BOLSAMAJH_LLM_AUTO_FALLBACK=false` in `.env`, disconnect Wi-Fi, run `python -m bolsamajh`.
+
+## 7. Roman Hinglish Voice Pronunciation Listening Test
+- **Status:** Pending manual listening test.
+- **What was verified:** Programmatic dispatch of Roman text to configured voice `BOLSAMAJH_ROMAN_VOICE` (default `en-IN-NeerjaNeural`).
+- **Pending:** Human ear listening check comparing `en-IN-NeerjaNeural` vs `hi-IN-SwaraNeural` on Roman Hinglish text.
+- **How to verify:** Listen to sample output with both voice configurations and record the preferred option.
+
+## 8. 90-Second Demo Video Recording
+- **Status:** Pending manual recording by repository owner.
+- **What was prepared:** Full 90-second shot list and word-counted script (~189 spoken words) in [submission/demo_script.md](../submission/demo_script.md).
+- **Pending:** Live recording using OBS Studio and uploading to YouTube/Loom.
+
+## 9. Evidence Scripts Re-Run on Host Machine
+- **Status:** Generated evidence files in `docs/evidence/` carry the header `STATUS: generated by the previous version of the script; re-run pending` until re-run on the host hardware:
+  - `scripts/measure_hardware.py`
+  - `scripts/measure_bargein.py`
+  - `scripts/e2e_dictation_test.py`
+  - `scripts/test_offline_mode.py`
+  - `scripts/e2e_doc_qa_test.py`
+  - Followed by `python scripts/generate_readme_tables.py`
