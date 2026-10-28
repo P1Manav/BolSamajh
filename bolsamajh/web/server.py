@@ -277,6 +277,25 @@ retriever = DocumentRetriever(
     refusal_threshold=config.doc_qa.refusal_threshold,
 )
 
+
+def render_audio_atomically(target_path: Path, audio_bytes: bytes) -> bool:
+    """Atomically write audio data to a temp file and rename to avoid serving partial reads."""
+    temp_path = target_path.parent / f"{target_path.stem}.tmp"
+    try:
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path.write_bytes(audio_bytes)
+        temp_path.replace(target_path)
+        return True
+    except Exception as e:
+        log.warning("Atomic audio write failed: %s", e)
+        if temp_path.exists():
+            try:
+                temp_path.unlink()
+            except Exception:
+                pass
+        return False
+
+
 # Per-session document retriever registry
 _SESSION_RETRIEVERS: dict[str, tuple[float, DocumentRetriever]] = {
     "default": (time.time(), retriever)

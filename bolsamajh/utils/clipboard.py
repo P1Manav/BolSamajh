@@ -60,11 +60,26 @@ MODIFIER_KEYS = [
     Key.ctrl_r if Key else None,
 ]
 
+VK_SHIFT = 0x10
+VK_CONTROL = 0x11
+VK_MENU = 0x12  # Alt key
+
 MODIFIER_VK_MAP = {
-    Key.shift if Key else None: 0x10,
-    Key.ctrl if Key else None: 0x11,
-    Key.alt if Key else None: 0x12,
+    Key.shift if Key else None: VK_SHIFT,
+    Key.ctrl if Key else None: VK_CONTROL,
+    Key.alt if Key else None: VK_MENU,
 }
+
+
+def _is_key_pressed(vk: int) -> bool:
+    if sys.platform != "win32":
+        return True
+    try:
+        import ctypes
+
+        return bool(ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000)
+    except Exception:
+        return False
 
 
 class ModifierGuard:
@@ -73,6 +88,20 @@ class ModifierGuard:
     def __init__(self):
         self._released_keys = []
 
+    def _release_key(self, key):
+        if _keyboard is not None and key is not None:
+            try:
+                _keyboard.release(key)
+            except Exception:
+                pass
+
+    def _press_key(self, key):
+        if _keyboard is not None and key is not None:
+            try:
+                _keyboard.press(key)
+            except Exception:
+                pass
+
     def __enter__(self):
         self._released_keys = []
         if _keyboard is None or Key is None:
@@ -80,26 +109,18 @@ class ModifierGuard:
 
         # Detect physically held modifiers so we only re-press those on exit
         if sys.platform == "win32":
-            try:
-                import ctypes
-
-                for k, vk in [(Key.shift, 0x10), (Key.ctrl, 0x11), (Key.alt, 0x12)]:
-                    if k is not None and (ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000):
-                        self._released_keys.append((k, vk))
-            except Exception as e:
-                log.debug("GetAsyncKeyState check failed: %s", e)
+            for k, vk in [(Key.shift, VK_SHIFT), (Key.ctrl, VK_CONTROL), (Key.alt, VK_MENU)]:
+                if k is not None and _is_key_pressed(vk):
+                    self._released_keys.append((k, vk))
         else:
             for k in [Key.shift, Key.ctrl, Key.alt]:
                 if k is not None:
                     self._released_keys.append((k, 0))
 
-        # Release modifiers to prevent interference with simulated Ctrl+C/Ctrl+V
+        # Always release modifiers to prevent interference with simulated Ctrl+C/Ctrl+V
         for k in [Key.shift, Key.ctrl, Key.alt]:
             if k is not None:
-                try:
-                    _keyboard.release(k)
-                except Exception:
-                    pass
+                self._release_key(k)
         time.sleep(0.02)
         return self
 
@@ -108,23 +129,34 @@ class ModifierGuard:
             return
         # Restore only the physical modifier state that was actually released
         if sys.platform == "win32":
-            try:
-                import ctypes
-
-                for k, vk in self._released_keys:
-                    if vk == 0 or (ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000):
-                        try:
-                            _keyboard.press(k)
-                        except Exception:
-                            pass
-            except Exception as e:
-                log.debug("Modifier restore failed: %s", e)
+            for k, vk in self._released_keys:
+                if vk == 0 or _is_key_pressed(vk):
+                    self._press_key(k)
         else:
             for k, _ in self._released_keys:
-                try:
-                    _keyboard.press(k)
-                except Exception:
-                    pass
+                self._press_key(k)
+
+
+from contextlib import contextmanager
+
+
+def _read_clipboard_text() -> str:
+    try:
+        val = pyperclip.paste()
+        return val if val is not None else ""
+    except Exception:
+        return ""
+
+
+def _write_clipboard_text(text: str) -> None:
+    try:
+        pyperclip.copy(text if text is not None else "")
+    except Exception as e:
+        log.warning("pyperclip.copy failed: %s", e)
+
+
+def _empty_clipboard() -> None:
+    _write_clipboard_text("")
 
 
 def _get_restore_delay() -> float:
@@ -142,12 +174,29 @@ def _restore_clipboard(target: str, retries: int = 3, delay: float | None = None
     val_to_set = target if target is not None else ""
     for _ in range(retries):
         try:
-            pyperclip.copy(val_to_set)
-            if pyperclip.paste() == val_to_set:
+            if not val_to_set:
+                _empty_clipboard()
+            else:
+                _write_clipboard_text(val_to_set)
+            if _read_clipboard_text() == val_to_set:
                 break
         except Exception:
             pass
         time.sleep(0.05)
+
+
+@contextmanager
+def preserve_clipboard(delay: float | None = None):
+    """Context manager to ensure clipboard is restored to its original content after exit."""
+    original = _read_clipboard_text()
+    try:
+        yield original
+    finally:
+        _restore_clipboard(original, delay=delay)
+
+
+# Alias for explicit clarity and test compatibility
+restore_clipboard = preserve_clipboard
 
 
 def insert_text(text: str) -> bool:
@@ -166,36 +215,27 @@ def insert_text(text: str) -> bool:
         log.debug("Empty text, nothing to insert")
         return False
 
-    # Save current clipboard text
-    try:
-        original = pyperclip.paste()
-    except Exception:
-        original = ""
+    with preserve_clipboard():
+        try:
+            # Copy our text to clipboard
+            _write_clipboard_text(text)
+            time.sleep(0.04)
 
-    try:
-        # Copy our text to clipboard
-        pyperclip.copy(text)
-        time.sleep(0.04)
+            # Release modifiers (Alt, Shift, Ctrl) before simulating Ctrl+V
+            with ModifierGuard():
+                if _keyboard is not None and Key is not None:
+                    _keyboard.press(Key.ctrl)
+                    _keyboard.press("v")
+                    _keyboard.release("v")
+                    _keyboard.release(Key.ctrl)
 
-        # Release modifiers (Alt, Shift, Ctrl) before simulating Ctrl+V
-        with ModifierGuard():
-            if _keyboard is not None and Key is not None:
-                _keyboard.press(Key.ctrl)
-                _keyboard.press("v")
-                _keyboard.release("v")
-                _keyboard.release(Key.ctrl)
+            time.sleep(0.08)  # Wait for paste to complete
+            log.info("Inserted %d characters", len(text))
+            return True
 
-        time.sleep(0.08)  # Wait for paste to complete
-        log.info("Inserted %d characters", len(text))
-        return True
-
-    except Exception as e:
-        log.error("Failed to insert text via clipboard: %s", e)
-        return False
-
-    finally:
-        # Always restore original clipboard text, clearing it if it was empty
-        _restore_clipboard(original)
+        except Exception as e:
+            log.error("Failed to insert text via clipboard: %s", e)
+            return False
 
 
 def get_selected_text(timeout_sec: float = 0.3) -> str:
@@ -208,49 +248,44 @@ def get_selected_text(timeout_sec: float = 0.3) -> str:
        is correctly recognized as a valid selection.
     3. Always restores original clipboard text (clearing if empty), preventing sentinel leakage.
     """
-    # Save original clipboard content
-    try:
-        original = pyperclip.paste()
-    except Exception:
-        original = ""
+    with preserve_clipboard():
+        sentinel = f"__BOLSAMAJH_SENTINEL_{uuid.uuid4().hex}__"
 
-    sentinel = f"__BOLSAMAJH_SENTINEL_{uuid.uuid4().hex}__"
+        try:
+            # Place sentinel in clipboard
+            _write_clipboard_text(sentinel)
+            time.sleep(0.03)
 
-    try:
-        # Place sentinel in clipboard
-        pyperclip.copy(sentinel)
-        time.sleep(0.03)
+            # Temporarily release modifier keys in case user is holding Alt+Shift in hotkey
+            with ModifierGuard():
+                # Simulate Ctrl+C
+                if _keyboard is not None and Key is not None:
+                    _keyboard.press(Key.ctrl)
+                    _keyboard.press("c")
+                    _keyboard.release("c")
+                    _keyboard.release(Key.ctrl)
 
-        # Temporarily release modifier keys in case user is holding Alt+Shift in hotkey
-        with ModifierGuard():
-            # Simulate Ctrl+C
-            if _keyboard is not None and Key is not None:
-                _keyboard.press(Key.ctrl)
-                _keyboard.press("c")
-                _keyboard.release("c")
-                _keyboard.release(Key.ctrl)
+            # Wait briefly for target application to process Ctrl+C
+            t0 = time.time()
+            selected = sentinel
+            while time.time() - t0 < timeout_sec:
+                time.sleep(0.04)
+                try:
+                    val = _read_clipboard_text()
+                    if val != sentinel:
+                        selected = val
+                        break
+                except Exception:
+                    pass
 
-        # Wait briefly for target application to process Ctrl+C
-        t0 = time.time()
-        selected = sentinel
-        while time.time() - t0 < timeout_sec:
-            time.sleep(0.04)
-            try:
-                val = pyperclip.paste()
-                if val != sentinel:
-                    selected = val
-                    break
-            except Exception:
-                pass
+            # If clipboard still contains sentinel, nothing was highlighted
+            if selected == sentinel:
+                log.debug("No text selected (clipboard retained sentinel)")
+                return ""
 
-        # If clipboard still contains sentinel, nothing was highlighted
-        if selected == sentinel:
-            log.debug("No text selected (clipboard retained sentinel)")
+            log.info("Captured selection (%d characters): %s", len(selected), selected[:40])
+            return selected
+
+        except Exception as e:
+            log.error("Failed to get selected text: %s", e)
             return ""
-
-        log.info("Captured selection (%d characters): %s", len(selected), selected[:40])
-        return selected
-
-    finally:
-        # Always restore original clipboard text, clearing it if it was empty
-        _restore_clipboard(original)

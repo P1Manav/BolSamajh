@@ -634,7 +634,9 @@ def sync_all_documentation(check_only: bool = False) -> bool:
         if doc_path.name == "application_answers.md":
             rendered_path = doc_path.parent / "application_answers_RENDERED.md"
             clean_rendered = re.sub(r"<!--\s*NUM:[^>]*-->|<!--\s*/NUM\s*-->", "", updated_text)
-            orig_rendered = rendered_path.read_text(encoding="utf-8") if rendered_path.exists() else ""
+            orig_rendered = (
+                rendered_path.read_text(encoding="utf-8") if rendered_path.exists() else ""
+            )
             if clean_rendered != orig_rendered:
                 if check_only:
                     print(

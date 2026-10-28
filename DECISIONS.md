@@ -188,9 +188,30 @@
 - **Removed Unimplemented Claims:** Removed claims of date normalization (retained percent, 10-digit phone number, and rupee formatting with automated tests) and marked Roman Hinglish voice pronunciation as pending manual listening test.
 - **Contradiction Resolution:** Removed contradictory claim in `PROGRESS.md` regarding Roman-to-Devanagari transliteration before Swara.
 - **Operational & Ecosystem Disclosures:** Fully documented Microsoft Edge-TTS unofficial cloud endpoint risks, potential rate limiting, lack of hardware AEC in Silero VAD without headphones, the 60-passage corpus limitation of Google XQuAD Hindi, and the Windows-only status of the desktop overlay client.
-- **Paste-Ready Application Form Answers:** Automated generation of `submission/application_answers_RENDERED.md` without any `<!-- NUM -->` markers via `scripts/generate_readme_tables.py`, added required pre-existing work rule warning at the top, and updated test counts (116 passing tests) and ADR counts (27 ADRs).
+- **Paste-Ready Application Form Answers:** Automated generation of `submission/application_answers_RENDERED.md` without any `<!-- NUM -->` markers via `scripts/generate_readme_tables.py`, added required pre-existing work rule warning at the top, and updated test counts (129 passing tests) and ADR counts (28 ADRs).
 - **Consolidated Manual Checklist:** Completely rewrote `docs/MANUAL_VERIFICATION.md` as the single-source manual verification runbook with a one-page results template.  
 **Alternatives considered:** Leaving NUM comment markers in application submission files; leaving obsolete status labels; retaining absolute file paths.  
 **Reason:** Ensures absolute alignment between code, benchmarks, and submission deliverables with zero dead links or contradictory claims.
+
+## D028: Comprehensive Phase 8 Unit Test Coverage & Verification Hardening
+**Date:** 2026-10-28  
+**Choice:** Added exhaustive unit tests covering all Phase 1-7 edge cases in `tests/test_phase8_comprehensive.py`, expanding the unit test suite to 129 passing tests across Python 3.11 and 3.12:
+- Configuration validation and literal type constraints (`BOLSAMAJH_TTS_ENGINE`, `BOLSAMAJH_LLM_AUTO_FALLBACK`).
+- TTS factory dispatch (`EdgeTTSAdapter`, `PiperTTSAdapter`, and unknown engine rejection).
+- Clipboard restoration semantics with sentinel isolation, empty clipboard clearing, and physical modifier state preservation via `preserve_clipboard` context manager.
+- Atomic audio file rendering via temp file write and atomic rename in `render_audio_atomically`.
+- Thread-safe `DocumentRetriever` atomic swap and scaled refusal thresholds under concurrent query load.
+- Chunker script-aware token multipliers (>= 3 tokens/word for Indic scripts) and oversized sentence splitting.
+- Loader edge cases: DOCX table extraction, empty DOCX rejection, encrypted PDF detection, HTML `<title>` parsing.
+- Deterministic refusal generation in question language without LLM invocation when retrieval score falls below calibrated threshold.
+- Sentence splitter boundary protection for decimals (`10.5`), times (`10:30`), abbreviations, newlines, and list items.
+- Gemini adapter exponential cooldown timer recovery and Flash candidate deterministic selection.
+- Mid-stream fallback exception handling (`MidStreamFallbackError`) to prevent duplicate text output if primary fails after yielding tokens.
+- Ollama exact model tag matching and configurable `keep_alive` parameter.
+- Realtime WebSocket audio stream buffer cap (10MB) and Host/Origin security validation middleware.
+- Text normalization for percentages, 10-digit phone numbers, and rupee denominations.  
+**Alternatives considered:** Relying solely on manual scripts or loose integration tests without atomic unit assertions.  
+**Reason:** Ensures strict automated regression protection and rigorous correctness verification without requiring hardware or paid cloud services.
+
 
 

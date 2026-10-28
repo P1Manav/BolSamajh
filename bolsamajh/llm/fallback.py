@@ -9,6 +9,12 @@ from bolsamajh.llm.base import LLMAdapter
 log = logging.getLogger(__name__)
 
 
+class MidStreamFallbackError(RuntimeError):
+    """Raised when the primary LLM fails after already yielding one or more tokens."""
+
+    pass
+
+
 class FallbackLLMAdapter(LLMAdapter):
     """Wraps a primary and secondary LLM adapter, falling back automatically."""
 
@@ -94,7 +100,9 @@ class FallbackLLMAdapter(LLMAdapter):
             if started:
                 # If streaming already started and yielded tokens, we cannot cleanly re-stream from secondary
                 log.error("Primary LLM (%s) streaming aborted mid-stream: %s", self.primary.name, e)
-                raise
+                raise MidStreamFallbackError(
+                    f"Primary LLM ({self.primary.name}) failed mid-stream after yielding tokens: {e}"
+                ) from e
             if self.fallback_status == "LLM fallback unavailable":
                 log.warning(
                     "Primary LLM (%s) failed to start stream: %s. LLM fallback unavailable.",
