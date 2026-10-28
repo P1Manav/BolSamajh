@@ -20,17 +20,40 @@ DTYPE = "int16"          # 16-bit PCM
 
 
 class MicRecorder:
-    """Push-to-talk microphone recorder.
+    """Push-to-talk microphone recorder with configurable cap and device override.
 
     Usage:
         recorder = MicRecorder()
-        recorder.start()       # Begin recording
+        recorder.start()             # Begin recording
         wav_bytes = recorder.stop()  # Stop and get WAV bytes
     """
 
-    def __init__(self, sample_rate: int = SAMPLE_RATE):
+    def __init__(
+        self,
+        sample_rate: int = SAMPLE_RATE,
+        max_duration_seconds: float | None = None,
+        device: int | str | None = None,
+    ):
+        import os
         self.sample_rate = sample_rate
+        if max_duration_seconds is None:
+            try:
+                max_duration_seconds = float(os.getenv("BOLSAMAJH_AUDIO_MAX_RECORD_SECONDS", "120.0"))
+            except ValueError:
+                max_duration_seconds = 120.0
+        self.max_duration_seconds = max_duration_seconds
+
+        if device is None:
+            env_dev = os.getenv("BOLSAMAJH_AUDIO_INPUT_DEVICE", "").strip()
+            if env_dev:
+                try:
+                    device = int(env_dev)
+                except ValueError:
+                    device = env_dev
+        self.device = device
+
         self._frames: list[np.ndarray] = []
+        self._total_samples = 0
         self._stream = None
         self._recording = False
         self._lock = threading.Lock()
@@ -40,7 +63,7 @@ class MicRecorder:
         return self._recording
 
     def start(self) -> None:
-        """Start recording from default microphone."""
+        """Start recording from configured or default microphone."""
         if sd is None:
             raise RuntimeError("sounddevice is not available in this environment")
 
@@ -48,15 +71,24 @@ class MicRecorder:
             if self._recording:
                 return
             self._frames = []
+            self._total_samples = 0
             self._recording = True
 
-        log.debug("Mic recording started (rate=%d)", self.sample_rate)
+        log.debug("Mic recording started (rate=%d, max_sec=%.1f, dev=%s)",
+                  self.sample_rate, self.max_duration_seconds, self.device)
+
+        max_samples = int(self.max_duration_seconds * self.sample_rate)
 
         def callback(indata, frames, time_info, status):
             if status:
                 log.warning("Sounddevice status: %s", status)
             if self._recording:
                 self._frames.append(indata.copy())
+                self._total_samples += len(indata)
+                if self._total_samples >= max_samples:
+                    log.warning("Recording reached maximum duration limit (%.1f s); capping recording.",
+                                self.max_duration_seconds)
+                    self._recording = False
 
         self._stream = sd.InputStream(
             samplerate=self.sample_rate,
@@ -64,6 +96,7 @@ class MicRecorder:
             dtype=DTYPE,
             callback=callback,
             blocksize=1024,
+            device=self.device,
         )
         self._stream.start()
 

@@ -4,8 +4,10 @@ Allows speech interruption (barge-in): when TTS is speaking and user begins talk
 audio playback is stopped immediately.
 
 Adheres strictly to Tier 5 Requirements:
-- Preloads Silero VAD model at initialization/startup rather than stalling inside monitor thread.
-- Barge-in echo suppression: mutes detection for the first ~300 ms of playback.
+- Thread-safe VoiceActivityDetector with threading.Lock protecting model inference.
+- Shared VAD instance support across the application.
+- Measures echo-mute suppression window from the START OF PLAYBACK (via notify_playback_start()),
+  not from monitor thread start.
 - Configurable headphone mode:
   * In headphone mode (headphone_mode=True): standard threshold (0.50) and quick response (~100 ms).
   * In speaker mode (headphone_mode=False): elevated VAD threshold (0.80), longer sustained run (~200 ms),
@@ -26,13 +28,29 @@ except Exception:
 
 log = logging.getLogger(__name__)
 
+# Shared global VoiceActivityDetector singleton for the application
+_SHARED_VAD: Optional["VoiceActivityDetector"] = None
+_SHARED_VAD_LOCK = threading.Lock()
+
+
+def get_shared_vad(threshold: float = 0.5) -> "VoiceActivityDetector":
+    """Get or create the single shared VoiceActivityDetector instance."""
+    global _SHARED_VAD
+    if _SHARED_VAD is None:
+        with _SHARED_VAD_LOCK:
+            if _SHARED_VAD is None:
+                _SHARED_VAD = VoiceActivityDetector(threshold=threshold)
+                _SHARED_VAD.preload()
+    return _SHARED_VAD
+
 
 class VoiceActivityDetector:
-    """Silero VAD wrapper for fast voice activity detection."""
+    """Silero VAD wrapper for fast, thread-safe voice activity detection."""
 
     def __init__(self, threshold: float = 0.5):
         self.threshold = threshold
         self._model = None
+        self._lock = threading.Lock()
 
     def preload(self) -> None:
         """Preload Silero VAD model into memory at startup."""
@@ -41,18 +59,25 @@ class VoiceActivityDetector:
     def _load_model(self):
         if self._model is not None:
             return
-        from silero_vad import load_silero_vad
-        log.info("Preloading Silero VAD model...")
-        self._model = load_silero_vad()
-        log.info("Silero VAD model preloaded successfully.")
+        with self._lock:
+            if self._model is not None:
+                return
+            try:
+                from silero_vad import load_silero_vad
+                log.info("Preloading Silero VAD model...")
+                self._model = load_silero_vad()
+                log.info("Silero VAD model preloaded successfully.")
+            except Exception as e:
+                log.warning("Silero VAD model loading failed: %s", e)
+                self._model = None
 
     def is_speech(self, audio_chunk: np.ndarray, sample_rate: int = 16000) -> bool:
-        """Check if 16kHz float32 audio chunk contains speech."""
-        import torch
-
+        """Check if 16kHz float32 audio chunk contains speech (thread-safe)."""
         self._load_model()
-        if len(audio_chunk) == 0:
+        if self._model is None or len(audio_chunk) == 0:
             return False
+
+        import torch
 
         # Silero VAD accepts 512, 1024, or 1536 samples at 16000 Hz
         if len(audio_chunk) < 512:
@@ -61,8 +86,9 @@ class VoiceActivityDetector:
             audio_chunk = audio_chunk[:512]
 
         tensor = torch.from_numpy(audio_chunk.astype(np.float32))
-        with torch.no_grad():
-            prob = self._model(tensor, sample_rate).item()
+        with self._lock:
+            with torch.no_grad():
+                prob = self._model(tensor, sample_rate).item()
         return prob > self.threshold
 
 
@@ -75,25 +101,39 @@ class BargeInMonitor:
         sample_rate: int = 16000,
         headphone_mode: bool = False,
         mute_ms: float = 300.0,
+        vad: Optional[VoiceActivityDetector] = None,
+        device_id: Optional[int | str] = None,
     ):
         self.on_barge_in = on_barge_in
         self.sample_rate = sample_rate
         self.headphone_mode = headphone_mode
         self.mute_ms = mute_ms
+        self.device_id = device_id
 
         # In speaker mode, use higher threshold (0.80) to prevent speaker audio reflection
         vad_thresh = 0.50 if headphone_mode else 0.80
-        self.vad = VoiceActivityDetector(threshold=vad_thresh)
-        self.vad.preload()  # Preload Silero at startup, NOT inside monitor thread
+        if vad is not None:
+            self.vad = vad
+            self.vad.threshold = vad_thresh
+        else:
+            self.vad = VoiceActivityDetector(threshold=vad_thresh)
+            self.vad.preload()
 
         self._running = False
         self._thread: Optional[threading.Thread] = None
-        self._t_start: float = 0.0
+        self._playback_started: bool = False
+        self._playback_start_time: float = 0.0
 
     @property
     def is_active(self) -> bool:
         """Return True if background microphone monitoring is currently active."""
         return self._running and (self._thread is not None and self._thread.is_alive())
+
+    def notify_playback_start(self) -> None:
+        """Notify the monitor that the first audio sample has started playing."""
+        self._playback_started = True
+        self._playback_start_time = time.time()
+        log.debug("BargeInMonitor notified: playback started (echo suppression active for %.0f ms)", self.mute_ms)
 
     def start(self):
         """Start monitoring mic for speech."""
@@ -103,7 +143,8 @@ class BargeInMonitor:
         if self._running:
             return
         self._running = True
-        self._t_start = time.time()
+        self._playback_started = False
+        self._playback_start_time = 0.0
         self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self._thread.start()
 
@@ -113,27 +154,37 @@ class BargeInMonitor:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=0.5)
         self._thread = None
+        self._playback_started = False
 
     def _monitor_loop(self):
         """Read microphone chunks and test for speech activity."""
         chunk_size = 512
         consecutive_speech_chunks = 0
-        # Longer sustained run in speaker mode to avoid echo triggers (~200ms vs ~100ms)
         required_chunks = 3 if self.headphone_mode else 6
-
-        # Minimum RMS energy threshold in speaker mode to filter speaker bleed
         min_rms = 0.005 if self.headphone_mode else 0.020
 
         try:
-            with sd.InputStream(samplerate=self.sample_rate, channels=1, dtype="float32", blocksize=chunk_size) as stream:
+            stream_kwargs = {
+                "samplerate": self.sample_rate,
+                "channels": 1,
+                "dtype": "float32",
+                "blocksize": chunk_size,
+            }
+            if self.device_id is not None:
+                stream_kwargs["device"] = self.device_id
+
+            with sd.InputStream(**stream_kwargs) as stream:
                 while self._running:
                     data, overflowed = stream.read(chunk_size)
                     if overflowed:
                         continue
                     audio = data.flatten()
 
-                    # 1. Mute detection for the first ~300 ms of playback
-                    elapsed_ms = (time.time() - self._t_start) * 1000.0
+                    # 1. Echo suppression: Mute detection until playback starts, and for mute_ms after playback start
+                    if not self._playback_started:
+                        continue
+
+                    elapsed_ms = (time.time() - self._playback_start_time) * 1000.0
                     if elapsed_ms < self.mute_ms:
                         continue
 

@@ -23,6 +23,8 @@ from bolsamajh.utils.clipboard import get_selected_text, insert_text
 
 log = logging.getLogger(__name__)
 
+import re
+
 COMMAND_SYSTEM_PROMPT = """You are BolSamajh In-App Voice Editor.
 The user has highlighted text in their application and given a voice command in English, Hindi, or Hinglish.
 
@@ -33,6 +35,33 @@ STRICT INSTRUCTIONS:
 4. Preserve the core meaning, facts, and structure unless the command explicitly requests otherwise.
 5. If the user command is in Hinglish (e.g., "formal email bana do", "chhota kar do", "grammar fix karo"), understand the intent and apply it accurately.
 """
+
+
+def _clean_llm_response(raw: str) -> str:
+    """Robustly clean LLM output: strip code fences, preamble phrases, and quotes."""
+    cleaned = raw.strip()
+
+    # 1. Strip markdown code fences (e.g. ```markdown ... ``` or ``` ... ```)
+    cleaned = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n?", "", cleaned)
+    cleaned = re.sub(r"\n?```\s*$", "", cleaned).strip()
+
+    # 2. Strip common conversational preambles ("Here is...", "Sure! Here is...", "Revised text:", etc.)
+    cleaned = re.sub(
+        r"^(?:Here\s+(?:is|are)|Here's|Sure!?|Certainly!?|Below\s+is|This\s+is|Revised\s+text:?|Modified\s+text:?)[^\n:]*[:\n]\s*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    # 3. Strip surrounding quotes if model added them
+    if (cleaned.startswith('"""') and cleaned.endswith('"""')) or \
+       (cleaned.startswith("'''") and cleaned.endswith("'''")):
+        cleaned = cleaned[3:-3].strip()
+    elif (cleaned.startswith('"') and cleaned.endswith('"')) or \
+         (cleaned.startswith("'") and cleaned.endswith("'")):
+        cleaned = cleaned[1:-1].strip()
+
+    return cleaned
 
 
 class VoiceCommandsPipeline:
@@ -53,13 +82,15 @@ class VoiceCommandsPipeline:
         self._selected_text: str = ""
         self._selection_event = threading.Event()
         self._processing = False
+        self._processing_lock = threading.Lock()
         self._worker_thread: threading.Thread | None = None
         self._cancel_requested: bool = False
 
     def start_command(self) -> None:
         """Start listening for command immediately; capture highlighted text in parallel."""
-        if self.recorder.is_recording or self._processing:
-            return
+        with self._processing_lock:
+            if self.recorder.is_recording or self._processing:
+                return
 
         self._cancel_requested = False
         # 1. Start audio recording IMMEDIATELY to prevent clipping opening syllables
@@ -86,7 +117,8 @@ class VoiceCommandsPipeline:
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-        self._processing = False
+        with self._processing_lock:
+            self._processing = False
         self.hud.set_state("idle")
         log.info("Voice Command: cancelled by user")
 
@@ -112,7 +144,8 @@ class VoiceCommandsPipeline:
 
     def _process_command(self, wav_bytes: bytes) -> None:
         """Background: STT -> LLM transform -> replace selection."""
-        self._processing = True
+        with self._processing_lock:
+            self._processing = True
         t0 = time.time()
 
         try:
@@ -156,15 +189,8 @@ class VoiceCommandsPipeline:
                 self.llm.generate(prompt=prompt, system=COMMAND_SYSTEM_PROMPT)
             )
 
-            # Clean output
-            cleaned_output = output_text.strip()
-            # Remove enclosing quotes if model added them
-            if (cleaned_output.startswith('"""') and cleaned_output.endswith('"""')) or \
-               (cleaned_output.startswith("'''") and cleaned_output.endswith("'''")):
-                cleaned_output = cleaned_output[3:-3].strip()
-            elif (cleaned_output.startswith('"') and cleaned_output.endswith('"')) or \
-                 (cleaned_output.startswith("'") and cleaned_output.endswith("'")):
-                cleaned_output = cleaned_output[1:-1].strip()
+            # Clean output robustly
+            cleaned_output = _clean_llm_response(output_text)
 
             elapsed = time.time() - t0
             log.info("Command completed in %.2fs. Replacing selection.", elapsed)
@@ -174,12 +200,17 @@ class VoiceCommandsPipeline:
                 log.info("Voice command cancelled before insertion")
                 return
 
-            insert_text(cleaned_output)
-            self.hud.set_state("done", f"Done! ({elapsed:.1f}s)")
+            inserted = insert_text(cleaned_output)
+            if inserted:
+                self.hud.set_state("done", f"Done! ({elapsed:.1f}s)")
+            else:
+                log.warning("Voice command: text insertion failed")
+                self.hud.set_state("error")
 
         except Exception as e:
             log.error("Voice command execution failed: %s", e, exc_info=True)
             self.hud.set_state("error")
         finally:
-            self._processing = False
+            with self._processing_lock:
+                self._processing = False
             self._selected_text = ""

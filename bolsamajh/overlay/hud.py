@@ -4,6 +4,7 @@ Shows a small, always-on-top, semi-transparent pill that indicates:
   🎤 Listening  |  ⏳ Processing  |  ✅ Done  |  ❌ Error
 """
 
+import queue
 import logging
 import threading
 
@@ -40,6 +41,8 @@ class OverlayHUD:
         self._thread: threading.Thread | None = None
         self._ready = threading.Event()
         self._state: HUDState = "idle"
+        self._auto_hide_id: str | None = None
+        self._cmd_queue: queue.Queue = queue.Queue()
 
     def start(self) -> None:
         """Start the overlay in a background thread."""
@@ -52,6 +55,22 @@ class OverlayHUD:
         self._thread.start()
         self._ready.wait(timeout=3.0)
         log.debug("Overlay HUD started")
+
+    def _poll_queue(self) -> None:
+        """Process queued Tk commands on the Tk main thread."""
+        while not self._cmd_queue.empty():
+            try:
+                fn = self._cmd_queue.get_nowait()
+                fn()
+                self._cmd_queue.task_done()
+            except Exception as e:
+                log.debug("HUD queue error: %s", e)
+
+        if self._root:
+            try:
+                self._root.after(40, self._poll_queue)
+            except tk.TclError:
+                pass
 
     def _run_tk(self) -> None:
         """Tkinter mainloop (runs in dedicated thread)."""
@@ -100,6 +119,7 @@ class OverlayHUD:
         # Start hidden
         self._root.withdraw()
         self._ready.set()
+        self._root.after(40, self._poll_queue)
         self._root.mainloop()
 
     def prompt_open_file(self) -> str | None:
@@ -118,10 +138,11 @@ class OverlayHUD:
                     parent=self._root,
                     title="BolSamajh — Load Document",
                     filetypes=[
-                        ("Supported Documents", "*.pdf;*.docx;*.doc;*.txt;*.md"),
+                        ("Supported Documents", "*.pdf *.docx *.txt *.md"),
                         ("PDF Files", "*.pdf"),
-                        ("Word Documents", "*.docx;*.doc"),
-                        ("Text/Markdown", "*.txt;*.md"),
+                        ("Word Documents", "*.docx"),
+                        ("Text Files", "*.txt"),
+                        ("Markdown Files", "*.md"),
                         ("All Files", "*.*"),
                     ],
                 )
@@ -131,12 +152,12 @@ class OverlayHUD:
             finally:
                 event.set()
 
-        self._root.after(0, _ask)
+        self._cmd_queue.put(_ask)
         event.wait()
         return result[0]
 
     def set_state(self, state: HUDState, extra: str = "") -> None:
-        """Update the HUD state (thread-safe)."""
+        """Update the HUD state (thread-safe, cancels pending auto-hide timer)."""
         if not self._root or not self._label:
             return
 
@@ -149,6 +170,14 @@ class OverlayHUD:
 
         def _update():
             try:
+                # Cancel any pending auto-hide timer on every state change
+                if self._auto_hide_id is not None:
+                    try:
+                        self._root.after_cancel(self._auto_hide_id)
+                    except Exception:
+                        pass
+                    self._auto_hide_id = None
+
                 self._label.configure(text=display_text, bg=bg, fg=fg)
                 self._root.configure(bg=bg)
                 if state == "idle":
@@ -157,15 +186,15 @@ class OverlayHUD:
                     self._root.deiconify()
                     self._root.lift()
 
-                # Auto-hide after "done" or "error"
+                # Schedule auto-hide after "done" or "error"
                 if state == "done":
-                    self._root.after(_DONE_TIMEOUT, lambda: self.set_state("idle"))
+                    self._auto_hide_id = self._root.after(_DONE_TIMEOUT, lambda: self.set_state("idle"))
                 elif state == "error":
-                    self._root.after(3000, lambda: self.set_state("idle"))
+                    self._auto_hide_id = self._root.after(3000, lambda: self.set_state("idle"))
             except tk.TclError:
                 pass  # Widget destroyed
 
-        self._root.after(0, _update)
+        self._cmd_queue.put(_update)
 
     def show_text(self, text: str, duration_ms: int = 2000) -> None:
         """Show a temporary text message."""
@@ -174,20 +203,32 @@ class OverlayHUD:
 
         def _show():
             try:
+                if self._auto_hide_id is not None:
+                    try:
+                        self._root.after_cancel(self._auto_hide_id)
+                    except Exception:
+                        pass
+                    self._auto_hide_id = None
+
                 self._label.configure(text=f"  {text}", bg="#1a2a3a", fg="#60a5fa")
                 self._root.configure(bg="#1a2a3a")
                 self._root.deiconify()
                 self._root.lift()
-                self._root.after(duration_ms, lambda: self.set_state("idle"))
+                self._auto_hide_id = self._root.after(duration_ms, lambda: self.set_state("idle"))
             except tk.TclError:
                 pass
 
-        self._root.after(0, _show)
+        self._cmd_queue.put(_show)
 
     def stop(self) -> None:
         """Stop the overlay."""
         if self._root:
-            try:
-                self._root.after(0, self._root.destroy)
-            except Exception:
-                pass
+            def _destroy():
+                try:
+                    if self._auto_hide_id is not None:
+                        self._root.after_cancel(self._auto_hide_id)
+                        self._auto_hide_id = None
+                    self._root.destroy()
+                except Exception:
+                    pass
+            self._cmd_queue.put(_destroy)

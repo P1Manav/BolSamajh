@@ -9,6 +9,7 @@ Adheres to Tier 2 Requirements 12, 15, and 16:
 - Escape cancels active recording and TTS.
 """
 
+import re
 import time
 import asyncio
 import logging
@@ -24,12 +25,28 @@ from bolsamajh.llm.base import LLMAdapter
 from bolsamajh.tts.base import TextToSpeech
 from bolsamajh.overlay.hud import OverlayHUD
 from bolsamajh.utils.audio import MicRecorder
-from bolsamajh.utils.vad import BargeInMonitor
+from bolsamajh.utils.vad import BargeInMonitor, get_shared_vad
 from bolsamajh.utils.sentence_splitter import extract_next_sentence
 
 log = logging.getLogger(__name__)
 
 from bolsamajh.prompts import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
+
+# Deterministic refusal messages per language (returned without calling LLM)
+_DETERMINISTIC_REFUSALS = {
+    "hindi": "माफ़ कीजिए, मुझे दस्तावेज़ में इस सवाल का कोई प्रासंगिक उत्तर नहीं मिला।",
+    "gujarati": "માફ કરશો, મને દસ્તાવેજમાં આ પ્રશ્નનો કોઈ સુસંગત જવાબ મળ્યો નથી.",
+    "hinglish": "Maaf kijiye, mujhe document mein is sawaal ka koi relevant jawab nahi mila.",
+    "english": "I apologize, but I could not find relevant information in the document to answer your question.",
+}
+
+_HINGLISH_KEYWORDS = {
+    "kya", "kyun", "kaise", "kahan", "kab", "kitna", "kitne", "kitni", "kaun",
+    "batao", "bataiye", "karo", "kariye", "hai", "hain", "nahi", "nahin",
+    "mera", "meri", "mere", "mujhe", "apna", "apni", "apne", "yeh", "woh",
+    "kuch", "dastavej", "yojana", "sawaal", "jawab", "chahiye", "hoga", "hogi",
+    "hoge", "mein", "bhi", "aap", "unka", "iske", "iski"
+}
 
 
 class DocQAPipeline:
@@ -58,6 +75,7 @@ class DocQAPipeline:
         self._current_document: Document | None = None
         self._history: List[Tuple[str, str]] = []  # List of (question, answer) pairs
         self._processing = False
+        self._processing_lock = threading.Lock()
         self._worker_thread: Optional[threading.Thread] = None
         self._generation_id: int = 0
         self._cancel_requested: bool = False
@@ -88,8 +106,9 @@ class DocQAPipeline:
         if not self.has_document:
             self.hud.show_text("No document loaded!", duration_ms=2000)
             return
-        if self.recorder.is_recording or self._processing:
-            return
+        with self._processing_lock:
+            if self.recorder.is_recording or self._processing:
+                return
 
         log.info("🎤 Doc Q&A: recording question…")
         self.hud.set_state("listening", "Ask your question…")
@@ -132,7 +151,8 @@ class DocQAPipeline:
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-        self._processing = False
+        with self._processing_lock:
+            self._processing = False
 
         self.hud.set_state("idle")
         log.info("Doc Q&A: cancelled by user")
@@ -144,9 +164,28 @@ class DocQAPipeline:
         self.hud.set_state("idle", "Interrupted")
         log.info("Doc Q&A: playback interrupted (generation advanced to %d)", self._generation_id)
 
+    def _detect_language(self, text: str) -> str:
+        """Detect language from question text when config is 'auto'."""
+        if any('\u0A80' <= c <= '\u0AFF' for c in text):
+            return "gujarati"
+        if any('\u0900' <= c <= '\u097F' for c in text):
+            return "hindi"
+        words = set(re.findall(r"\b[a-zA-Z]+\b", text.lower()))
+        if words & _HINGLISH_KEYWORDS:
+            return "hinglish"
+        return "english"
+
+    def _resolve_response_language(self, question: str) -> str:
+        """Determine effective response language key from config and question."""
+        config_lang = getattr(self.config.doc_qa, "response_language", "auto").lower()
+        if config_lang == "auto":
+            return self._detect_language(question)
+        return config_lang
+
     def _process_question(self, wav_bytes: bytes, gen_id: int = 0) -> None:
         """Background: transcribe → retrieve → stream LLM into TTS."""
-        self._processing = True
+        with self._processing_lock:
+            self._processing = True
         t0 = time.time()
 
         try:
@@ -167,9 +206,20 @@ class DocQAPipeline:
             log.info("Question: %s", question)
             self.hud.set_state("processing", "Thinking…")
 
-            # 2. Retrieve relevant chunks
+            # Resolve target response language (auto-detected or configured)
+            lang_key = self._resolve_response_language(question)
+            lang_code = {"hinglish": "hi", "hindi": "hi", "gujarati": "gu", "english": "en"}.get(lang_key, "hi")
+
+            # 2. Augment retrieval query with conversational history for follow-ups
+            retrieval_query = question
+            if self._history:
+                recent_history_context = " ".join(q for q, _ in self._history[-2:])
+                retrieval_query = f"{question} {recent_history_context}".strip()
+                log.debug("Augmented retrieval query for follow-up: %s", retrieval_query)
+
+            # Retrieve relevant chunks with calibrated threshold
             chunks = self.retriever.retrieve(
-                question,
+                retrieval_query,
                 top_k=self.config.doc_qa.top_k,
                 apply_threshold=True,
             )
@@ -177,9 +227,18 @@ class DocQAPipeline:
             if self._cancel_requested or (gen_id and gen_id != self._generation_id):
                 return
 
+            # Deterministic refusal: if no chunk passes threshold, refuse WITHOUT calling LLM
+            if not chunks:
+                refusal_text = _DETERMINISTIC_REFUSALS.get(lang_key, _DETERMINISTIC_REFUSALS["hinglish"])
+                log.info("Refusal triggered: no chunk exceeded threshold. Returning deterministic refusal: %s", refusal_text)
+                self.hud.set_state("processing", "Speaking…")
+                asyncio.run(self.tts.speak(refusal_text, lang=lang_code))
+                elapsed = time.time() - t0
+                self.hud.set_state("done", f"{elapsed:.1f}s")
+                return
+
             # 3. Build grounded prompt with conversational memory
             context = self._format_context(chunks)
-            lang_key = self.config.doc_qa.response_language
 
             history_str = ""
             if self._history:
@@ -195,8 +254,7 @@ class DocQAPipeline:
                 context=context,
             )
 
-            # 4. Stream LLM output sentence-by-sentence into TTS with voice barge-in
-            lang_code = {"hinglish": "hi", "hindi": "hi", "gujarati": "gu", "english": "en"}.get(lang_key, "hi")
+            # 4. Stream LLM output sentence-by-sentence into TTS with prefetching & voice barge-in
             answer = asyncio.run(self._stream_and_speak(question, system, lang_code, t_start=t0, gen_id=gen_id))
 
             if self._cancel_requested or (gen_id and gen_id != self._generation_id):
@@ -217,7 +275,8 @@ class DocQAPipeline:
             log.error("Doc Q&A error: %s", e, exc_info=True)
             self.hud.set_state("error")
         finally:
-            self._processing = False
+            with self._processing_lock:
+                self._processing = False
 
     async def _stream_and_speak(
         self,
@@ -227,60 +286,166 @@ class DocQAPipeline:
         t_start: float,
         gen_id: int = 0,
     ) -> str:
-        """Stream tokens from LLM, synthesize sentence-by-sentence, and report TTFA."""
+        """Stream tokens from LLM, prefetch TTS synthesis (sentence N+1 during sentence N), and play."""
         buffer = ""
         full_tokens = []
         first_audio_logged = False
 
-        # Start background barge-in monitor with Silero VAD
+        # Load shared VAD singleton once; degrade gracefully (no barge-in) if unavailable
+        shared_vad = get_shared_vad()
         headphone_mode = getattr(self.config, "headphone_mode", False)
-        barge_in = BargeInMonitor(on_barge_in=self.interrupt, headphone_mode=headphone_mode)
-        barge_in.start()
+        barge_in: Optional[BargeInMonitor] = None
+        if shared_vad is not None:
+            try:
+                barge_in = BargeInMonitor(
+                    on_barge_in=self.interrupt,
+                    headphone_mode=headphone_mode,
+                    vad=shared_vad,
+                )
+                if hasattr(self.tts, "set_playback_start_callback"):
+                    self.tts.set_playback_start_callback(barge_in.notify_playback_start)
+                barge_in.start()
+            except Exception as e:
+                log.warning("Silero VAD barge-in initialization failed (degraded without barge-in): %s", e)
+                barge_in = None
 
-        try:
-            async for token in self.llm.generate_stream(question, system=system):
-                if self._cancel_requested or (gen_id and gen_id != self._generation_id):
-                    log.info("Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id)
-                    break
+        has_synthesize = hasattr(self.tts, "synthesize") and hasattr(self.tts, "play")
 
-                buffer += token
-                full_tokens.append(token)
+        if has_synthesize:
+            # Bounded prefetch queue: holds up to 2 items (sentence_text, audio_bytes_or_none)
+            tts_queue: asyncio.Queue[Optional[Tuple[str, Optional[bytes]]]] = asyncio.Queue(maxsize=2)
 
-                sentence, remaining = extract_next_sentence(buffer)
-                if sentence:
-                    buffer = remaining
+            async def _playback_worker():
+                nonlocal first_audio_logged
+                while True:
+                    item = await tts_queue.get()
+                    if item is None:
+                        tts_queue.task_done()
+                        break
+                    sentence_text, audio_bytes = item
                     if self._cancel_requested or (gen_id and gen_id != self._generation_id):
+                        tts_queue.task_done()
                         break
 
                     if not first_audio_logged:
                         ttfa = time.time() - t_start
                         log.info("⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
-                                 ttfa, sentence[:40])
+                                 ttfa, sentence_text[:40])
                         self.hud.set_state("processing", f"Speaking (TTFA {ttfa:.1f}s)")
                         first_audio_logged = True
 
-                    await self.tts.speak(sentence, lang=lang_code)
+                    try:
+                        if audio_bytes:
+                            await self.tts.play(audio_bytes)
+                        else:
+                            await self.tts.speak(sentence_text, lang=lang_code)
+                    except Exception as ex:
+                        log.error("TTS playback error for sentence '%s': %s", sentence_text[:30], ex)
+                    finally:
+                        tts_queue.task_done()
 
-            # Flush any remaining text if generation still active
-            if buffer.strip() and not self._cancel_requested and (not gen_id or gen_id == self._generation_id):
-                if not first_audio_logged:
-                    ttfa = time.time() - t_start
-                    log.info("⚡ Time-To-First-Audio (TTFA): %.2fs", ttfa)
-                    first_audio_logged = True
-                await self.tts.speak(buffer.strip(), lang=lang_code)
+            playback_task = asyncio.create_task(_playback_worker())
 
-        finally:
-            barge_in.stop()
+            try:
+                async for token in self.llm.generate_stream(question, system=system):
+                    if self._cancel_requested or (gen_id and gen_id != self._generation_id):
+                        log.info("Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id)
+                        break
+
+                    buffer += token
+                    full_tokens.append(token)
+
+                    sentence, remaining = extract_next_sentence(buffer)
+                    if sentence:
+                        buffer = remaining
+                        if self._cancel_requested or (gen_id and gen_id != self._generation_id):
+                            break
+
+                        # Prefetch synthesis
+                        audio_bytes = None
+                        try:
+                            audio_bytes = await self.tts.synthesize(sentence, lang=lang_code)
+                        except Exception as e:
+                            log.warning("TTS prefetch synthesis failed: %s", e)
+                        await tts_queue.put((sentence, audio_bytes))
+
+                # Flush any remaining text in buffer
+                if buffer.strip() and not self._cancel_requested and (not gen_id or gen_id == self._generation_id):
+                    final_sentence = buffer.strip()
+                    audio_bytes = None
+                    try:
+                        audio_bytes = await self.tts.synthesize(final_sentence, lang=lang_code)
+                    except Exception as e:
+                        log.warning("TTS prefetch synthesis failed: %s", e)
+                    await tts_queue.put((final_sentence, audio_bytes))
+
+                # Signal EOF to playback worker
+                await tts_queue.put(None)
+                await playback_task
+
+            finally:
+                if barge_in:
+                    barge_in.stop()
+                if not playback_task.done():
+                    playback_task.cancel()
+                    try:
+                        await playback_task
+                    except asyncio.CancelledError:
+                        pass
+        else:
+            # Direct sequential synthesis for basic/mock TTS adapters
+            try:
+                async for token in self.llm.generate_stream(question, system=system):
+                    if self._cancel_requested or (gen_id and gen_id != self._generation_id):
+                        log.info("Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id)
+                        break
+
+                    buffer += token
+                    full_tokens.append(token)
+
+                    sentence, remaining = extract_next_sentence(buffer)
+                    if sentence:
+                        buffer = remaining
+                        if self._cancel_requested or (gen_id and gen_id != self._generation_id):
+                            break
+
+                        if not first_audio_logged:
+                            ttfa = time.time() - t_start
+                            log.info("⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
+                                     ttfa, sentence[:40])
+                            self.hud.set_state("processing", f"Speaking (TTFA {ttfa:.1f}s)")
+                            first_audio_logged = True
+
+                        await self.tts.speak(sentence, lang=lang_code)
+
+                # Flush any remaining text
+                if buffer.strip() and not self._cancel_requested and (not gen_id or gen_id == self._generation_id):
+                    if not first_audio_logged:
+                        ttfa = time.time() - t_start
+                        log.info("⚡ Time-To-First-Audio (TTFA): %.2fs", ttfa)
+                        first_audio_logged = True
+                    await self.tts.speak(buffer.strip(), lang=lang_code)
+
+            finally:
+                if barge_in:
+                    barge_in.stop()
 
         return "".join(full_tokens)
 
     @staticmethod
     def _format_context(chunks: list[Chunk]) -> str:
-        """Format retrieved chunks into context string with document-type-aware citations."""
+        """Format retrieved chunks into context string with document-type-aware citations.
+        
+        Neutralizes </document_data> and closing tags within document text to prevent
+        prompt injection from escaping the passive barrier.
+        """
         if not chunks:
             return "(No relevant content found in the document that exceeds the relevance threshold)"
 
         parts = []
         for i, chunk in enumerate(chunks, 1):
-            parts.append(f"[Source {i} — {chunk.citation}]\n{chunk.text}")
+            safe_text = chunk.text.replace("</document_data>", "<\\/document_data>")
+            safe_text = safe_text.replace("</doc", "<\\/doc")
+            parts.append(f"[Source {i} — {chunk.citation}]\n{safe_text}")
         return "\n\n".join(parts)
+

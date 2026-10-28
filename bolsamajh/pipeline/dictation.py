@@ -23,13 +23,15 @@ class DictationPipeline:
         self.hud = hud
         self.recorder = MicRecorder()
         self._processing = False
+        self._processing_lock = threading.Lock()
         self._worker_thread: threading.Thread | None = None
         self._cancel_requested: bool = False
 
     def start_recording(self) -> None:
         """Begin push-to-talk recording."""
-        if self.recorder.is_recording or self._processing:
-            return
+        with self._processing_lock:
+            if self.recorder.is_recording or self._processing:
+                return
         self._cancel_requested = False
         log.info("🎤 Dictation: recording started")
         self.hud.set_state("listening")
@@ -44,7 +46,8 @@ class DictationPipeline:
             self._worker_thread.join(timeout=0.5)
             if not self._worker_thread.is_alive():
                 self._worker_thread = None
-        self._processing = False
+        with self._processing_lock:
+            self._processing = False
         self.hud.set_state("idle")
         log.info("Dictation: cancelled by user")
 
@@ -76,7 +79,8 @@ class DictationPipeline:
 
     def _process_audio(self, wav_bytes: bytes) -> None:
         """Background: transcribe → clean → insert."""
-        self._processing = True
+        with self._processing_lock:
+            self._processing = True
         t0 = time.time()
 
         try:
@@ -111,13 +115,17 @@ class DictationPipeline:
             log.info("✅ Dictation: inserting %d chars (%.2fs total): %s",
                      len(cleaned), elapsed, cleaned[:80])
 
-            insert_text(cleaned)
-
-            self.hud.set_state("done", f"{elapsed:.1f}s")
+            inserted = insert_text(cleaned)
+            if inserted:
+                self.hud.set_state("done", f"{elapsed:.1f}s")
+            else:
+                log.warning("Dictation: text insertion returned False")
+                self.hud.set_state("error")
 
         except Exception as e:
             log.error("Dictation error: %s", e, exc_info=True)
             self.hud.set_state("error")
 
         finally:
-            self._processing = False
+            with self._processing_lock:
+                self._processing = False

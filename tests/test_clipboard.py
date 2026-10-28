@@ -69,3 +69,45 @@ def test_insert_text_mocked():
         insert_text("New dictated Hinglish sentence")
         # Restores prior text
         assert clipboard_state["content"] == "prior text"
+
+
+def test_insert_text_restores_empty_clipboard(monkeypatch):
+    """Test insert_text clears the clipboard when original content was empty."""
+    monkeypatch.setenv("BOLSAMAJH_CLIPBOARD_RESTORE_DELAY", "0.01")
+    clipboard_state = {"content": ""}
+
+    def mock_copy(text):
+        clipboard_state["content"] = text
+
+    def mock_paste():
+        return clipboard_state["content"]
+
+    with patch("pyperclip.copy", side_effect=mock_copy), \
+         patch("pyperclip.paste", side_effect=mock_paste), \
+         patch("bolsamajh.utils.clipboard._keyboard"):
+
+        insert_text("New text")
+        # Must be cleared to empty string, not left with "New text"
+        assert clipboard_state["content"] == ""
+
+
+def test_get_selected_text_restores_empty_clipboard(monkeypatch):
+    """Test get_selected_text clears sentinel even when clipboard was initially empty."""
+    monkeypatch.setenv("BOLSAMAJH_CLIPBOARD_RESTORE_DELAY", "0.01")
+    clipboard_state = {"content": ""}
+
+    def mock_copy(text):
+        clipboard_state["content"] = text
+
+    def mock_paste():
+        return clipboard_state["content"]
+
+    with patch("pyperclip.copy", side_effect=mock_copy), \
+         patch("pyperclip.paste", side_effect=mock_paste), \
+         patch("bolsamajh.utils.clipboard._keyboard"):
+
+        selected = get_selected_text(timeout_sec=0.02)
+        assert selected == ""
+        # Must restore to empty string, not leave the sentinel
+        assert clipboard_state["content"] == ""
+

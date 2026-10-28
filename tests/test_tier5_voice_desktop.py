@@ -151,38 +151,45 @@ def test_model_alias_resolution_and_cpu_agreement():
 
 
 def test_short_clip_language_fallback():
-    """Verify language='auto' falls back to 'hi' for clips < 2.0s."""
+    """Verify language='auto' does not force 'hi' on short clips."""
     stt = FasterWhisperSTT(model_size="tiny", device="cpu", compute_type="int8", language="auto")
-    
-    # Generate 1.2 seconds of silent audio bytes
+
+    # Generate 1.2 seconds of non-silent audio bytes
     import numpy as np
     import wave
     import io
-    
+
     sr = 16000
     dur = 1.2
     # Sine wave to have non-zero RMS above gate
     t = np.linspace(0, dur, int(sr * dur), endpoint=False)
     audio = (np.sin(2 * np.pi * 440 * t) * 10000).astype(np.int16)
-    
+
     bio = io.BytesIO()
     with wave.open(bio, "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(sr)
         wf.writeframes(audio.tobytes())
-    
+
     # Mock whisper transcribe to check kwargs passed
     mock_model = MagicMock()
-    mock_model.transcribe.return_value = ([], MagicMock())
+    mock_model.transcribe.return_value = ([], MagicMock(language="auto", language_probability=0.9))
     stt._model = mock_model
-    
+
     stt.transcribe(bio.getvalue())
-    
-    # Assert transcribe was called with language="hi" due to < 2.0s fallback
+
+    # Assert transcribe was called without forcing language="hi" when configured as "auto"
     assert mock_model.transcribe.called
     kwargs = mock_model.transcribe.call_args[1]
-    assert kwargs.get("language") == "hi"
+    assert kwargs.get("language") is None
+
+    # But when configured explicitly, it must pass that language
+    stt_hi = FasterWhisperSTT(model_size="tiny", device="cpu", compute_type="int8", language="hi")
+    stt_hi._model = mock_model
+    stt_hi.transcribe(bio.getvalue())
+    kwargs_hi = mock_model.transcribe.call_args[1]
+    assert kwargs_hi.get("language") == "hi"
 
 
 def test_doc_qa_pipeline_stream_and_speak_integration():

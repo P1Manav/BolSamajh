@@ -1,9 +1,12 @@
 """Edge-TTS adapter — free Microsoft Edge text-to-speech service."""
 
 import io
+import os
+import re
 import logging
+import asyncio
 import threading
-from typing import Literal
+from typing import Literal, Optional, Callable
 
 import numpy as np
 
@@ -16,25 +19,28 @@ from bolsamajh.tts.base import TextToSpeech
 
 log = logging.getLogger(__name__)
 
-# Voice mapping per language
-_VOICES = {
-    "hi": "hi-IN-SwaraNeural",
-    "en": "en-IN-NeerjaNeural",
-    "gu": "gu-IN-DhwaniNeural",
-}
-
 
 class EdgeTTSAdapter(TextToSpeech):
     """TTS using Microsoft Edge's free speech service.
 
-    No API key needed — uses the same endpoint as Edge browser's
-    Read Aloud feature.
+    No API key needed — uses the same endpoint as Edge browser's Read Aloud feature.
+    Supports configurable voices per language and Roman Hinglish voice selection.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        voice_hi: str = "hi-IN-SwaraNeural",
+        voice_en: str = "en-IN-NeerjaNeural",
+        voice_gu: str = "gu-IN-DhwaniNeural",
+        voice_roman: str = "en-IN-NeerjaNeural",
+    ):
+        self.voice_hi = os.getenv("BOLSAMAJH_EDGE_VOICE_HI", voice_hi)
+        self.voice_en = os.getenv("BOLSAMAJH_EDGE_VOICE_EN", voice_en)
+        self.voice_gu = os.getenv("BOLSAMAJH_EDGE_VOICE_GU", voice_gu)
+        self.voice_roman = os.getenv("BOLSAMAJH_ROMAN_VOICE", voice_roman)
         self._stop_event = threading.Event()
         self._speaking = False
-        self._playback_thread: threading.Thread | None = None
+        self._on_playback_start: Optional[Callable[[], None]] = None
 
     @property
     def name(self) -> str:
@@ -44,23 +50,38 @@ class EdgeTTSAdapter(TextToSpeech):
     def is_speaking(self) -> bool:
         return self._speaking
 
-    async def speak(
-        self,
-        text: str,
-        lang: Literal["hi", "en", "gu"] = "hi",
-    ) -> None:
-        """Generate speech and play it."""
+    def reset_stop(self) -> None:
+        """Clear stop event at the start of a new conversation turn."""
+        self._stop_event.clear()
+
+    def set_playback_start_callback(self, callback: Optional[Callable[[], None]]) -> None:
+        """Register a callback triggered when the first audio sample begins playing."""
+        self._on_playback_start = callback
+
+    def _select_voice(self, text: str, lang: str) -> str:
+        """Select appropriate voice based on language and script."""
+        has_devanagari = bool(re.search(r"[\u0900-\u097F]", text))
+        has_gujarati = bool(re.search(r"[\u0A80-\u0AFF]", text))
+
+        if lang in ("gu", "gujarati"):
+            return self.voice_gu
+        elif lang in ("en", "english"):
+            return self.voice_en
+        elif lang in ("hi", "hindi", "hinglish"):
+            if not has_devanagari and not has_gujarati:
+                # Pure Roman Hinglish -> use configured Roman voice (e.g. en-IN-NeerjaNeural)
+                return self.voice_roman
+            return self.voice_hi
+        return self.voice_hi
+
+    async def synthesize(self, text: str, lang: str = "hi") -> bytes:
+        """Synthesize text to audio bytes without playing."""
+        if not text.strip() or self._stop_event.is_set():
+            return b""
+
         import edge_tts
 
-        if not text.strip():
-            return
-
-        self._stop_event.clear()
-        self._speaking = True
-
-        # Pre-process text according to voice requirements:
-        # Do not run ISO transliteration on Roman Hinglish. Only transliterate
-        # if the text is already in a different Indic script, otherwise synthesize as-is.
+        # Pre-process text according to script requirements
         has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
         has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
 
@@ -77,36 +98,47 @@ class EdgeTTSAdapter(TextToSpeech):
             except Exception as e:
                 log.debug("Transliteration to Gujarati skipped: %s", e)
 
-        voice = _VOICES.get(lang, _VOICES["hi"])
-        log.info("Edge-TTS: speaking %d chars with voice %s", len(text), voice)
-
+        voice = self._select_voice(text, lang)
         try:
             communicate = edge_tts.Communicate(text, voice)
-
-            # Collect audio data
             audio_data = io.BytesIO()
             async for chunk in communicate.stream():
                 if self._stop_event.is_set():
-                    log.info("Edge-TTS: interrupted")
-                    return
+                    log.info("Edge-TTS: stream synthesis interrupted")
+                    return b""
                 if chunk["type"] == "audio":
                     audio_data.write(chunk["data"])
 
-            if self._stop_event.is_set():
-                return
-
-            # Play the audio
-            audio_bytes = audio_data.getvalue()
-            if audio_bytes:
-                self._play_audio_bytes(audio_bytes)
-
+            return audio_data.getvalue()
         except Exception as e:
-            log.error("Edge-TTS error: %s", e)
+            log.error("Edge-TTS synthesis error: %s", e)
+            return b""
+
+    async def play(self, audio_bytes: bytes) -> None:
+        """Play synthesized audio bytes."""
+        if not audio_bytes or self._stop_event.is_set():
+            return
+        self._speaking = True
+        try:
+            await self._play_audio_bytes_async(audio_bytes)
         finally:
             self._speaking = False
 
-    def _play_audio_bytes(self, audio_bytes: bytes) -> None:
-        """Play MP3 audio bytes using sounddevice."""
+    async def speak(
+        self,
+        text: str,
+        lang: Literal["hi", "en", "gu"] = "hi",
+    ) -> None:
+        """Generate speech and play it. Stoppable and non-blocking."""
+        if not text.strip() or self._stop_event.is_set():
+            return
+
+        audio_bytes = await self.synthesize(text, lang)
+        if audio_bytes and not self._stop_event.is_set():
+            await self.play(audio_bytes)
+
+    async def _play_audio_bytes_async(self, audio_bytes: bytes) -> None:
+        """Decode and play MP3 audio without blocking the event loop."""
         try:
             import av
 
@@ -119,14 +151,13 @@ class EdgeTTSAdapter(TextToSpeech):
                     return
                 arr = frame.to_ndarray()
                 if arr.ndim > 1:
-                    arr = arr.mean(axis=0)  # Mix to mono
+                    arr = arr.mean(axis=0)
                 frames.append(arr)
 
             if not frames or self._stop_event.is_set():
                 return
 
             audio = np.concatenate(frames).astype(np.float32)
-            # Normalize
             if audio.max() > 1.0:
                 audio = audio / 32768.0
 
@@ -136,15 +167,25 @@ class EdgeTTSAdapter(TextToSpeech):
                 log.warning("sounddevice is not available; cannot play synthesized audio")
                 return
 
-            # Play with sounddevice (blocking but interruptible)
+            # Start playback
             sd.play(audio, samplerate=sample_rate)
 
-            # Wait for playback to finish, checking for stop
-            while sd.get_stream().active:
+            # Notify listeners (e.g. BargeInMonitor) that first sample began playing
+            if self._on_playback_start:
+                try:
+                    self._on_playback_start()
+                except Exception as e:
+                    log.debug("Error in on_playback_start callback: %s", e)
+
+            # Wait for playback to finish asynchronously, checking for stop event
+            while True:
                 if self._stop_event.is_set():
                     sd.stop()
                     return
-                sd.sleep(50)
+                stream = sd.get_stream()
+                if stream is None or not stream.active:
+                    break
+                await asyncio.sleep(0.04)
 
         except Exception as e:
             log.error("Audio playback error: %s", e)

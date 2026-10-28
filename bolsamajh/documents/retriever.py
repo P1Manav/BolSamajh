@@ -4,10 +4,13 @@ Adheres to Tier 2 Requirement 12:
 - Replaces 128-token MiniLM with long-context multilingual embedder (intfloat/multilingual-e5-base / small, 512 max_seq_length).
 - Applies correct 'passage: ' and 'query: ' prefixes required by E5 models.
 - Calibrated cosine similarity refusal threshold based on empirical retrieval evaluation.
+- Thread-safe atomic index swapping via threading.Lock.
+- Scaled refusal thresholds per embedding model with loud warnings on fallback.
 """
 
 import logging
 import time
+import threading
 from typing import List, Optional
 
 import numpy as np
@@ -17,12 +20,19 @@ from bolsamajh.documents.chunker import Chunk, chunk_document
 
 log = logging.getLogger(__name__)
 
+# Calibrated refusal thresholds per embedding model
+MODEL_THRESHOLDS = {
+    "intfloat/multilingual-e5-base": 0.785,
+    "intfloat/multilingual-e5-small": 0.760,
+    "sentence-transformers/paraphrase-multilingual-minilm-l12-v2": 0.720,
+}
+
 
 class DocumentRetriever:
     """Embeds document chunks and retrieves relevant ones via FAISS.
 
     Uses long-context multilingual sentence-transformers (intfloat/multilingual-e5-base)
-    with proper passage/query conditioning and cosine similarity scoring.
+    with proper passage/query conditioning, cosine similarity scoring, and thread-safe atomic swapping.
     """
 
     def __init__(
@@ -36,21 +46,25 @@ class DocumentRetriever:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.refusal_threshold = refusal_threshold
+        self._lock = threading.Lock()
         self._model = None
+        self._tokenizer = None
         self._index = None
         self._chunks: List[Chunk] = []
         self._document: Optional[Document] = None
 
     @property
     def is_loaded(self) -> bool:
-        return self._index is not None and len(self._chunks) > 0
+        with self._lock:
+            return self._index is not None and len(self._chunks) > 0
 
     @property
     def document_title(self) -> str:
-        return self._document.title if self._document else ""
+        with self._lock:
+            return self._document.title if self._document else ""
 
     def _load_embedding_model(self):
-        """Lazy-load the sentence-transformer model with fallback."""
+        """Lazy-load the sentence-transformer model with fallback and threshold scaling."""
         if self._model is not None:
             return
 
@@ -60,13 +74,23 @@ class DocumentRetriever:
         t0 = time.time()
         try:
             self._model = SentenceTransformer(self.embedding_model_name)
+            self._tokenizer = getattr(self._model, "tokenizer", None)
         except Exception as e:
-            log.warning("Failed to load %s (%s); falling back to multilingual-e5-small", self.embedding_model_name, e)
-            self.embedding_model_name = "intfloat/multilingual-e5-small"
-            self._model = SentenceTransformer("intfloat/multilingual-e5-small")
+            prev_thresh = self.refusal_threshold
+            fallback_model = "intfloat/multilingual-e5-small"
+            new_thresh = MODEL_THRESHOLDS.get(fallback_model, 0.760)
+            log.warning(
+                "CRITICAL WARNING: Failed to load '%s' (%s). Falling back to '%s'. "
+                "Scaling refusal threshold from %.3f to %.3f. High-precision retrieval may be degraded.",
+                self.embedding_model_name, e, fallback_model, prev_thresh, new_thresh
+            )
+            self.embedding_model_name = fallback_model
+            self.refusal_threshold = new_thresh
+            self._model = SentenceTransformer(fallback_model)
+            self._tokenizer = getattr(self._model, "tokenizer", None)
 
-        log.info("Embedding model loaded in %.1fs (max_seq_length=%d)",
-                 time.time() - t0, getattr(self._model, "max_seq_length", 512))
+        log.info("Embedding model loaded in %.1fs (max_seq_length=%d, threshold=%.3f)",
+                 time.time() - t0, getattr(self._model, "max_seq_length", 512), self.refusal_threshold)
 
     def _prepare_text_for_embedding(self, text: str, is_query: bool = False) -> str:
         """Apply model-specific prefixes (e.g. E5 requires 'passage: ' and 'query: ')."""
@@ -78,29 +102,36 @@ class DocumentRetriever:
     def index_document(self, document: Document) -> int:
         """Index a document for retrieval.
 
+        Builds the entire chunk list, embeddings, and FAISS index completely before
+        swapping them atomically under a thread lock.
+
         Returns:
             Number of chunks indexed.
         """
         import faiss
 
         self._load_embedding_model()
-        self._document = document
 
-        # Chunk the document with cross-page merging
-        self._chunks = chunk_document(
+        # 1. Chunk the document with tokenizer-aware sizing and cross-page merging
+        new_chunks = chunk_document(
             document,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
+            tokenizer=self._tokenizer,
         )
 
-        if not self._chunks:
-            log.warning("No chunks generated from document")
+        if not new_chunks:
+            log.warning("No chunks generated from document '%s'", document.title)
+            with self._lock:
+                self._index = None
+                self._chunks = []
+                self._document = None
             return 0
 
-        # Generate embeddings with 'passage: ' prefix for E5
-        log.info("Generating embeddings for %d chunks…", len(self._chunks))
+        # 2. Generate embeddings with 'passage: ' prefix for E5
+        log.info("Generating embeddings for %d chunks…", len(new_chunks))
         t0 = time.time()
-        texts = [self._prepare_text_for_embedding(c.text, is_query=False) for c in self._chunks]
+        texts = [self._prepare_text_for_embedding(c.text, is_query=False) for c in new_chunks]
         embeddings = self._model.encode(
             texts,
             show_progress_bar=False,
@@ -108,26 +139,31 @@ class DocumentRetriever:
         )
         log.info("Embeddings generated in %.1fs", time.time() - t0)
 
-        # Build FAISS inner-product index (cosine similarity for normalized vectors)
+        # 3. Build new FAISS inner-product index
         dim = embeddings.shape[1]
-        self._index = faiss.IndexFlatIP(dim)
-        self._index.add(embeddings.astype(np.float32))
+        new_index = faiss.IndexFlatIP(dim)
+        new_index.add(embeddings.astype(np.float32))
 
-        log.info("FAISS index built: %d vectors, dim=%d", len(self._chunks), dim)
-        return len(self._chunks)
+        # 4. Atomically swap new index, chunks, and document together
+        with self._lock:
+            self._index = new_index
+            self._chunks = new_chunks
+            self._document = document
+
+        log.info("FAISS index built and atomically swapped: %d vectors, dim=%d", len(new_chunks), dim)
+        return len(new_chunks)
 
     def retrieve(self, query: str, top_k: int = 5, apply_threshold: bool = True) -> List[Chunk]:
         """Retrieve the most relevant chunks for a query.
 
-        Args:
-            query: The search query (Hindi, English, or Hinglish).
-            top_k: Number of results to return.
-            apply_threshold: If True, filters out chunks below refusal_threshold.
-
-        Returns:
-            List of Chunk objects sorted by relevance.
+        Thread-safe: snapshots index and chunks under lock.
         """
-        if not self.is_loaded:
+        with self._lock:
+            index = self._index
+            chunks = list(self._chunks)
+            threshold = self.refusal_threshold
+
+        if index is None or not chunks:
             log.warning("No document indexed")
             return []
 
@@ -141,20 +177,20 @@ class DocumentRetriever:
         ).astype(np.float32)
 
         # Search index
-        k = min(top_k, len(self._chunks))
-        scores, indices = self._index.search(query_vec, k)
+        k = min(top_k, len(chunks))
+        scores, indices = index.search(query_vec, k)
 
         results = []
         for score, idx in zip(scores[0], indices[0]):
-            if idx >= 0:
+            if idx >= 0 and idx < len(chunks):
                 score_val = float(score)
                 # Check refusal threshold
-                if apply_threshold and score_val < self.refusal_threshold:
-                    log.debug("Chunk %d score %.3f below refusal threshold %.2f; excluded",
-                              idx, score_val, self.refusal_threshold)
+                if apply_threshold and score_val < threshold:
+                    log.debug("Chunk %d score %.3f below refusal threshold %.3f; excluded",
+                              idx, score_val, threshold)
                     continue
 
-                c = self._chunks[idx]
+                c = chunks[idx]
                 chunk = Chunk(
                     text=c.text,
                     page_number=c.page_number,
@@ -176,8 +212,9 @@ class DocumentRetriever:
         return results
 
     def clear(self) -> None:
-        """Clear the index and free memory."""
-        self._index = None
-        self._chunks = []
-        self._document = None
+        """Clear the index and free memory atomically."""
+        with self._lock:
+            self._index = None
+            self._chunks = []
+            self._document = None
         log.info("Document index cleared")

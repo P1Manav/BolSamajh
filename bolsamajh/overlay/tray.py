@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 """BolSamajh system-tray icon using pystray."""
 
 import logging
+from typing import Optional, Callable
 from PIL import Image, ImageDraw, ImageFont
+
 try:
     import pystray
     from pystray import MenuItem as Item
@@ -32,8 +36,12 @@ def _create_icon_image(size: int = 64) -> Image.Image:
     return img
 
 
-def create_tray(config, on_quit_callback=None) -> pystray.Icon:
+def create_tray(config, on_quit_callback: Optional[Callable[[], None]] = None) -> Optional[pystray.Icon]:
     """Create and return the system-tray icon with Script Control menu."""
+    if pystray is None or Item is None:
+        log.warning("pystray is not available; system tray icon disabled.")
+        return None
+
     def on_quit(icon, item):
         log.info("Quitting BolSamajh…")
         if on_quit_callback:

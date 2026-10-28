@@ -1,9 +1,10 @@
 """Document chunker — sentence-aware chunking with cross-page merging and format-specific citations."""
 
+import re
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Any
 
 from bolsamajh.documents.loader import Document
 from bolsamajh.utils.sentence_splitter import split_sentences
@@ -38,15 +39,16 @@ class Chunk:
 
     @property
     def citation(self) -> str:
-        """Human-readable citation string conforming to document type.
-        
-        - PDFs: 'Page X' or 'Pages X–Y' for merged cross-page chunks (never 'section').
+        """Human-readable citation string conforming strictly to document type.
+
+        - PDFs: 'Page X' or 'Pages X–Y' for merged cross-page chunks (never 'Section').
         - DOCX, Web, TXT, MD: 'Section X' or 'Sections X–Y' or 'Section: Title' (never 'Page').
         """
+        # Strict document type check: rely on doc_type or exact .pdf file extension,
+        # never loose substring matching.
         is_pdf = (
-            self.doc_type == "pdf" or 
-            self.source.lower().endswith(".pdf") or 
-            "pdf" in self.source.lower()
+            self.doc_type.lower() == "pdf" or
+            (not self.doc_type and self.source.lower().endswith(".pdf"))
         )
 
         if is_pdf:
@@ -70,103 +72,160 @@ class Chunk:
         return f"Section {self.chunk_index + 1}"
 
 
-def _estimate_tokens(text: str) -> int:
-    """Estimate token count (~1.3 tokens per word for multilingual Hindi/English)."""
-    words = len(text.split())
-    return int(words * 1.3)
+def count_tokens(text: str, tokenizer: Optional[Any] = None) -> int:
+    """Count tokens using tokenizer if available, falling back to script-aware estimation.
+
+    For Indic scripts (Devanagari, Gujarati), subword tokenization generates >= 3 tokens per word.
+    For Latin text, ~1.3 tokens per word.
+    """
+    if not text or not text.strip():
+        return 0
+
+    if tokenizer is not None:
+        try:
+            return len(tokenizer.encode(text, add_special_tokens=False))
+        except Exception:
+            pass
+
+    tokens = 0
+    for word in text.split():
+        if re.search(r"[\u0900-\u097F\u0A80-\u0AFF]", word):
+            # Devanagari or Gujarati word: conservative factor >= 3 tokens per word
+            tokens += max(3, int(len(word) * 0.8))
+        else:
+            tokens += max(1, int(len(word) * 0.35 + 0.5))
+    return max(1, tokens)
+
+
+def _split_oversized_sentence(sentence: str, max_tokens: int, tokenizer: Optional[Any] = None) -> List[str]:
+    """Split an unpunctuated or oversized sentence into segments fitting within max_tokens."""
+    tok_count = count_tokens(sentence, tokenizer)
+    if tok_count <= max_tokens:
+        return [sentence]
+
+    # Attempt to split on secondary punctuation first (commas, semicolons, dashes)
+    delimiters = [",", ";", ":", " - ", "—"]
+    for delim in delimiters:
+        if delim in sentence:
+            parts = sentence.split(delim)
+            result = []
+            cur_part = ""
+            for p in parts:
+                candidate = (cur_part + delim + p).strip() if cur_part else p.strip()
+                if count_tokens(candidate, tokenizer) <= max_tokens:
+                    cur_part = candidate
+                else:
+                    if cur_part:
+                        result.append(cur_part)
+                    cur_part = p.strip()
+            if cur_part:
+                result.append(cur_part)
+            if all(count_tokens(r, tokenizer) <= max_tokens for r in result):
+                return result
+
+    # Fallback: split on whitespace words
+    words = sentence.split()
+    segments = []
+    cur_words = []
+    for w in words:
+        cand = " ".join(cur_words + [w])
+        if count_tokens(cand, tokenizer) > max_tokens and cur_words:
+            segments.append(" ".join(cur_words))
+            cur_words = [w]
+        else:
+            cur_words.append(w)
+    if cur_words:
+        segments.append(" ".join(cur_words))
+    return segments or [sentence]
 
 
 def chunk_document(
     document: Document,
     chunk_size: int = 380,
     chunk_overlap: int = 40,
+    tokenizer: Optional[Any] = None,
 ) -> List[Chunk]:
     """Split a document into cross-page merged chunks aligned with 512-token embedders.
-    
-    Merges short paragraphs across pages and records full page spans (e.g. Pages 1-2).
+
+    Preserves sentence boundaries, splits oversized sentences, tracks accurate page spans
+    across overlaps, and uses format-specific citations.
     """
     chunks: List[Chunk] = []
     chunk_index = 0
 
-    current_sentences: List[str] = []
+    # Each item: (sentence_text, page_number, section_name, source_path)
+    current_items: List[tuple[str, int, str, str]] = []
     current_tokens = 0
-    chunk_page_start = 0
-    chunk_page_end = 0
-    chunk_sec_start = 0
-    chunk_sec_end = 0
-    current_section = ""
-    current_source = document.source
+    default_source = document.source
 
     for page in document.pages:
-        sentences = split_sentences(page.text)
-        if not sentences:
+        raw_sentences = split_sentences(page.text)
+        if not raw_sentences:
             continue
 
-        for sentence in sentences:
-            sent_tokens = _estimate_tokens(sentence)
+        for raw_sentence in raw_sentences:
+            sub_sentences = _split_oversized_sentence(raw_sentence, chunk_size, tokenizer)
+            for sentence in sub_sentences:
+                sent_tokens = count_tokens(sentence, tokenizer)
 
-            # If adding this sentence exceeds chunk_size, flush accumulated chunk
-            if current_tokens + sent_tokens > chunk_size and current_sentences:
-                chunk_text = " ".join(current_sentences)
-                src_name = Path(current_source).name if current_source else "doc"
-                chunks.append(Chunk(
-                    text=chunk_text,
-                    page_number=chunk_page_start,
-                    page_start=chunk_page_start,
-                    page_end=chunk_page_end,
-                    section=current_section,
-                    section_start=chunk_sec_start,
-                    section_end=chunk_sec_end,
-                    source=current_source,
-                    chunk_index=chunk_index,
-                    chunk_id=f"{src_name}_chunk_{chunk_index}",
-                    doc_type=document.doc_type,
-                ))
-                chunk_index += 1
+                # If adding this sentence exceeds chunk_size, flush accumulated chunk
+                if current_tokens + sent_tokens > chunk_size and current_items:
+                    chunk_text = " ".join(item[0] for item in current_items)
+                    page_start = current_items[0][1]
+                    page_end = current_items[-1][1]
+                    sec_name = current_items[0][2]
+                    src = current_items[0][3] or default_source
+                    src_name = Path(src).name if src else "doc"
 
-                # Overlap: preserve last few sentences up to chunk_overlap tokens
-                overlap_sentences: List[str] = []
-                overlap_tokens = 0
-                for s in reversed(current_sentences):
-                    s_tok = _estimate_tokens(s)
-                    if overlap_tokens + s_tok > chunk_overlap:
-                        break
-                    overlap_sentences.insert(0, s)
-                    overlap_tokens += s_tok
+                    chunks.append(Chunk(
+                        text=chunk_text,
+                        page_number=page_start,
+                        page_start=page_start,
+                        page_end=page_end,
+                        section=sec_name,
+                        section_start=page_start,
+                        section_end=page_end,
+                        source=src,
+                        chunk_index=chunk_index,
+                        chunk_id=f"{src_name}_chunk_{chunk_index}",
+                        doc_type=document.doc_type,
+                    ))
+                    chunk_index += 1
 
-                current_sentences = overlap_sentences
-                current_tokens = overlap_tokens
-                # Reset starts to current page
-                chunk_page_start = page.page_number
-                chunk_sec_start = page.page_number
+                    # Overlap: preserve trailing items whose tokens sum to <= chunk_overlap
+                    overlap_items: List[tuple[str, int, str, str]] = []
+                    overlap_tokens = 0
+                    for item in reversed(current_items):
+                        toks = count_tokens(item[0], tokenizer)
+                        if overlap_tokens + toks > chunk_overlap and overlap_items:
+                            break
+                        overlap_items.insert(0, item)
+                        overlap_tokens += toks
 
-            # When starting fresh chunk
-            if not current_sentences:
-                chunk_page_start = page.page_number
-                chunk_sec_start = page.page_number
-                current_section = page.section or ""
-                current_source = page.source or current_source
+                    current_items = overlap_items
+                    current_tokens = overlap_tokens
 
-            current_sentences.append(sentence)
-            current_tokens += sent_tokens
-            chunk_page_end = page.page_number
-            chunk_sec_end = page.page_number
-            if page.section:
-                current_section = page.section
+                current_items.append((sentence, page.page_number, page.section or "", page.source or default_source))
+                current_tokens += sent_tokens
 
-    # Flush remaining sentences
-    if current_sentences:
-        chunk_text = " ".join(current_sentences)
-        src_name = Path(current_source).name if current_source else "doc"
+    # Flush final remaining sentences
+    if current_items:
+        chunk_text = " ".join(item[0] for item in current_items)
+        page_start = current_items[0][1]
+        page_end = current_items[-1][1]
+        sec_name = current_items[0][2]
+        src = current_items[0][3] or default_source
+        src_name = Path(src).name if src else "doc"
+
         chunks.append(Chunk(
             text=chunk_text,
-            page_number=chunk_page_start,
-            page_start=chunk_page_start,
-            page_end=chunk_page_end,
-            section=current_section,
-            section_start=chunk_sec_start,
-            section_end=chunk_sec_end,
-            source=current_source,
+            page_number=page_start,
+            page_start=page_start,
+            page_end=page_end,
+            section=sec_name,
+            section_start=page_start,
+            section_end=page_end,
+            source=src,
             chunk_index=chunk_index,
             chunk_id=f"{src_name}_chunk_{chunk_index}",
             doc_type=document.doc_type,

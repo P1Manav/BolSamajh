@@ -1,7 +1,9 @@
 """faster-whisper STT adapter — CTranslate2-backed Whisper for fast local transcription."""
 
 import io
+import re
 import time
+import wave
 import logging
 import numpy as np
 from bolsamajh.stt.base import SpeechToText, TranscriptResult
@@ -9,20 +11,44 @@ from bolsamajh.stt.base import SpeechToText, TranscriptResult
 log = logging.getLogger(__name__)
 
 
+# Verified CT2 model repositories on Hugging Face (containing model.bin)
 MODEL_NAME_MAP = {
     "medium": "medium",
     "large-v3-turbo": "deepdml/faster-whisper-large-v3-turbo-ct2",
     "whisper-hinglish-swift": "MSpider3/whisper-hindi2hinglish-swift-ct2",
-    "whisper-hindi2hinglish-prime": "Oriserve/Whisper-Hindi2Hinglish-Prime",
     "base": "base",
     "small": "small",
     "tiny": "tiny",
+}
+
+_HALLUCINATION_PHRASES = {
+    "thank you", "thank you very much", "thanks for watching", "subtitles by",
+    "subscribe", "thank you.", "[blank_audio]", "you", "bye", "so", "the end",
+    "धन्यवाद", "देखने के लिए धन्यवाद", "सब्सक्राइब करें", "कृपया चैनल को सब्सक्राइब करें",
+    "शुक्रिया", "नमस्ते", "धन्यवाद।"
 }
 
 
 def resolve_model_id(model_name: str) -> str:
     """Resolve shorthand model aliases to exact HuggingFace or standard model IDs."""
     return MODEL_NAME_MAP.get(model_name, model_name)
+
+
+def _has_repeated_ngrams(text: str) -> bool:
+    """Detect pathological repetition of n-grams (Whisper hallucination symptom)."""
+    words = text.split()
+    if len(words) >= 4:
+        # Check repeated unigrams (>= 4 times consecutively)
+        for i in range(len(words) - 3):
+            if words[i].lower() == words[i+1].lower() == words[i+2].lower() == words[i+3].lower():
+                return True
+        # Check repeated bigrams (>= 3 times consecutively)
+        if len(words) >= 6:
+            bigrams = [f"{words[i]} {words[i+1]}".lower() for i in range(len(words) - 1)]
+            for i in range(len(bigrams) - 2):
+                if bigrams[i] == bigrams[i+1] == bigrams[i+2]:
+                    return True
+    return False
 
 
 class FasterWhisperSTT(SpeechToText):
@@ -64,12 +90,13 @@ class FasterWhisperSTT(SpeechToText):
             )
         except Exception as e:
             if self.device != "cpu":
-                log.warning("Failed to initialize model on %s (%s), falling back to cpu (int8): %s",
+                log.warning("Failed to initialize model on %s (%s), falling back to CPU small model (int8): %s",
                             self.device, self.compute_type, e)
                 self.device = "cpu"
                 self.compute_type = "int8"
+                self.model_size = "small"
                 self._model = WhisperModel(
-                    resolved_model,
+                    "small",
                     device="cpu",
                     compute_type="int8",
                 )
@@ -82,7 +109,7 @@ class FasterWhisperSTT(SpeechToText):
         if self._model is None:
             self.load_model()
 
-        # Convert WAV bytes to numpy float32 array
+        # Convert WAV bytes to numpy float32 array, normalized and resampled to 16 kHz mono
         audio_np = self._wav_bytes_to_np(audio_bytes)
         duration = len(audio_np) / 16000.0
 
@@ -124,12 +151,8 @@ class FasterWhisperSTT(SpeechToText):
             ),
         }
 
-        # Language auto-detection with short-clip fallback (< 2.0s -> fallback to "hi")
+        # Do not force Hindi on short clips when language is auto
         target_lang = self.language
-        if (not target_lang or target_lang.lower() == "auto") and duration < 2.0:
-            target_lang = "hi"
-            log.info("Audio duration %.2fs < 2.0s: falling back from language='auto' to default 'hi'", duration)
-
         if target_lang and target_lang.lower() != "auto":
             transcribe_kwargs["language"] = target_lang
 
@@ -137,31 +160,40 @@ class FasterWhisperSTT(SpeechToText):
             segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
             texts = []
             for segment in segments:
+                # Segment-level hallucination filtering
+                if getattr(segment, "no_speech_prob", 0.0) > 0.60:
+                    continue
+                if getattr(segment, "avg_logprob", 0.0) < -1.0:
+                    continue
                 texts.append(segment.text.strip())
         except Exception as e:
             if self.device != "cpu" and ("cublas" in str(e).lower() or "cuda" in str(e).lower()):
-                log.warning("CUDA execution failed at runtime (%s), falling back to cpu (int8)", e)
+                log.warning("CUDA execution failed at runtime (%s), falling back to CPU small model (int8)", e)
                 self.device = "cpu"
                 self.compute_type = "int8"
+                self.model_size = "small"
                 self._model = None
                 self.load_model()
                 segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)
                 texts = []
                 for segment in segments:
+                    if getattr(segment, "no_speech_prob", 0.0) > 0.60:
+                        continue
+                    if getattr(segment, "avg_logprob", 0.0) < -1.0:
+                        continue
                     texts.append(segment.text.strip())
             else:
                 raise
 
         text = " ".join(texts).strip()
 
-        # Filter out common Whisper hallucination tokens on near-silent clips
-        import re
-        hallucination_pattern = re.compile(
-            r"^(thank you|thank you very much|thanks for watching|subtitles by|subscribe|thank you\.)$",
-            re.IGNORECASE
-        )
-        if hallucination_pattern.match(text) or text == "[BLANK_AUDIO]":
+        # Strengthened hallucination and silence filtering
+        norm_text = text.lower().strip()
+        if norm_text in _HALLUCINATION_PHRASES or norm_text == "[blank_audio]":
             log.debug("Discarded hallucinated token: %r", text)
+            text = ""
+        elif _has_repeated_ngrams(text):
+            log.debug("Discarded text with repeated n-grams: %r", text)
             text = ""
 
         elapsed = time.time() - t0
@@ -192,10 +224,33 @@ class FasterWhisperSTT(SpeechToText):
 
     @staticmethod
     def _wav_bytes_to_np(wav_bytes: bytes) -> np.ndarray:
-        """Convert WAV bytes to float32 numpy array normalized to [-1, 1]."""
-        import wave
+        """Convert WAV bytes to float32 numpy array normalized to [-1, 1] at 16 kHz mono."""
         buf = io.BytesIO(wav_bytes)
         with wave.open(buf, "rb") as wf:
+            framerate = wf.getframerate()
+            n_channels = wf.getnchannels()
+            sampwidth = wf.getsampwidth()
             frames = wf.readframes(wf.getnframes())
-            audio = np.frombuffer(frames, dtype=np.int16)
-        return audio.astype(np.float32) / 32768.0
+
+        if sampwidth == 2:
+            audio = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        elif sampwidth == 4:
+            audio = np.frombuffer(frames, dtype=np.int32).astype(np.float32) / 2147483648.0
+        elif sampwidth == 1:
+            audio = (np.frombuffer(frames, dtype=np.uint8).astype(np.float32) - 128.0) / 128.0
+        else:
+            audio = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+
+        # Downmix multi-channel to mono
+        if n_channels > 1:
+            audio = audio.reshape(-1, n_channels).mean(axis=1)
+
+        # Resample to 16 kHz if necessary
+        if framerate != 16000 and len(audio) > 0:
+            old_indices = np.linspace(0, len(audio) - 1, len(audio))
+            target_length = int(len(audio) * 16000 / framerate)
+            new_indices = np.linspace(0, len(audio) - 1, target_length)
+            audio = np.interp(new_indices, old_indices, audio).astype(np.float32)
+
+        return audio
+

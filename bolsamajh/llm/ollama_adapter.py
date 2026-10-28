@@ -1,5 +1,6 @@
 """Ollama LLM adapter — local LLM via Ollama HTTP API."""
 
+import os
 import json
 import time
 import logging
@@ -22,19 +23,23 @@ class OllamaAdapter(LLMAdapter):
         temperature: float = 0.3,
         max_tokens: int = 1024,
         num_ctx: int = 8192,
+        keep_alive: str | None = None,
     ):
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.num_ctx = num_ctx
+        if keep_alive is None:
+            keep_alive = os.getenv("BOLSAMAJH_OLLAMA_KEEP_ALIVE", "30m")
+        self.keep_alive = keep_alive
 
     @property
     def name(self) -> str:
         return f"ollama/{self.model}"
 
     async def check_status(self) -> tuple[bool, str]:
-        """Check detailed status of Ollama server and model."""
+        """Check detailed status of Ollama server and verify exact model tag."""
         try:
             async with httpx.AsyncClient(timeout=4.0) as client:
                 resp = await client.get(f"{self.base_url}/api/tags")
@@ -42,9 +47,16 @@ class OllamaAdapter(LLMAdapter):
                     return False, f"Ollama HTTP error {resp.status_code}"
                 models = resp.json().get("models", [])
                 model_names = [m.get("name", "") for m in models]
-                # Check exact or prefix match (e.g. gemma3:4b or gemma3:latest)
-                model_base = self.model.split(":")[0]
-                has_model = any(self.model in n or n.startswith(model_base) for n in model_names)
+
+                # Check exact configured model tag (e.g. 'gemma3:4b' or 'gemma3:latest')
+                expected_tag = self.model if ":" in self.model else f"{self.model}:latest"
+
+                def _matches_exact(tag_name: str) -> bool:
+                    norm_tag = tag_name if ":" in tag_name else f"{tag_name}:latest"
+                    # Match exact name or path suffix like 'library/gemma3:4b'
+                    return norm_tag == expected_tag or norm_tag.endswith(f"/{expected_tag}")
+
+                has_model = any(_matches_exact(n) for n in model_names)
                 if has_model:
                     return True, f"Ollama ready ({self.model})"
                 return False, f"Model '{self.model}' not found in Ollama. Run: ollama run {self.model}"
@@ -68,6 +80,7 @@ class OllamaAdapter(LLMAdapter):
             "prompt": prompt,
             "system": system,
             "stream": False,
+            "keep_alive": self.keep_alive,
             "options": {
                 "temperature": self.temperature,
                 "num_predict": self.max_tokens,
@@ -83,6 +96,9 @@ class OllamaAdapter(LLMAdapter):
             resp.raise_for_status()
             data = resp.json()
 
+        if "error" in data:
+            raise RuntimeError(f"Ollama error: {data['error']}")
+
         text = data.get("response", "")
         elapsed = time.time() - t0
         log.info("Ollama generated %d chars in %.1fs", len(text), elapsed)
@@ -95,6 +111,7 @@ class OllamaAdapter(LLMAdapter):
             "prompt": prompt,
             "system": system,
             "stream": True,
+            "keep_alive": self.keep_alive,
             "options": {
                 "temperature": self.temperature,
                 "num_predict": self.max_tokens,
@@ -113,6 +130,8 @@ class OllamaAdapter(LLMAdapter):
                     if line.strip():
                         try:
                             data = json.loads(line)
+                            if "error" in data:
+                                raise RuntimeError(f"Ollama stream error: {data['error']}")
                             token = data.get("response", "")
                             if token:
                                 yield token
@@ -120,3 +139,4 @@ class OllamaAdapter(LLMAdapter):
                                 return
                         except json.JSONDecodeError:
                             continue
+

@@ -54,8 +54,15 @@ def _create_tts(config: AppConfig):
     return create_tts_adapter(config)
 
 
-def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, commands_pipeline, hud) -> None:
-    """Register global hotkeys using the keyboard library."""
+def _setup_hotkeys(
+    config: AppConfig,
+    dictation_pipeline,
+    doc_qa_pipeline,
+    commands_pipeline,
+    hud,
+    shutdown_event: threading.Event,
+) -> None:
+    """Register global hotkeys using the keyboard library with adaptive sleep."""
     import keyboard
 
     dictation_key = config.hotkeys.dictation
@@ -67,14 +74,16 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
 
     # --- Dictation push-to-talk ---
     def _ptt_monitor():
-        """Monitor for push-to-talk key release."""
+        """Monitor for push-to-talk key release with adaptive sleep."""
         keys = dictation_key.split("+")
-        while True:
-            time.sleep(0.05)
+        while not shutdown_event.is_set():
             if dictation_pipeline.recorder.is_recording:
                 all_pressed = all(keyboard.is_pressed(k) for k in keys)
                 if not all_pressed:
                     dictation_pipeline.stop_recording_and_transcribe()
+                time.sleep(0.03)
+            else:
+                time.sleep(0.08)
 
     keyboard.add_hotkey(
         dictation_key,
@@ -95,14 +104,16 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
 
     # --- Document Q&A push-to-talk ---
     def _qa_ptt_monitor():
-        """Monitor for Q&A key release."""
+        """Monitor for Q&A key release with adaptive sleep."""
         keys = doc_ask_key.split("+")
-        while True:
-            time.sleep(0.05)
+        while not shutdown_event.is_set():
             if doc_qa_pipeline.recorder.is_recording:
                 all_pressed = all(keyboard.is_pressed(k) for k in keys)
                 if not all_pressed:
                     doc_qa_pipeline.stop_and_answer()
+                time.sleep(0.03)
+            else:
+                time.sleep(0.08)
 
     keyboard.add_hotkey(
         doc_ask_key,
@@ -113,14 +124,16 @@ def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, comma
 
     # --- Voice Commands push-to-talk ---
     def _cmd_ptt_monitor():
-        """Monitor for voice command key release."""
+        """Monitor for voice command key release with adaptive sleep."""
         keys = command_key.split("+")
-        while True:
-            time.sleep(0.05)
+        while not shutdown_event.is_set():
             if commands_pipeline.recorder.is_recording:
                 all_pressed = all(keyboard.is_pressed(k) for k in keys)
                 if not all_pressed:
                     commands_pipeline.stop_and_execute()
+                time.sleep(0.03)
+            else:
+                time.sleep(0.08)
 
     keyboard.add_hotkey(
         command_key,
@@ -160,6 +173,8 @@ def main() -> None:
              config.stt.engine, config.llm.engine,
              config.tts.engine, config.dictation.script)
 
+    shutdown_event = threading.Event()
+
     # 1. Start overlay HUD
     hud = OverlayHUD()
     hud.start()
@@ -179,8 +194,8 @@ def main() -> None:
     doc_qa = DocQAPipeline(config, stt, llm, tts, hud)
     commands = VoiceCommandsPipeline(config, stt, llm, hud)
 
-    # 4. Register hotkeys
-    _setup_hotkeys(config, dictation, doc_qa, commands, hud)
+    # 4. Register hotkeys with shutdown coordination
+    _setup_hotkeys(config, dictation, doc_qa, commands, hud, shutdown_event)
 
     # 5. Preload models in background thread and show Ready when completed
     hud.set_state("processing", "Loading models…")
@@ -211,10 +226,29 @@ def main() -> None:
     log.info("  %s to stop/interrupt", config.hotkeys.stop)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
+    def on_quit():
+        log.info("Quit invoked: cleaning up...")
+        shutdown_event.set()
+        dictation.cancel()
+        doc_qa.cancel()
+        commands.cancel()
+        try:
+            import keyboard
+            keyboard.unhook_all_hotkeys()
+        except Exception:
+            pass
+
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray
-    tray = create_tray(config)
-    tray.run()
+    tray = create_tray(config, on_quit_callback=on_quit)
+    if tray:
+        tray.run()
+    else:
+        try:
+            while not shutdown_event.is_set():
+                time.sleep(0.5)
+        except KeyboardInterrupt:
+            on_quit()
 
     # Cleanup on exit
     stt.unload_model()

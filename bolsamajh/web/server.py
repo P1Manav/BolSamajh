@@ -775,6 +775,7 @@ async def ask_question_endpoint(req: QuestionRequest):
     # 4. Generate audio response asynchronously
     audio_id = uuid.uuid4().hex
     audio_path = AUDIO_CACHE_DIR / f"{audio_id}.mp3"
+    temp_audio_path = AUDIO_CACHE_DIR / f"{audio_id}.tmp"
     audio_url = f"/api/audio/{audio_id}.mp3"
 
     async def _render_audio():
@@ -809,9 +810,16 @@ async def ask_question_endpoint(req: QuestionRequest):
                         log.debug("Transliteration to Devanagari skipped: %s", e)
 
             comm = edge_tts.Communicate(clean_text, voice_code)
-            await comm.save(str(audio_path))
+            # Write to temp file first, then atomically rename to prevent partial reads
+            await comm.save(str(temp_audio_path))
+            temp_audio_path.replace(audio_path)
         except Exception as e:
             log.warning("Audio synthesis warning: %s", e)
+            if temp_audio_path.exists():
+                try:
+                    temp_audio_path.unlink()
+                except Exception:
+                    pass
 
     # Fire audio generation in tracked background task
     track_task(asyncio.create_task(_render_audio()))
