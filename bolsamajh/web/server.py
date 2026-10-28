@@ -12,46 +12,62 @@ Features:
 - Audio cache cleanup: Automatically sweeps expired temporary audio files.
 """
 
+import asyncio
+import base64
+import codecs
+import hmac
 import io
+import ipaddress
+import logging
 import os
+import re
+import socket
 import sys
+import tempfile
+import threading
 import time
 import uuid
 import wave
-import socket
-import logging
-import tempfile
-import asyncio
-import ipaddress
-import hmac
-import re
-import codecs
-import threading
-from pathlib import Path
-from urllib.parse import urlparse, unquote, urljoin
-from typing import Optional, List, AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import AsyncIterator, List, Optional
+from urllib.parse import unquote, urljoin, urlparse
 
-import base64
 import numpy as np
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse, PlainTextResponse
+from dotenv import load_dotenv
+from fastapi import (
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    StreamingResponse,
+)
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from dotenv import load_dotenv
 load_dotenv()
 
 from bolsamajh import __version__
-from bolsamajh.config import load_config, AppConfig
+from bolsamajh.config import AppConfig, load_config
 from bolsamajh.documents.loader import load_document, load_webpage
 from bolsamajh.documents.retriever import DocumentRetriever
-from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
 from bolsamajh.llm.factory import create_llm_adapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
+from bolsamajh.prompts import _LANG_INSTRUCTIONS, _SYSTEM_PROMPT
+from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
 from bolsamajh.tts.factory import create_tts_adapter
-from bolsamajh.prompts import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
 
 log = logging.getLogger("bolsamajh.web")
 
@@ -70,6 +86,7 @@ def get_piper_adapter(model_path: str = ""):
         with _piper_adapter_lock:
             if _piper_adapter_instance is None:
                 from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
                 _piper_adapter_instance = PiperTTSAdapter(model_path=model_path)
     return _piper_adapter_instance
 
@@ -83,6 +100,7 @@ def reset_piper_adapter() -> None:
 
 class HTTPFetchError(Exception):
     """Raised when upstream server returns HTTP 4xx or 5xx."""
+
     def __init__(self, status_code: int, reason: str = ""):
         self.status_code = status_code
         self.reason = reason
@@ -108,7 +126,9 @@ def check_bind_security(host: Optional[str] = None) -> None:
     if "-h" in sys.argv or "--help" in sys.argv:
         return
 
-    target_host = host or os.getenv("BOLSAMAJH_HOST") or os.getenv("UVICORN_HOST") or os.getenv("HOST")
+    target_host = (
+        host or os.getenv("BOLSAMAJH_HOST") or os.getenv("UVICORN_HOST") or os.getenv("HOST")
+    )
     if not target_host:
         for i, arg in enumerate(sys.argv):
             if arg == "--host" and i + 1 < len(sys.argv):
@@ -133,7 +153,9 @@ async def lifespan(app: FastAPI):
     """Application lifespan: perform bind security check on startup, cancel tasks on shutdown."""
     check_bind_security()
     if not os.getenv("GOOGLE_AI_API_KEY"):
-        log.warning("GOOGLE_AI_API_KEY not set; Gemini cloud fallback disabled. Running local Ollama only.")
+        log.warning(
+            "GOOGLE_AI_API_KEY not set; Gemini cloud fallback disabled. Running local Ollama only."
+        )
     yield
     for task in list(_BACKGROUND_TASKS):
         task.cancel()
@@ -147,7 +169,11 @@ app = FastAPI(
 )
 
 ALLOWED_HOSTS: set[str] = {
-    "localhost", "127.0.0.1", "::1", "[::1]", "testserver",
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "[::1]",
+    "testserver",
 }
 if os.getenv("BOLSAMAJH_HOST"):
     ALLOWED_HOSTS.add(os.getenv("BOLSAMAJH_HOST").strip().lower())
@@ -167,7 +193,7 @@ async def security_middleware(request: Request, call_next):
         if raw_host.startswith("["):
             bracket_end = raw_host.find("]")
             if bracket_end != -1:
-                host_name = raw_host[:bracket_end + 1].lower()
+                host_name = raw_host[: bracket_end + 1].lower()
         if host_name not in ALLOWED_HOSTS:
             return JSONResponse(
                 status_code=400,
@@ -179,16 +205,16 @@ async def security_middleware(request: Request, call_next):
     path = request.url.path
 
     if expected_key:
-        is_exempt = (
-            path == "/"
-            or path.startswith("/static")
-            or path == "/api/status"
-        )
+        is_exempt = path == "/" or path.startswith("/static") or path == "/api/status"
         if not is_exempt and (path.startswith("/api/") or path.startswith("/v1/")):
             auth_header = request.headers.get("authorization", "")
             scheme, _, token = auth_header.partition(" ")
             token = token.strip()
-            if scheme.lower() != "bearer" or not token or not hmac.compare_digest(token, expected_key):
+            if (
+                scheme.lower() != "bearer"
+                or not token
+                or not hmac.compare_digest(token, expected_key)
+            ):
                 return JSONResponse(
                     status_code=401,
                     content={"detail": "Unauthorized: invalid or missing Bearer token"},
@@ -271,7 +297,11 @@ def get_retriever_for_session(session_id: str) -> DocumentRetriever:
     now = time.time()
     with _SESSION_LOCK:
         if len(_SESSION_RETRIEVERS) > 100:
-            stale = [s for s, (t, _) in _SESSION_RETRIEVERS.items() if s != "default" and (now - t) > 7200]
+            stale = [
+                s
+                for s, (t, _) in _SESSION_RETRIEVERS.items()
+                if s != "default" and (now - t) > 7200
+            ]
             for s in stale:
                 _SESSION_RETRIEVERS.pop(s, None)
 
@@ -296,6 +326,7 @@ llm = create_llm_adapter(config)
 
 # --- Helper Functions ---
 
+
 def clean_old_audio_cache(max_age_seconds: int = 1800) -> None:
     """Clean audio files in cache older than max_age_seconds (30 minutes)."""
     now = time.time()
@@ -318,7 +349,13 @@ def is_safe_ip(ip_str: str) -> bool:
             return False
         if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
             mapped = ip.ipv4_mapped
-            if mapped.is_private or mapped.is_loopback or mapped.is_link_local or mapped.is_reserved or mapped.is_multicast:
+            if (
+                mapped.is_private
+                or mapped.is_loopback
+                or mapped.is_link_local
+                or mapped.is_reserved
+                or mapped.is_multicast
+            ):
                 return False
         return True
     except Exception:
@@ -370,7 +407,11 @@ def detect_charset(content_type_header: str, raw_bytes: bytes) -> str:
         except (LookupError, UnicodeDecodeError):
             pass
 
-    m2 = re.search(rb'<meta[^>]+http-equiv=[\'"]?content-type[\'"]?[^>]+content=[\'"][^;]*;\s*charset=([a-zA-Z0-9_\-]+)', head, re.IGNORECASE)
+    m2 = re.search(
+        rb'<meta[^>]+http-equiv=[\'"]?content-type[\'"]?[^>]+content=[\'"][^;]*;\s*charset=([a-zA-Z0-9_\-]+)',
+        head,
+        re.IGNORECASE,
+    )
     if m2:
         try:
             candidate = m2.group(1).decode("ascii", errors="ignore").strip()
@@ -392,8 +433,8 @@ def safe_fetch_url(
     connects socket directly to the vetted IP (preserving Host header and TLS SNI) to prevent
     DNS rebinding, enforces body size cap while reading, auto-detects charset, and validates redirect hops.
     """
-    import ssl
     import http.client
+    import ssl
 
     current_url = url
     for _ in range(max_redirects + 1):
@@ -401,7 +442,13 @@ def safe_fetch_url(
         if parsed.scheme not in ("http", "https"):
             raise ValueError(f"SSRF protection: forbidden scheme '{parsed.scheme}'")
         hostname = parsed.hostname
-        if not hostname or hostname.lower() in ("localhost", "127.0.0.1", "::1", "0.0.0.0", "169.254.169.254"):
+        if not hostname or hostname.lower() in (
+            "localhost",
+            "127.0.0.1",
+            "::1",
+            "0.0.0.0",
+            "169.254.169.254",
+        ):
             raise ValueError(f"SSRF protection: forbidden host '{hostname}'")
 
         port = parsed.port or (443 if parsed.scheme == "https" else 80)
@@ -419,7 +466,9 @@ def safe_fetch_url(
                 vetted_ip = ip_str
 
         if not vetted_ip:
-            raise ValueError(f"SSRF protection: no valid IP addresses resolved for host '{hostname}'")
+            raise ValueError(
+                f"SSRF protection: no valid IP addresses resolved for host '{hostname}'"
+            )
 
         # Connect socket directly to vetted IP address to eliminate DNS rebinding risks
         sock = socket.create_connection((vetted_ip, port), timeout=timeout)
@@ -433,7 +482,9 @@ def safe_fetch_url(
                 path += f"?{parsed.query}"
 
             # Include port in Host header when non-default
-            is_default_port = (parsed.scheme == "https" and port == 443) or (parsed.scheme == "http" and port == 80)
+            is_default_port = (parsed.scheme == "https" and port == 443) or (
+                parsed.scheme == "http" and port == 80
+            )
             host_header = hostname if is_default_port else f"{hostname}:{port}"
 
             req_msg = (
@@ -462,9 +513,11 @@ def safe_fetch_url(
             decompressor = None
             if encoding == "gzip":
                 import zlib
+
                 decompressor = zlib.decompressobj(wbits=16 + zlib.MAX_WBITS)
             elif encoding == "deflate":
                 import zlib
+
                 decompressor = zlib.decompressobj()
 
             # Stream response body chunk-by-chunk and enforce size caps on both compressed input
@@ -480,14 +533,18 @@ def safe_fetch_url(
                     break
                 raw_read += len(chunk)
                 if raw_read > max_body_size:
-                    raise ValueError(f"Response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                    raise ValueError(
+                        f"Response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB"
+                    )
 
                 if decompressor is not None:
                     decompressed = decompressor.decompress(chunk)
                     if decompressed:
                         total_decompressed += len(decompressed)
                         if total_decompressed > max_body_size:
-                            raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                            raise ValueError(
+                                f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB"
+                            )
                         decompressed_chunks.append(decompressed)
                 else:
                     decompressed_chunks.append(chunk)
@@ -497,7 +554,9 @@ def safe_fetch_url(
                 if tail:
                     total_decompressed += len(tail)
                     if total_decompressed > max_body_size:
-                        raise ValueError(f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB")
+                        raise ValueError(
+                            f"Decompressed response body exceeds maximum allowed size of {max_body_size // (1024 * 1024)} MB"
+                        )
                     decompressed_chunks.append(tail)
 
             body_bytes = b"".join(decompressed_chunks)
@@ -513,7 +572,9 @@ def safe_fetch_url(
     raise ValueError(f"SSRF protection: exceeded maximum redirect hops ({max_redirects})")
 
 
-async def stream_upload_to_file(file: UploadFile, dest_path: Path, max_size: int = MAX_UPLOAD_SIZE) -> int:
+async def stream_upload_to_file(
+    file: UploadFile, dest_path: Path, max_size: int = MAX_UPLOAD_SIZE
+) -> int:
     """Stream an upload directly to a destination file, enforcing max_size in real time without buffering in memory."""
     total_bytes = 0
     chunk_size = 64 * 1024  # 64 KB
@@ -527,7 +588,7 @@ async def stream_upload_to_file(file: UploadFile, dest_path: Path, max_size: int
                 if total_bytes > max_size:
                     raise HTTPException(
                         status_code=413,
-                        detail=f"File exceeds maximum upload size of {max_size // (1024*1024)} MB.",
+                        detail=f"File exceeds maximum upload size of {max_size // (1024 * 1024)} MB.",
                     )
                 out_f.write(chunk)
     except Exception:
@@ -553,7 +614,7 @@ async def stream_upload_bytes(file: UploadFile, max_size: int = MAX_UPLOAD_SIZE)
         if total_bytes > max_size:
             raise HTTPException(
                 status_code=413,
-                detail=f"File exceeds maximum upload size of {max_size // (1024*1024)} MB.",
+                detail=f"File exceeds maximum upload size of {max_size // (1024 * 1024)} MB.",
             )
         chunks.append(chunk)
     return b"".join(chunks)
@@ -593,6 +654,7 @@ def resample_audio_to_16k_mono(audio_bytes: bytes) -> bytes:
 def convert_wav_to_mp3(wav_bytes: bytes) -> bytes:
     """Encode 16-bit PCM WAV to MP3 using PyAV."""
     import av
+
     in_container = av.open(io.BytesIO(wav_bytes), "r")
     if not in_container.streams.audio:
         raise ValueError("No audio stream found in WAV data for MP3 conversion")
@@ -613,6 +675,7 @@ def convert_wav_to_mp3(wav_bytes: bytes) -> bytes:
 
 
 # --- Request & Response schemas ---
+
 
 class URLDocRequest(BaseModel):
     url: str
@@ -705,6 +768,7 @@ VOICE_MAP = {
 
 # --- API Endpoints ---
 
+
 @app.get("/api/status")
 async def get_status(request: Request):
     """Return system health and hardware without leaking loaded document title."""
@@ -717,6 +781,7 @@ async def get_status(request: Request):
     if config.stt.device == "cuda":
         try:
             import torch
+
             if torch.cuda.is_available():
                 gpu_name = torch.cuda.get_device_name(0)
             else:
@@ -725,7 +790,9 @@ async def get_status(request: Request):
             gpu_name = "CUDA GPU"
 
     # Fast configuration check without network calls
-    llm_configured = bool(os.getenv("GOOGLE_AI_API_KEY")) if config.llm.engine == "google_ai" else True
+    llm_configured = (
+        bool(os.getenv("GOOGLE_AI_API_KEY")) if config.llm.engine == "google_ai" else True
+    )
     llm_ready = await check_llm_ready_cached(ttl_seconds=60.0)
 
     llm_fallback_msg = "LLM fallback unavailable"
@@ -862,17 +929,25 @@ async def ask_question_endpoint(request: Request, req: QuestionRequest):
     session_retriever = get_retriever_for_session(session_id)
 
     if not session_retriever.is_loaded:
-        raise HTTPException(status_code=400, detail="No document loaded. Please upload a document or URL first.")
+        raise HTTPException(
+            status_code=400, detail="No document loaded. Please upload a document or URL first."
+        )
 
     t0 = time.time()
 
     # 1. Retrieve chunks with calibrated refusal threshold
-    chunks = await asyncio.to_thread(session_retriever.retrieve, req.question, config.doc_qa.top_k, True)
+    chunks = await asyncio.to_thread(
+        session_retriever.retrieve, req.question, config.doc_qa.top_k, True
+    )
 
     # 2. Build hardened prompt using shared template
-    context_str = "\n\n".join(f"[Source {i+1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks))
+    context_str = "\n\n".join(
+        f"[Source {i + 1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks)
+    )
     if not chunks:
-        context_str = "(No relevant content found in the document that exceeds the relevance threshold)"
+        context_str = (
+            "(No relevant content found in the document that exceeds the relevance threshold)"
+        )
 
     lang_key = req.language.lower()
     system_prompt = _SYSTEM_PROMPT.format(
@@ -903,6 +978,7 @@ async def ask_question_endpoint(request: Request, req: QuestionRequest):
     async def _render_audio():
         try:
             import edge_tts
+
             if lang_key in ("gujarati", "gu"):
                 voice_code = config.tts.edge_voice_gu
             elif lang_key in ("english", "en"):
@@ -911,13 +987,14 @@ async def ask_question_endpoint(request: Request, req: QuestionRequest):
                 voice_code = config.tts.edge_voice_hi
 
             clean_text = answer
-            has_devanagari = any('\u0900' <= c <= '\u097F' for c in clean_text)
-            has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in clean_text)
+            has_devanagari = any("\u0900" <= c <= "\u097f" for c in clean_text)
+            has_gujarati = any("\u0a80" <= c <= "\u0aff" for c in clean_text)
 
             if lang_key in ("gujarati", "gu"):
                 if has_devanagari and not has_gujarati:
                     try:
                         from aksharamukha import transliterate
+
                         clean_text = transliterate.process("Devanagari", "Gujarati", clean_text)
                     except Exception as e:
                         log.debug("Transliteration to Gujarati skipped: %s", e)
@@ -925,6 +1002,7 @@ async def ask_question_endpoint(request: Request, req: QuestionRequest):
                 if has_gujarati and not has_devanagari:
                     try:
                         from aksharamukha import transliterate
+
                         clean_text = transliterate.process("Gujarati", "Devanagari", clean_text)
                     except Exception as e:
                         log.debug("Transliteration to Devanagari skipped: %s", e)
@@ -959,7 +1037,9 @@ async def ask_question_endpoint(request: Request, req: QuestionRequest):
 
 
 @app.get("/api/qa/stream")
-async def stream_qa_endpoint(request: Request, question: str = Query(...), language: str = Query("hinglish")):
+async def stream_qa_endpoint(
+    request: Request, question: str = Query(...), language: str = Query("hinglish")
+):
     """Server-Sent Events (SSE) endpoint for token-by-token streaming."""
     session_id = get_session_id(request)
     session_retriever = get_retriever_for_session(session_id)
@@ -967,8 +1047,12 @@ async def stream_qa_endpoint(request: Request, question: str = Query(...), langu
     if not session_retriever.is_loaded:
         raise HTTPException(status_code=400, detail="No document loaded.")
 
-    chunks = await asyncio.to_thread(session_retriever.retrieve, question, config.doc_qa.top_k, True)
-    context_str = "\n\n".join(f"[Source {i+1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks))
+    chunks = await asyncio.to_thread(
+        session_retriever.retrieve, question, config.doc_qa.top_k, True
+    )
+    context_str = "\n\n".join(
+        f"[Source {i + 1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks)
+    )
     if not chunks:
         context_str = "(No relevant content found exceeding the relevance threshold)"
 
@@ -982,6 +1066,7 @@ async def stream_qa_endpoint(request: Request, question: str = Query(...), langu
 
     async def event_generator() -> AsyncIterator[str]:
         import json
+
         try:
             async for token in llm.generate_stream(question, system=system_prompt):
                 yield f"data: {json.dumps({'token': token})}\n\n"
@@ -998,7 +1083,9 @@ async def stream_qa_endpoint(request: Request, question: str = Query(...), langu
 
 
 @app.post("/api/qa/voice", response_model=QAResponse)
-async def ask_voice_question_endpoint(request: Request, audio: UploadFile = File(...), language: str = Form("hinglish")):
+async def ask_voice_question_endpoint(
+    request: Request, audio: UploadFile = File(...), language: str = Form("hinglish")
+):
     """Voice QA endpoint: streams audio enforcing size limit, resamples to 16kHz via PyAV, and transcribes with Whisper."""
     audio_bytes = await stream_upload_bytes(audio, MAX_UPLOAD_SIZE)
 
@@ -1008,15 +1095,16 @@ async def ask_voice_question_endpoint(request: Request, audio: UploadFile = File
     except Exception as e:
         log.warning("Audio resampling failed: %s", e)
         raise HTTPException(
-            status_code=400,
-            detail=f"unsupported audio: could not decode or resample audio ({e})"
+            status_code=400, detail=f"unsupported audio: could not decode or resample audio ({e})"
         )
 
     # 2. STT Transcription on thread pool
     transcription = await asyncio.to_thread(stt.transcribe, clean_wav_bytes)
     question_text = transcription.text.strip()
     if not question_text:
-        raise HTTPException(status_code=400, detail="Could not understand voice audio. Please speak clearly.")
+        raise HTTPException(
+            status_code=400, detail="Could not understand voice audio. Please speak clearly."
+        )
 
     # 3. Query Document
     req = QuestionRequest(question=question_text, language=language)
@@ -1078,6 +1166,7 @@ async def get_audio_file(audio_file: str):
 
 # --- Tier 4 Sponsor Alignment: OpenAI-Compatible Gateway ---
 
+
 @app.post("/v1/audio/transcriptions")
 async def openai_compatible_transcription(
     file: UploadFile = File(...),
@@ -1097,8 +1186,7 @@ async def openai_compatible_transcription(
     except Exception as e:
         log.warning("Audio decoding or resampling failed: %s", e)
         raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported audio: could not decode or resample audio ({e})"
+            status_code=400, detail=f"Unsupported audio: could not decode or resample audio ({e})"
         )
 
     transcribe_kwargs = {}
@@ -1127,13 +1215,23 @@ async def openai_compatible_transcription(
                     "end": round(res.duration_seconds, 2),
                     "text": text,
                 }
-            ] if text else [],
+            ]
+            if text
+            else [],
         }
     elif fmt == "srt":
-        srt_text = f"1\n00:00:00,000 --> 00:00:{int(res.duration_seconds):02d},000\n{text}\n" if text else ""
+        srt_text = (
+            f"1\n00:00:00,000 --> 00:00:{int(res.duration_seconds):02d},000\n{text}\n"
+            if text
+            else ""
+        )
         return PlainTextResponse(srt_text, media_type="text/plain")
     elif fmt == "vtt":
-        vtt_text = f"WEBVTT\n\n1\n00:00:00.000 --> 00:00:{int(res.duration_seconds):02d}.000\n{text}\n" if text else "WEBVTT\n"
+        vtt_text = (
+            f"WEBVTT\n\n1\n00:00:00.000 --> 00:00:{int(res.duration_seconds):02d}.000\n{text}\n"
+            if text
+            else "WEBVTT\n"
+        )
         return PlainTextResponse(vtt_text, media_type="text/plain")
     else:
         return {"text": text}
@@ -1154,21 +1252,24 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
     if len(req.input) > 4000:
         raise HTTPException(
             status_code=400,
-            detail=f"Input text exceeds maximum allowed length of 4,000 characters (received {len(req.input)})."
+            detail=f"Input text exceeds maximum allowed length of 4,000 characters (received {len(req.input)}).",
         )
 
     fmt = (req.response_format or "mp3").strip().lower()
     if fmt not in ("mp3", "wav"):
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported response_format '{req.response_format}'. Supported formats: 'mp3', 'wav'."
+            detail=f"Unsupported response_format '{req.response_format}'. Supported formats: 'mp3', 'wav'.",
         )
 
     requested_voice = req.voice.strip().lower()
     req_model = (req.model or "").strip().lower()
 
     # Route to local offline Piper TTS if requested
-    if requested_voice in ("piper", "piper-pratham", "hi_in-pratham-medium") or req_model in ("piper", "piper-tts"):
+    if requested_voice in ("piper", "piper-pratham", "hi_in-pratham-medium") or req_model in (
+        "piper",
+        "piper-tts",
+    ):
         try:
             piper_tts = get_piper_adapter(model_path=getattr(config.tts, "piper_model_path", ""))
             wav_bytes = await asyncio.to_thread(piper_tts.synthesize_to_bytes, req.input)
@@ -1178,7 +1279,7 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
             log.error("Piper offline TTS speech synthesis failed: %s", e)
             raise HTTPException(
                 status_code=502,
-                detail={"error": "Piper TTS offline synthesis failed", "message": str(e)}
+                detail={"error": "Piper TTS offline synthesis failed", "message": str(e)},
             )
 
         if fmt == "wav":
@@ -1191,7 +1292,7 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
             log.error("Failed to convert synthesized Piper WAV audio to MP3: %s", e)
             raise HTTPException(
                 status_code=502,
-                detail={"error": "Audio format conversion to MP3 failed", "message": str(e)}
+                detail={"error": "Audio format conversion to MP3 failed", "message": str(e)},
             )
 
     # Default path: Microsoft Edge-TTS (unofficial cloud endpoint)
@@ -1217,7 +1318,7 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
         log.error("Edge-TTS speech synthesis failed: %s", e)
         raise HTTPException(
             status_code=502,
-            detail={"error": "Edge-TTS upstream synthesis failed", "message": str(e)}
+            detail={"error": "Edge-TTS upstream synthesis failed", "message": str(e)},
         )
 
     if fmt == "wav":
@@ -1228,16 +1329,18 @@ async def openai_compatible_speech(req: OpenAISpeechRequest):
             log.error("Failed to convert synthesized audio to WAV format: %s", e)
             raise HTTPException(
                 status_code=502,
-                detail={"error": "Audio format conversion to WAV failed", "message": str(e)}
+                detail={"error": "Audio format conversion to WAV failed", "message": str(e)},
             )
 
     return StreamingResponse(io.BytesIO(mp3_bytes), media_type="audio/mpeg")
 
 
 @app.websocket("/v1/realtime")
-async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: str = "transcription"):
+async def openai_realtime_transcription_websocket(
+    websocket: WebSocket, intent: str = "transcription"
+):
     """OpenAI Realtime-compatible WebSocket transcription endpoint for Bolna agent integration.
-    
+
     Supports:
     - Origin verification against allowed hosts
     - API key authentication when configured
@@ -1272,22 +1375,27 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
     await websocket.accept()
 
     import json
+
     import scipy.signal
 
     # 3. Emit session.created event
     session_id = f"sess_{uuid.uuid4().hex[:12]}"
-    await websocket.send_text(json.dumps({
-        "type": "session.created",
-        "session": {
-            "id": session_id,
-            "model": "whisper-1",
-            "modalities": ["audio", "text"],
-            "instructions": "",
-            "voice": "alloy",
-            "input_audio_format": "pcm16",
-            "output_audio_format": "pcm16",
-        }
-    }))
+    await websocket.send_text(
+        json.dumps(
+            {
+                "type": "session.created",
+                "session": {
+                    "id": session_id,
+                    "model": "whisper-1",
+                    "modalities": ["audio", "text"],
+                    "instructions": "",
+                    "voice": "alloy",
+                    "input_audio_format": "pcm16",
+                    "output_audio_format": "pcm16",
+                },
+            }
+        )
+    )
 
     MAX_WS_BUFFER = 10 * 1024 * 1024  # 10 MB cap
     audio_buffer = bytearray()
@@ -1305,23 +1413,31 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
                 audio_input = session_cfg.get("audio", {}).get("input", {})
                 transcription_cfg = audio_input.get("transcription", {})
                 language = transcription_cfg.get("language", language)
-                await websocket.send_text(json.dumps({
-                    "type": "session.updated",
-                    "session": session_cfg,
-                }))
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "session.updated",
+                            "session": session_cfg,
+                        }
+                    )
+                )
 
             elif event_type == "input_audio_buffer.append":
                 b64_audio = data.get("audio", "")
                 if b64_audio:
                     pcm_chunk = base64.b64decode(b64_audio)
                     if len(audio_buffer) + len(pcm_chunk) > MAX_WS_BUFFER:
-                        await websocket.send_text(json.dumps({
-                            "type": "error",
-                            "error": {
-                                "type": "invalid_request_error",
-                                "message": f"Buffer size exceeded {MAX_WS_BUFFER} bytes limit",
-                            }
-                        }))
+                        await websocket.send_text(
+                            json.dumps(
+                                {
+                                    "type": "error",
+                                    "error": {
+                                        "type": "invalid_request_error",
+                                        "message": f"Buffer size exceeded {MAX_WS_BUFFER} bytes limit",
+                                    },
+                                }
+                            )
+                        )
                         await websocket.close(code=1009, reason="Buffer size exceeded")
                         return
                     audio_buffer.extend(pcm_chunk)
@@ -1333,16 +1449,24 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
                 audio_buffer.clear()
 
                 # Emit input_audio_buffer.committed event
-                await websocket.send_text(json.dumps({
-                    "type": "input_audio_buffer.committed",
-                    "item_id": item_id,
-                }))
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "input_audio_buffer.committed",
+                            "item_id": item_id,
+                        }
+                    )
+                )
 
                 transcript = ""
                 if len(committed_bytes) > 0:
-                    audio_np = np.frombuffer(committed_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                    audio_np = (
+                        np.frombuffer(committed_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                    )
                     gcd = int(np.gcd(24000, 16000))
-                    audio_16k = scipy.signal.resample_poly(audio_np, 16000 // gcd, 24000 // gcd).astype(np.float32)
+                    audio_16k = scipy.signal.resample_poly(
+                        audio_np, 16000 // gcd, 24000 // gcd
+                    ).astype(np.float32)
                     lang_param = None if language in ("auto", "", None) else language
 
                     # Use public STT transcribe method
@@ -1353,24 +1477,32 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
                     )
                     transcript = res.text.strip()
 
-                await websocket.send_text(json.dumps({
-                    "type": "conversation.item.input_audio_transcription.completed",
-                    "item_id": item_id,
-                    "transcript": transcript,
-                }))
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "conversation.item.input_audio_transcription.completed",
+                            "item_id": item_id,
+                            "transcript": transcript,
+                        }
+                    )
+                )
 
     except (WebSocketDisconnect, asyncio.CancelledError):
         pass
     except Exception as e:
         log.error("Realtime WebSocket error: %s", e)
         try:
-            await websocket.send_text(json.dumps({
-                "type": "error",
-                "error": {
-                    "type": "server_error",
-                    "message": str(e),
-                }
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "error": {
+                            "type": "server_error",
+                            "message": str(e),
+                        },
+                    }
+                )
+            )
             await websocket.close(code=1011, reason=str(e)[:100])
         except Exception:
             pass
@@ -1389,6 +1521,7 @@ if STATIC_DIR.exists():
 
 if __name__ == "__main__":
     import argparse
+
     import uvicorn
 
     parser = argparse.ArgumentParser(description="BolSamajh Web Server & API Gateway")

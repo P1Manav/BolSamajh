@@ -11,31 +11,30 @@ Automates:
 8. Repeating the same for voice-edit hotkey (Alt+Shift+C) on highlighted text.
 """
 
-import os
-import sys
-import time
 import ctypes
 import logging
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 # Add repo root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pyperclip
-import win32gui
 import win32con
+import win32gui
 
-from bolsamajh.config import load_config
-from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
-from bolsamajh.llm.ollama_adapter import OllamaAdapter
-from bolsamajh.pipeline.dictation import DictationPipeline
-from bolsamajh.pipeline.commands import VoiceCommandsPipeline
-from bolsamajh.tts.piper_adapter import PiperTTSAdapter
-from bolsamajh.overlay.hud import OverlayHUD
-import bolsamajh.pipeline.dictation as dict_mod
 import bolsamajh.pipeline.commands as cmd_mod
+import bolsamajh.pipeline.dictation as dict_mod
 import bolsamajh.utils.clipboard as clip_mod
+from bolsamajh.config import load_config
+from bolsamajh.llm.ollama_adapter import OllamaAdapter
+from bolsamajh.overlay.hud import OverlayHUD
+from bolsamajh.pipeline.commands import VoiceCommandsPipeline
+from bolsamajh.pipeline.dictation import DictationPipeline
+from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
+from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("e2e_dictation_test")
@@ -86,6 +85,7 @@ def inject_key_event(vk_code: int, key_up: bool = False):
 def calculate_wer(reference: str, hypothesis: str) -> float:
     """Calculate Word Error Rate (WER) between reference and hypothesis."""
     import re
+
     # Simple tokenization for robust comparison
     ref_words = re.findall(r"\w+", reference.lower())
     hyp_words = re.findall(r"\w+", hypothesis.lower())
@@ -176,9 +176,9 @@ def main():
     time.sleep(0.2)
 
     # Release hotkey
-    inject_key_event(0x20, key_up=True)   # Space up
-    inject_key_event(0x10, key_up=True)   # Shift up
-    inject_key_event(0x12, key_up=True)   # Alt up
+    inject_key_event(0x20, key_up=True)  # Space up
+    inject_key_event(0x10, key_up=True)  # Shift up
+    inject_key_event(0x12, key_up=True)  # Alt up
     dict_pipe.stop_recording_and_transcribe()
 
     # Wait for background pipeline worker
@@ -202,11 +202,11 @@ def main():
     # Step 7: Evaluate transcription accuracy
     ref_text = "यार कल मीटिंग कितने बजे शेड्यूल की है?"
     wer = calculate_wer(ref_text, notepad_text)
-    log.info("Notepad text read back: '%s'", notepad_text.encode('unicode_escape').decode())
-    log.info("Reference text:        '%s'", ref_text.encode('unicode_escape').decode())
+    log.info("Notepad text read back: '%s'", notepad_text.encode("unicode_escape").decode())
+    log.info("Reference text:        '%s'", ref_text.encode("unicode_escape").decode())
     log.info("WER: %.4f | Modifiers: ALL RELEASED | Clipboard Restored: PASS", wer)
 
-    evidence_lines.append(f"Injected Hotkey:    Alt+Shift+Space (real keybd_event simulation)")
+    evidence_lines.append("Injected Hotkey:    Alt+Shift+Space (real keybd_event simulation)")
     evidence_lines.append(f"Transcribed Text:   {notepad_text}")
     evidence_lines.append(f"Ground Truth Ref:   {ref_text}")
     evidence_lines.append(f"WER Metric:         {wer:.4f} (PASS - threshold < 0.25)")
@@ -221,7 +221,9 @@ def main():
     log.info("\n--- TEST 2: Voice-Edit Hotkey (Alt+Shift+C) ---")
     evidence_lines.append("--- TEST 2: Voice-Edit Hotkey (Alt+Shift+C) ---")
 
-    initial_draft = "we is going to launch the product tomorrow morning and testing must complete today"
+    initial_draft = (
+        "we is going to launch the product tomorrow morning and testing must complete today"
+    )
     win32gui.SendMessage(edit_hwnd, win32con.WM_SETTEXT, 0, initial_draft)
     time.sleep(0.1)
 
@@ -270,9 +272,9 @@ def main():
 
     time.sleep(0.2)
 
-    inject_key_event(0x43, key_up=True)   # C up
-    inject_key_event(0x10, key_up=True)   # Shift up
-    inject_key_event(0x12, key_up=True)   # Alt up
+    inject_key_event(0x43, key_up=True)  # C up
+    inject_key_event(0x10, key_up=True)  # Shift up
+    inject_key_event(0x12, key_up=True)  # Alt up
     cmd_pipe.stop_and_execute()
 
     if cmd_pipe._worker_thread:
@@ -297,10 +299,10 @@ def main():
     assert transformed_text != initial_draft, "Text was not replaced in-place!"
     assert "we is" not in transformed_text.lower(), "Grammar error was not fixed!"
 
-    evidence_lines.append(f"Injected Hotkey:    Alt+Shift+C (real keybd_event simulation)")
-    evidence_lines.append(f"Voice Command:      'Fix grammar and make it professional'")
+    evidence_lines.append("Injected Hotkey:    Alt+Shift+C (real keybd_event simulation)")
+    evidence_lines.append("Voice Command:      'Fix grammar and make it professional'")
     evidence_lines.append(f"Transformed Result: '{transformed_text}'")
-    evidence_lines.append(f"In-Place Replaced:  PASS (original error corrected)")
+    evidence_lines.append("In-Place Replaced:  PASS (original error corrected)")
     evidence_lines.append(f"Modifier Keys:      All Released {mod_states2}")
     evidence_lines.append(f"Clipboard Restored: PASS (content: '{clip_after2}')")
     evidence_lines.append("Voice-Edit Test:    PASS")

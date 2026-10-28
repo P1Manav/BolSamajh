@@ -1,6 +1,6 @@
 """Unit tests for sentence splitter handling abbreviations, decimals, and Hindi dandas."""
 
-from bolsamajh.utils.sentence_splitter import split_sentences, extract_next_sentence
+from bolsamajh.utils.sentence_splitter import extract_next_sentence, split_sentences
 
 
 def test_split_sentences_numbers_and_decimals():

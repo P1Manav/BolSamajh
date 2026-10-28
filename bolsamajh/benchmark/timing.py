@@ -4,11 +4,11 @@ Provides identical decode options, timing boundaries, warmup protocols,
 and multi-clip duration evaluations across benchmark evaluators and hardware scripts.
 """
 
+import subprocess
 import time
 import wave
-import subprocess
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -133,7 +133,7 @@ def run_stt_timing_protocol(
         "duration_sec": round(duration_sec, 2),
         "timed_runs_count": timed_runs,
         "warmup_runs_count": warmup_runs,
-        "per_run_latencies_ms": [round(l, 1) for l in latencies],
+        "per_run_latencies_ms": [round(lat, 1) for lat in latencies],
         "mean_latency_ms": mean_lat,
         "median_latency_ms": median_lat,
         "p95_latency_ms": p95_lat,

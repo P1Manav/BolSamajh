@@ -5,14 +5,14 @@ by maximizing F1 score between answered-relevant and refused-irrelevant.
 Outputs results to benchmark_data/retrieval_benchmark.json.
 """
 
-import sys
 import json
+import sys
 import time
 from pathlib import Path
 
-from huggingface_hub import hf_hub_download
-import pyarrow.parquet as pq
 import numpy as np
+import pyarrow.parquet as pq
+from huggingface_hub import hf_hub_download
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -93,16 +93,23 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
     print(f"Selected {len(relevant_set)} relevant queries matching indexed passages.")
 
     # Prepare irrelevant queries (un-indexed passage queries + off-topic queries)
-    irrelevant_queries = [item["question"] for item in unindexed_qa[: num_irrelevant - len(OFF_TOPIC_QUERIES)]]
+    irrelevant_queries = [
+        item["question"] for item in unindexed_qa[: num_irrelevant - len(OFF_TOPIC_QUERIES)]
+    ]
     irrelevant_queries.extend(OFF_TOPIC_QUERIES)
     irrelevant_queries = irrelevant_queries[:num_irrelevant]
-    print(f"Prepared {len(irrelevant_queries)} unanswerable/irrelevant queries (not in indexed corpus).")
+    print(
+        f"Prepared {len(irrelevant_queries)} unanswerable/irrelevant queries (not in indexed corpus)."
+    )
 
     # Index document corpus into DocumentRetriever
     doc = Document(
         title="XQuAD Hindi Evaluation Corpus",
         source="google/xquad/xquad.hi",
-        pages=[DocumentPage(text=c, page_number=idx + 1, source="xquad.hi") for idx, c in enumerate(indexed_contexts)],
+        pages=[
+            DocumentPage(text=c, page_number=idx + 1, source="xquad.hi")
+            for idx, c in enumerate(indexed_contexts)
+        ],
     )
 
     retriever = DocumentRetriever(
@@ -147,10 +154,12 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
             if match_rank <= 5:
                 hit_5 += 1
 
-        relevant_eval_records.append({
-            "top_score": top_score,
-            "is_correct_passage": match_rank is not None and match_rank <= 5,
-        })
+        relevant_eval_records.append(
+            {
+                "top_score": top_score,
+                "is_correct_passage": match_rank is not None and match_rank <= 5,
+            }
+        )
 
     # Evaluate irrelevant queries
     print("Evaluating irrelevant queries...")
@@ -170,7 +179,9 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
 
     for t in threshold_candidates:
         # Relevant: TP if top_score >= t and correct; FN otherwise
-        tp = sum(1 for r in relevant_eval_records if r["top_score"] >= t and r["is_correct_passage"])
+        tp = sum(
+            1 for r in relevant_eval_records if r["top_score"] >= t and r["is_correct_passage"]
+        )
         fn = len(relevant_eval_records) - tp
 
         # Irrelevant: FP if top_score >= t (falsely answered); TN if top_score < t (correctly refused)
@@ -211,7 +222,9 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
         "precision_pct": best_metrics["precision"],
         "recall_pct": best_metrics["recall"],
         "f1_score": best_metrics["f1_score"],
-        "relevant_score_mean": round(float(np.mean([r["top_score"] for r in relevant_eval_records])), 3),
+        "relevant_score_mean": round(
+            float(np.mean([r["top_score"] for r in relevant_eval_records])), 3
+        ),
         "irrelevant_score_mean": round(float(np.mean(irrelevant_eval_scores)), 3),
         "irrelevant_score_max": round(float(np.max(irrelevant_eval_scores)), 3),
     }

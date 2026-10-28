@@ -1,10 +1,9 @@
 """Unit tests for text_cleanup: currency regex, filler preservation, and script control."""
-import pytest
+
 from bolsamajh.utils.text_cleanup import (
-    remove_fillers,
-    format_numbers,
     apply_script_control,
-    cleanup_text,
+    format_numbers,
+    remove_fillers,
 )
 
 
@@ -22,7 +21,9 @@ def test_currency_word_boundary_edge_cases():
     assert format_numbers("Price is rupaye 450") == "Price is ₹450"
 
     # Devanagari currency formatting
-    assert "₹500" in format_numbers("किराया 500 रुपये है") or "₹५००" in format_numbers("किराया ५०० रुपये है")
+    assert "₹500" in format_numbers("किराया 500 रुपये है") or "₹५००" in format_numbers(
+        "किराया ५०० रुपये है"
+    )
 
 
 def test_filler_patterns_preserve_real_words():
@@ -70,4 +71,4 @@ def test_script_control():
 
     # Devanagari mode converts Roman Hindi
     deva_out = apply_script_control("namaste", script="devanagari")
-    assert "नमस्ते" in deva_out or any('\u0900' <= c <= '\u097f' for c in deva_out)
+    assert "नमस्ते" in deva_out or any("\u0900" <= c <= "\u097f" for c in deva_out)

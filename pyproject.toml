@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    "venv",
+    ".venv",
+    "benchmark_data",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+]
+ignore = [
+    "E501",  # line length
+    "E402",  # module level import not at top of file (used for sys.path manipulation in scripts/desktop)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

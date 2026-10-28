@@ -1,0 +1,13 @@
+# BolSamajh — Development, Testing & Verification Lockfile
+# Install: pip install -r requirements-dev.lock.txt
+
+anyio==4.15.1
+iniconfig==2.3.1
+jiwer==4.0.0
+openai==1.66.5
+pluggy==1.7.0
+pytest==9.1.1
+pytest-asyncio==0.25.3
+ruff==0.17.2
+tabulate==0.10.0
+tqdm==4.70.1

@@ -7,15 +7,18 @@ import pytest
 def fake_edge_tts(monkeypatch):
     """Fixture that intercepts edge_tts.Communicate to return a synthetic MP3 stream without network calls."""
     import io
-    import edge_tts
+
     import av
+    import edge_tts
     import numpy as np
 
     buf = io.BytesIO()
     with av.open(buf, mode="w", format="mp3") as container:
         stream = container.add_stream("mp3", rate=24000)
         stream.bit_rate = 64000
-        frame = av.AudioFrame.from_ndarray(np.zeros((1, 1152), dtype=np.int16), format="s16p", layout="mono")
+        frame = av.AudioFrame.from_ndarray(
+            np.zeros((1, 1152), dtype=np.int16), format="s16p", layout="mono"
+        )
         frame.rate = 24000
         for p in stream.encode(frame):
             container.mux(p)

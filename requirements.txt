@@ -1,51 +1,44 @@
-# BolSamajh — Core Dependencies (CPU & Platform Independent)
+# BolSamajh — Core Runtime Dependencies (CPU & Platform Independent)
 # Install: pip install -r requirements.txt
 
 # Web API & Streaming
-fastapi>=0.115.0
+fastapi==0.162.0
 uvicorn[standard]>=0.30.0
-python-multipart>=0.0.9
+python-multipart==0.0.32
 
 # Desktop & Clipboard
-pystray>=0.19.0
-Pillow>=10.0.0
-pynput>=1.7.6
-pyperclip>=1.8.0
-keyboard>=0.13.5
+pystray==0.19.5
+Pillow==13.0.0
+pynput==1.8.2
+pyperclip==1.11.0
+keyboard==0.13.5
 
 # Audio Capture & DSP
-sounddevice>=0.4.6
-numpy>=1.26.0
-av>=12.0.0
-scipy>=1.12.0
+sounddevice==0.5.6
+numpy==2.5.4
+av==19.0.2
+scipy==1.18.1
 
 # Speech Recognition & Phonetics
-faster-whisper>=1.0.0
-aksharamukha>=2.0.0
+faster-whisper==1.2.1
+ctranslate2==4.8.3
+aksharamukha==2.3
 
 # Speech Synthesis (Online + Offline) & VAD
-edge-tts>=6.1.0
-piper-tts>=1.2.0
-silero-vad>=6.0.0
+edge-tts==7.3.1
+piper-tts==1.8.0
+silero-vad==6.2.3
 
 # LLM Client
-httpx>=0.27.0
+httpx==0.28.1
 
 # Document Processing & Multilingual RAG
-PyMuPDF>=1.24.0
-python-docx>=1.1.0
-trafilatura>=1.12.0
-pytesseract>=0.3.10
-sentence-transformers>=3.0.0
-faiss-cpu>=1.8.0
-
-# Evaluation & Metrics
-jiwer>=3.0.0
+PyMuPDF==2.0
+python-docx==1.2.0
+trafilatura==2.3.1
+pytesseract==0.3.13
+sentence-transformers==6.2.0
+faiss-cpu==1.15.1
 
 # Configuration & Utilities
-python-dotenv>=1.0.0
-
-# Testing
-pytest>=8.0.0
-pytest-asyncio>=0.23.0
-anyio>=4.0.0
+python-dotenv==1.2.4

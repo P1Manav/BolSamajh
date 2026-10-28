@@ -1,12 +1,11 @@
 """Document loader — PDF, DOCX, and web page ingestion with encryption detection, OCR bounds, and HTML title extraction."""
 
-import io
-import re
 import html
+import io
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger(__name__)
 
@@ -18,19 +17,21 @@ MAX_OCR_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 @dataclass
 class DocumentPage:
     """A single page/section of a loaded document."""
+
     text: str
-    page_number: int = 0        # 1-indexed (0 = unknown)
-    section: str = ""           # Section heading if available
-    source: str = ""            # File path or URL
+    page_number: int = 0  # 1-indexed (0 = unknown)
+    section: str = ""  # Section heading if available
+    source: str = ""  # File path or URL
 
 
 @dataclass
 class Document:
     """A loaded document with page-level content."""
+
     title: str
-    source: str                  # File path or URL
+    source: str  # File path or URL
     pages: list[DocumentPage] = field(default_factory=list)
-    doc_type: str = ""           # "pdf", "docx", "web", "txt", "md"
+    doc_type: str = ""  # "pdf", "docx", "web", "txt", "md"
 
     @property
     def full_text(self) -> str:
@@ -46,14 +47,18 @@ def _extract_page_ocr(page, page_num: int, filename: str, file_size: int = 0) ->
     if page_num > MAX_OCR_PAGES:
         log.warning(
             "Page %d of '%s' exceeds OCR limit (%d pages); skipping OCR fallback.",
-            page_num, filename, MAX_OCR_PAGES
+            page_num,
+            filename,
+            MAX_OCR_PAGES,
         )
         return ""
 
     if file_size > MAX_OCR_FILE_SIZE_BYTES:
         log.warning(
             "PDF '%s' size (%d bytes) exceeds OCR limit (%d bytes); skipping OCR fallback.",
-            filename, file_size, MAX_OCR_FILE_SIZE_BYTES
+            filename,
+            file_size,
+            MAX_OCR_FILE_SIZE_BYTES,
         )
         return ""
 
@@ -62,23 +67,31 @@ def _extract_page_ocr(page, page_num: int, filename: str, file_size: int = 0) ->
         tp = page.get_textpage_ocr(language="hin+eng")
         ocr_text = tp.extractText().strip()
         if ocr_text:
-            log.info("OCR successfully extracted %d characters from page %d of '%s'",
-                     len(ocr_text), page_num, filename)
+            log.info(
+                "OCR successfully extracted %d characters from page %d of '%s'",
+                len(ocr_text),
+                page_num,
+                filename,
+            )
             return ocr_text
     except Exception as e:
         log.debug("PyMuPDF get_textpage_ocr failed on page %d: %s", page_num, e)
 
     # 2. Try pytesseract if installed locally
     try:
-        from PIL import Image
         import pytesseract
+        from PIL import Image
 
         pix = page.get_pixmap(dpi=150)
         img = Image.open(io.BytesIO(pix.tobytes("png")))
         ocr_text = pytesseract.image_to_string(img, lang="hin+eng").strip()
         if ocr_text:
-            log.info("pytesseract extracted %d characters from page %d of '%s'",
-                     len(ocr_text), page_num, filename)
+            log.info(
+                "pytesseract extracted %d characters from page %d of '%s'",
+                len(ocr_text),
+                page_num,
+                filename,
+            )
             return ocr_text
     except ImportError:
         log.warning(
@@ -86,13 +99,11 @@ def _extract_page_ocr(page, page_num: int, filename: str, file_size: int = 0) ->
             "To enable local OCR for scanned PDFs, install pytesseract and Tesseract engine: "
             "Windows: `winget install UB-Mannheim.TesseractOCR` && `pip install pytesseract` | "
             "Linux: `sudo apt install tesseract-ocr tesseract-ocr-hin`",
-            page_num, filename
+            page_num,
+            filename,
         )
     except Exception as e:
-        log.warning(
-            "Tesseract OCR failed on page %d of '%s': %s.",
-            page_num, filename, e
-        )
+        log.warning("Tesseract OCR failed on page %d of '%s': %s.", page_num, filename, e)
 
     return ""
 
@@ -124,23 +135,32 @@ def load_pdf(file_path: str) -> Document:
         text = page.get_text("text").strip()
 
         if not text:
-            log.warning("Page %d of '%s' has no embedded text (possible scan); attempting bounded OCR fallback...",
-                        page_num + 1, path.name)
+            log.warning(
+                "Page %d of '%s' has no embedded text (possible scan); attempting bounded OCR fallback...",
+                page_num + 1,
+                path.name,
+            )
             text = _extract_page_ocr(page, page_num + 1, path.name, file_size=file_size)
 
         if text:
-            pages.append(DocumentPage(
-                text=text,
-                page_number=page_num + 1,
-                source=str(path),
-            ))
+            pages.append(
+                DocumentPage(
+                    text=text,
+                    page_number=page_num + 1,
+                    source=str(path),
+                )
+            )
         else:
             blank_pages.append(page_num + 1)
             log.warning("Page %d of '%s' contains no readable text.", page_num + 1, path.name)
 
     if blank_pages:
-        log.warning("PDF '%s' has %d page(s) without extractable text: %s",
-                    path.name, len(blank_pages), blank_pages)
+        log.warning(
+            "PDF '%s' has %d page(s) without extractable text: %s",
+            path.name,
+            len(blank_pages),
+            blank_pages,
+        )
 
     title = doc.metadata.get("title", "") or path.stem
     doc.close()
@@ -190,12 +210,14 @@ def load_docx(file_path: str) -> Document:
     for para in docx.paragraphs:
         if para.style and para.style.name and para.style.name.startswith("Heading"):
             if current_text_parts:
-                pages.append(DocumentPage(
-                    text="\n".join(current_text_parts),
-                    page_number=page_num,
-                    section=current_section,
-                    source=str(path),
-                ))
+                pages.append(
+                    DocumentPage(
+                        text="\n".join(current_text_parts),
+                        page_number=page_num,
+                        section=current_section,
+                        source=str(path),
+                    )
+                )
                 page_num += 1
                 current_text_parts = []
             current_section = para.text.strip()
@@ -215,12 +237,14 @@ def load_docx(file_path: str) -> Document:
 
     # Save last section
     if current_text_parts:
-        pages.append(DocumentPage(
-            text="\n".join(current_text_parts),
-            page_number=page_num,
-            section=current_section,
-            source=str(path),
-        ))
+        pages.append(
+            DocumentPage(
+                text="\n".join(current_text_parts),
+                page_number=page_num,
+                section=current_section,
+                source=str(path),
+            )
+        )
 
     if not pages or not any(p.text.strip() for p in pages):
         raise ValueError(f"DOCX '{path.name}' is empty or contains no readable text.")
@@ -268,12 +292,14 @@ def load_webpage(url: str, html_content: str | None = None) -> Document:
 
     pages = []
     for i, para in enumerate(paragraphs, 1):
-        pages.append(DocumentPage(
-            text=para,
-            page_number=i,
-            section=f"Section {i}",
-            source=url,
-        ))
+        pages.append(
+            DocumentPage(
+                text=para,
+                page_number=i,
+                section=f"Section {i}",
+                source=url,
+            )
+        )
 
     if not title:
         title = url.split("/")[-1] or "Web Page"
@@ -303,12 +329,14 @@ def load_text_file(path_str: str) -> Document:
 
     pages = []
     for i, para in enumerate(paragraphs, 1):
-        pages.append(DocumentPage(
-            text=para,
-            page_number=i,
-            section=f"Section {i}",
-            source=str(path),
-        ))
+        pages.append(
+            DocumentPage(
+                text=para,
+                page_number=i,
+                section=f"Section {i}",
+                source=str(path),
+            )
+        )
 
     title = path.stem
     result = Document(
@@ -344,6 +372,5 @@ def load_document(source: str) -> Document:
         return load_text_file(source)
     else:
         raise ValueError(
-            f"Unsupported document type: '{suffix}'. "
-            "Supported: .pdf, .docx, .txt, .md, or a URL."
+            f"Unsupported document type: '{suffix}'. Supported: .pdf, .docx, .txt, .md, or a URL."
         )

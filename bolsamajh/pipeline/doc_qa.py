@@ -9,28 +9,28 @@ Adheres to Tier 2 Requirements 12, 15, and 16:
 - Escape cancels active recording and TTS.
 """
 
-import re
-import time
 import asyncio
 import logging
+import re
 import threading
-from typing import List, Tuple, Optional
+import time
+from typing import List, Optional, Tuple
 
 from bolsamajh.config import AppConfig
+from bolsamajh.documents.chunker import Chunk
 from bolsamajh.documents.loader import Document, load_document
 from bolsamajh.documents.retriever import DocumentRetriever
-from bolsamajh.documents.chunker import Chunk
-from bolsamajh.stt.base import SpeechToText
 from bolsamajh.llm.base import LLMAdapter
-from bolsamajh.tts.base import TextToSpeech
 from bolsamajh.overlay.hud import OverlayHUD
+from bolsamajh.stt.base import SpeechToText
+from bolsamajh.tts.base import TextToSpeech
 from bolsamajh.utils.audio import MicRecorder
-from bolsamajh.utils.vad import BargeInMonitor, get_shared_vad
 from bolsamajh.utils.sentence_splitter import extract_next_sentence
+from bolsamajh.utils.vad import BargeInMonitor, get_shared_vad
 
 log = logging.getLogger(__name__)
 
-from bolsamajh.prompts import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
+from bolsamajh.prompts import _LANG_INSTRUCTIONS, _SYSTEM_PROMPT
 
 # Deterministic refusal messages per language (returned without calling LLM)
 _DETERMINISTIC_REFUSALS = {
@@ -41,11 +41,47 @@ _DETERMINISTIC_REFUSALS = {
 }
 
 _HINGLISH_KEYWORDS = {
-    "kya", "kyun", "kaise", "kahan", "kab", "kitna", "kitne", "kitni", "kaun",
-    "batao", "bataiye", "karo", "kariye", "hai", "hain", "nahi", "nahin",
-    "mera", "meri", "mere", "mujhe", "apna", "apni", "apne", "yeh", "woh",
-    "kuch", "dastavej", "yojana", "sawaal", "jawab", "chahiye", "hoga", "hogi",
-    "hoge", "mein", "bhi", "aap", "unka", "iske", "iski"
+    "kya",
+    "kyun",
+    "kaise",
+    "kahan",
+    "kab",
+    "kitna",
+    "kitne",
+    "kitni",
+    "kaun",
+    "batao",
+    "bataiye",
+    "karo",
+    "kariye",
+    "hai",
+    "hain",
+    "nahi",
+    "nahin",
+    "mera",
+    "meri",
+    "mere",
+    "mujhe",
+    "apna",
+    "apni",
+    "apne",
+    "yeh",
+    "woh",
+    "kuch",
+    "dastavej",
+    "yojana",
+    "sawaal",
+    "jawab",
+    "chahiye",
+    "hoga",
+    "hogi",
+    "hoge",
+    "mein",
+    "bhi",
+    "aap",
+    "unka",
+    "iske",
+    "iski",
 }
 
 
@@ -166,9 +202,9 @@ class DocQAPipeline:
 
     def _detect_language(self, text: str) -> str:
         """Detect language from question text when config is 'auto'."""
-        if any('\u0A80' <= c <= '\u0AFF' for c in text):
+        if any("\u0a80" <= c <= "\u0aff" for c in text):
             return "gujarati"
-        if any('\u0900' <= c <= '\u097F' for c in text):
+        if any("\u0900" <= c <= "\u097f" for c in text):
             return "hindi"
         words = set(re.findall(r"\b[a-zA-Z]+\b", text.lower()))
         if words & _HINGLISH_KEYWORDS:
@@ -208,7 +244,9 @@ class DocQAPipeline:
 
             # Resolve target response language (auto-detected or configured)
             lang_key = self._resolve_response_language(question)
-            lang_code = {"hinglish": "hi", "hindi": "hi", "gujarati": "gu", "english": "en"}.get(lang_key, "hi")
+            lang_code = {"hinglish": "hi", "hindi": "hi", "gujarati": "gu", "english": "en"}.get(
+                lang_key, "hi"
+            )
 
             # 2. Augment retrieval query with conversational history for follow-ups
             retrieval_query = question
@@ -229,8 +267,13 @@ class DocQAPipeline:
 
             # Deterministic refusal: if no chunk passes threshold, refuse WITHOUT calling LLM
             if not chunks:
-                refusal_text = _DETERMINISTIC_REFUSALS.get(lang_key, _DETERMINISTIC_REFUSALS["hinglish"])
-                log.info("Refusal triggered: no chunk exceeded threshold. Returning deterministic refusal: %s", refusal_text)
+                refusal_text = _DETERMINISTIC_REFUSALS.get(
+                    lang_key, _DETERMINISTIC_REFUSALS["hinglish"]
+                )
+                log.info(
+                    "Refusal triggered: no chunk exceeded threshold. Returning deterministic refusal: %s",
+                    refusal_text,
+                )
                 self.hud.set_state("processing", "Speaking…")
                 asyncio.run(self.tts.speak(refusal_text, lang=lang_code))
                 elapsed = time.time() - t0
@@ -255,7 +298,9 @@ class DocQAPipeline:
             )
 
             # 4. Stream LLM output sentence-by-sentence into TTS with prefetching & voice barge-in
-            answer = asyncio.run(self._stream_and_speak(question, system, lang_code, t_start=t0, gen_id=gen_id))
+            answer = asyncio.run(
+                self._stream_and_speak(question, system, lang_code, t_start=t0, gen_id=gen_id)
+            )
 
             if self._cancel_requested or (gen_id and gen_id != self._generation_id):
                 return
@@ -306,14 +351,18 @@ class DocQAPipeline:
                     self.tts.set_playback_start_callback(barge_in.notify_playback_start)
                 barge_in.start()
             except Exception as e:
-                log.warning("Silero VAD barge-in initialization failed (degraded without barge-in): %s", e)
+                log.warning(
+                    "Silero VAD barge-in initialization failed (degraded without barge-in): %s", e
+                )
                 barge_in = None
 
         has_synthesize = hasattr(self.tts, "synthesize") and hasattr(self.tts, "play")
 
         if has_synthesize:
             # Bounded prefetch queue: holds up to 2 items (sentence_text, audio_bytes_or_none)
-            tts_queue: asyncio.Queue[Optional[Tuple[str, Optional[bytes]]]] = asyncio.Queue(maxsize=2)
+            tts_queue: asyncio.Queue[Optional[Tuple[str, Optional[bytes]]]] = asyncio.Queue(
+                maxsize=2
+            )
 
             async def _playback_worker():
                 nonlocal first_audio_logged
@@ -329,8 +378,11 @@ class DocQAPipeline:
 
                     if not first_audio_logged:
                         ttfa = time.time() - t_start
-                        log.info("⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
-                                 ttfa, sentence_text[:40])
+                        log.info(
+                            "⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
+                            ttfa,
+                            sentence_text[:40],
+                        )
                         self.hud.set_state("processing", f"Speaking (TTFA {ttfa:.1f}s)")
                         first_audio_logged = True
 
@@ -340,7 +392,9 @@ class DocQAPipeline:
                         else:
                             await self.tts.speak(sentence_text, lang=lang_code)
                     except Exception as ex:
-                        log.error("TTS playback error for sentence '%s': %s", sentence_text[:30], ex)
+                        log.error(
+                            "TTS playback error for sentence '%s': %s", sentence_text[:30], ex
+                        )
                     finally:
                         tts_queue.task_done()
 
@@ -349,7 +403,9 @@ class DocQAPipeline:
             try:
                 async for token in self.llm.generate_stream(question, system=system):
                     if self._cancel_requested or (gen_id and gen_id != self._generation_id):
-                        log.info("Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id)
+                        log.info(
+                            "Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id
+                        )
                         break
 
                     buffer += token
@@ -370,7 +426,11 @@ class DocQAPipeline:
                         await tts_queue.put((sentence, audio_bytes))
 
                 # Flush any remaining text in buffer
-                if buffer.strip() and not self._cancel_requested and (not gen_id or gen_id == self._generation_id):
+                if (
+                    buffer.strip()
+                    and not self._cancel_requested
+                    and (not gen_id or gen_id == self._generation_id)
+                ):
                     final_sentence = buffer.strip()
                     audio_bytes = None
                     try:
@@ -397,7 +457,9 @@ class DocQAPipeline:
             try:
                 async for token in self.llm.generate_stream(question, system=system):
                     if self._cancel_requested or (gen_id and gen_id != self._generation_id):
-                        log.info("Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id)
+                        log.info(
+                            "Doc Q&A stream stopped: generation %d interrupted/superseded", gen_id
+                        )
                         break
 
                     buffer += token
@@ -411,15 +473,22 @@ class DocQAPipeline:
 
                         if not first_audio_logged:
                             ttfa = time.time() - t_start
-                            log.info("⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
-                                     ttfa, sentence[:40])
+                            log.info(
+                                "⚡ Time-To-First-Audio (TTFA): %.2fs (first chunk: '%s')",
+                                ttfa,
+                                sentence[:40],
+                            )
                             self.hud.set_state("processing", f"Speaking (TTFA {ttfa:.1f}s)")
                             first_audio_logged = True
 
                         await self.tts.speak(sentence, lang=lang_code)
 
                 # Flush any remaining text
-                if buffer.strip() and not self._cancel_requested and (not gen_id or gen_id == self._generation_id):
+                if (
+                    buffer.strip()
+                    and not self._cancel_requested
+                    and (not gen_id or gen_id == self._generation_id)
+                ):
                     if not first_audio_logged:
                         ttfa = time.time() - t_start
                         log.info("⚡ Time-To-First-Audio (TTFA): %.2fs", ttfa)
@@ -435,12 +504,14 @@ class DocQAPipeline:
     @staticmethod
     def _format_context(chunks: list[Chunk]) -> str:
         """Format retrieved chunks into context string with document-type-aware citations.
-        
+
         Neutralizes </document_data> and closing tags within document text to prevent
         prompt injection from escaping the passive barrier.
         """
         if not chunks:
-            return "(No relevant content found in the document that exceeds the relevance threshold)"
+            return (
+                "(No relevant content found in the document that exceeds the relevance threshold)"
+            )
 
         parts = []
         for i, chunk in enumerate(chunks, 1):
@@ -448,4 +519,3 @@ class DocQAPipeline:
             safe_text = safe_text.replace("</doc", "<\\/doc")
             parts.append(f"[Source {i} — {chunk.citation}]\n{safe_text}")
         return "\n\n".join(parts)
-

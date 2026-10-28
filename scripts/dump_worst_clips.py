@@ -12,7 +12,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -39,7 +39,9 @@ def load_per_clip_results(path: Path) -> Dict[str, List[Dict[str, Any]]]:
 
 def get_top_worst_clips(records: List[Dict[str, Any]], n: int = 5) -> List[Dict[str, Any]]:
     # Sort primarily by WER descending, secondarily by latency descending
-    return sorted(records, key=lambda r: (r.get("wer", 0.0), r.get("latency_ms", 0.0)), reverse=True)[:n]
+    return sorted(
+        records, key=lambda r: (r.get("wer", 0.0), r.get("latency_ms", 0.0)), reverse=True
+    )[:n]
 
 
 def generate_worst_clips_markdown(records_by_model: Dict[str, List[Dict[str, Any]]]) -> str:
@@ -68,7 +70,9 @@ def generate_worst_clips_markdown(records_by_model: Dict[str, List[Dict[str, Any
             canon_hyp = clip.get("canonical_hyp", clip.get("normalized_hyp", "")).strip()
 
             lines.append(f"#### Clip {idx}: `{clip_id}` — WER: **{wer_pct}%**")
-            lines.append(f"- **Audio Duration:** {dur} s | **Device:** `{device}` | **Latency:** {lat} ms")
+            lines.append(
+                f"- **Audio Duration:** {dur} s | **Device:** `{device}` | **Latency:** {lat} ms"
+            )
             lines.append(f"- **Reference:** `{ref}`")
             lines.append(f"- **Raw Hypothesis:** `{hyp}`")
             lines.append(f"- **Normalized Reference:** `{canon_ref}`")
@@ -96,10 +100,12 @@ def update_benchmark_results_markdown():
         new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
     else:
         # Replace existing Section 3 if present
-        sec3_match = re.search(r"## 3\. Top 5 Worst Clips.*?(?=## 4\.|\Z)", content, flags=re.DOTALL)
+        sec3_match = re.search(
+            r"## 3\. Top 5 Worst Clips.*?(?=## 4\.|\Z)", content, flags=re.DOTALL
+        )
         if sec3_match:
             replacement = f"{marker_start}\n\n{section_md}\n\n{marker_end}\n\n"
-            new_content = content[:sec3_match.start()] + replacement + content[sec3_match.end():]
+            new_content = content[: sec3_match.start()] + replacement + content[sec3_match.end() :]
         else:
             raise RuntimeError("Could not find Section 3 or marker tags in BENCHMARK_RESULTS.md")
 

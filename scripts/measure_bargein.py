@@ -7,17 +7,16 @@ Automates:
 4. Writing empirical measurements to benchmark_data/bargein_measurements.json and docs/evidence/bargein_check.txt.
 """
 
-import os
+import argparse
+import asyncio
+import json
+import logging
 import sys
 import time
-import json
 import wave
-import argparse
-import logging
-import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -35,8 +34,8 @@ try:
 except Exception:
     sd = None
 
-from bolsamajh.utils.vad import BargeInMonitor, VoiceActivityDetector
 from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+from bolsamajh.utils.vad import BargeInMonitor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("measure_bargein")
@@ -86,8 +85,11 @@ def measure_interruption_latency(
     n_trials: int = 5,
 ) -> Dict[str, Any]:
     """Measure empirical detection latency from speech onset to barge-in callback."""
-    log.info("Measuring speech interruption detection latency (%s mode, %d trials)...",
-             "headphones" if headphone_mode else "speakers", n_trials)
+    log.info(
+        "Measuring speech interruption detection latency (%s mode, %d trials)...",
+        "headphones" if headphone_mode else "speakers",
+        n_trials,
+    )
 
     wav_path = ROOT_DIR / "benchmark_data" / "audio" / "sentence_001.wav"
     if not wav_path.exists():
@@ -101,7 +103,10 @@ def measure_interruption_latency(
 
     if sr != 16000:
         import scipy.signal
-        audio_16k = scipy.signal.resample(audio_full, int(len(audio_full) * 16000 / sr)).astype(np.float32)
+
+        audio_16k = scipy.signal.resample(audio_full, int(len(audio_full) * 16000 / sr)).astype(
+            np.float32
+        )
     else:
         audio_16k = audio_full
 
@@ -122,7 +127,7 @@ def measure_interruption_latency(
 
         consecutive = 0
         speech_started = False
-        t_start = time.perf_counter()
+        _t_start = time.perf_counter()
 
         for i in range(0, len(audio_16k), chunk_size):
             chunk = audio_16k[i : i + chunk_size]
@@ -168,7 +173,7 @@ async def run_bargein_session(
     device_id: int | None = None,
 ) -> Dict[str, Any]:
     """Run an automated continuous playback and false-trigger measurement session."""
-    headphone_mode = (mode == "headphones")
+    headphone_mode = mode == "headphones"
     dev_name = "Default Output"
     if sd is not None and device_id is not None:
         try:
@@ -177,8 +182,12 @@ async def run_bargein_session(
         except Exception:
             pass
 
-    log.info("Starting %s measurement session (duration=%.1fs, device='%s')...",
-             mode.upper(), duration_sec, dev_name)
+    log.info(
+        "Starting %s measurement session (duration=%.1fs, device='%s')...",
+        mode.upper(),
+        duration_sec,
+        dev_name,
+    )
 
     tts = PiperTTSAdapter()
     false_triggers = 0
@@ -211,8 +220,13 @@ async def run_bargein_session(
         sentences_played += 1
 
         elapsed = time.time() - t_start
-        log.info("[%5.1fs / %5.1fs] Playing #%d: '%s...'",
-                 elapsed, duration_sec, sentences_played, sentence[:40])
+        log.info(
+            "[%5.1fs / %5.1fs] Playing #%d: '%s...'",
+            elapsed,
+            duration_sec,
+            sentences_played,
+            sentence[:40],
+        )
 
         interrupted_event.clear()
         monitor.start()
@@ -289,11 +303,17 @@ async def run_full_suite(duration_sec: float = 600.0, output_path: Path | None =
 
     evidence_lines.append("--- MODE 1: Speaker Mode ---")
     evidence_lines.append(f"Output Device:      {speaker_res['device_name']}")
-    evidence_lines.append(f"Duration:           {speaker_res['duration_seconds']}s ({speaker_res['duration_seconds']/60:.1f} mins)")
+    evidence_lines.append(
+        f"Duration:           {speaker_res['duration_seconds']}s ({speaker_res['duration_seconds'] / 60:.1f} mins)"
+    )
     evidence_lines.append(f"Sentences Played:   {speaker_res['sentences_played']}")
-    evidence_lines.append(f"False Triggers:     {speaker_res['false_triggers']} (Threshold: <= {speaker_res['max_allowed_false_triggers']})")
+    evidence_lines.append(
+        f"False Triggers:     {speaker_res['false_triggers']} (Threshold: <= {speaker_res['max_allowed_false_triggers']})"
+    )
     evidence_lines.append(f"False Trigger Rate: {speaker_res['false_trigger_rate_per_min']} / min")
-    evidence_lines.append(f"Detection Latency:  Median {speaker_res['detection_latency_ms']['median']} ms (P95: {speaker_res['detection_latency_ms']['p95']} ms)")
+    evidence_lines.append(
+        f"Detection Latency:  Median {speaker_res['detection_latency_ms']['median']} ms (P95: {speaker_res['detection_latency_ms']['p95']} ms)"
+    )
     evidence_lines.append(f"Result:             {speaker_res['status']}")
     evidence_lines.append("")
 
@@ -310,19 +330,35 @@ async def run_full_suite(duration_sec: float = 600.0, output_path: Path | None =
 
     evidence_lines.append("--- MODE 2: Headphone Mode ---")
     evidence_lines.append(f"Output Device:      {headphone_res['device_name']}")
-    evidence_lines.append(f"Duration:           {headphone_res['duration_seconds']}s ({headphone_res['duration_seconds']/60:.1f} mins)")
+    evidence_lines.append(
+        f"Duration:           {headphone_res['duration_seconds']}s ({headphone_res['duration_seconds'] / 60:.1f} mins)"
+    )
     evidence_lines.append(f"Sentences Played:   {headphone_res['sentences_played']}")
-    evidence_lines.append(f"False Triggers:     {headphone_res['false_triggers']} (Threshold: <= {headphone_res['max_allowed_false_triggers']})")
-    evidence_lines.append(f"False Trigger Rate: {headphone_res['false_trigger_rate_per_min']} / min")
-    evidence_lines.append(f"Detection Latency:  Median {headphone_res['detection_latency_ms']['median']} ms (P95: {headphone_res['detection_latency_ms']['p95']} ms)")
+    evidence_lines.append(
+        f"False Triggers:     {headphone_res['false_triggers']} (Threshold: <= {headphone_res['max_allowed_false_triggers']})"
+    )
+    evidence_lines.append(
+        f"False Trigger Rate: {headphone_res['false_trigger_rate_per_min']} / min"
+    )
+    evidence_lines.append(
+        f"Detection Latency:  Median {headphone_res['detection_latency_ms']['median']} ms (P95: {headphone_res['detection_latency_ms']['p95']} ms)"
+    )
     evidence_lines.append(f"Result:             {headphone_res['status']}")
     evidence_lines.append("")
 
     evidence_lines.append("Summary:")
-    evidence_lines.append(f"- Speaker Mode False Triggers: {speaker_res['false_triggers']} [{speaker_res['status']}]")
-    evidence_lines.append(f"- Headphone Mode False Triggers: {headphone_res['false_triggers']} [{headphone_res['status']}]")
-    evidence_lines.append(f"- Speaker Detection Latency: {speaker_res['detection_latency_ms']['median']} ms")
-    evidence_lines.append(f"- Headphone Detection Latency: {headphone_res['detection_latency_ms']['median']} ms")
+    evidence_lines.append(
+        f"- Speaker Mode False Triggers: {speaker_res['false_triggers']} [{speaker_res['status']}]"
+    )
+    evidence_lines.append(
+        f"- Headphone Mode False Triggers: {headphone_res['false_triggers']} [{headphone_res['status']}]"
+    )
+    evidence_lines.append(
+        f"- Speaker Detection Latency: {speaker_res['detection_latency_ms']['median']} ms"
+    )
+    evidence_lines.append(
+        f"- Headphone Detection Latency: {headphone_res['detection_latency_ms']['median']} ms"
+    )
     evidence_lines.append("")
     evidence_lines.append("Voice Barge-In: VERIFIED LIVE ON HARDWARE")
 
@@ -348,12 +384,24 @@ async def run_full_suite(duration_sec: float = 600.0, output_path: Path | None =
 
 def main():
     parser = argparse.ArgumentParser(description="BolSamajh Voice Barge-In Measurement Script")
-    parser.add_argument("--mode", choices=["headphones", "speakers", "both"], default="both",
-                        help="Listening mode: 'headphones', 'speakers', or 'both' (default)")
-    parser.add_argument("--duration", type=float, default=600.0,
-                        help="Duration per mode in seconds (default: 600s = 10 mins)")
-    parser.add_argument("--output", type=str, default=str(ROOT_DIR / "benchmark_data" / "bargein_measurements.json"),
-                        help="Output JSON path")
+    parser.add_argument(
+        "--mode",
+        choices=["headphones", "speakers", "both"],
+        default="both",
+        help="Listening mode: 'headphones', 'speakers', or 'both' (default)",
+    )
+    parser.add_argument(
+        "--duration",
+        type=float,
+        default=600.0,
+        help="Duration per mode in seconds (default: 600s = 10 mins)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=str(ROOT_DIR / "benchmark_data" / "bargein_measurements.json"),
+        help="Output JSON path",
+    )
     args = parser.parse_args()
 
     out_file = Path(args.output)
@@ -363,14 +411,21 @@ def main():
         # Single mode run
         speaker_dev, headphone_dev = find_audio_devices()
         dev_id = headphone_dev if args.mode == "headphones" else speaker_dev
-        res = asyncio.run(run_bargein_session(mode=args.mode, duration_sec=args.duration, device_id=dev_id))
+        res = asyncio.run(
+            run_bargein_session(mode=args.mode, duration_sec=args.duration, device_id=dev_id)
+        )
         out_file.parent.mkdir(parents=True, exist_ok=True)
         with open(out_file, "w", encoding="utf-8") as f:
-            json.dump({
-                "timestamp": datetime.now().isoformat(),
-                "host": "Windows (RTX 3060 Ti)",
-                "modes": {f"{args.mode}_mode": res}
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "host": "Windows (RTX 3060 Ti)",
+                    "modes": {f"{args.mode}_mode": res},
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
         print(json.dumps(res, indent=2))
 
 

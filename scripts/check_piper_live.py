@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 if sys.stdout.encoding.lower() != "utf-8":
     try:
@@ -8,9 +9,16 @@ if sys.stdout.encoding.lower() != "utf-8":
         pass
 
 import hashlib
-import wave
 import io
-from bolsamajh.tts.piper_adapter import PiperTTSAdapter, _MODEL_SHA256, _CONFIG_SHA256, _MODEL_FILENAME, _CONFIG_FILENAME
+import wave
+
+from bolsamajh.tts.piper_adapter import (
+    _CONFIG_FILENAME,
+    _CONFIG_SHA256,
+    _MODEL_FILENAME,
+    _MODEL_SHA256,
+    PiperTTSAdapter,
+)
 
 
 def get_sha256(filepath: Path) -> tuple[int, str]:
@@ -56,7 +64,7 @@ def main():
 
     wav_hash = hashlib.sha256(wav_bytes).hexdigest()
 
-    print(f"\nSynthesis Output:")
+    print("\nSynthesis Output:")
     print(f"  Text:          '{text}'")
     print(f"  WAV Size:      {len(wav_bytes)} bytes")
     print(f"  Channels:      {n_channels}")

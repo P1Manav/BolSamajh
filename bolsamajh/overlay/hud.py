@@ -4,8 +4,8 @@ Shows a small, always-on-top, semi-transparent pill that indicates:
   🎤 Listening  |  ⏳ Processing  |  ✅ Done  |  ❌ Error
 """
 
-import queue
 import logging
+import queue
 import threading
 
 try:
@@ -21,11 +21,11 @@ HUDState = Literal["idle", "listening", "processing", "done", "error"]
 
 # State → (emoji, label, bg color, fg color)
 _STATE_DISPLAY = {
-    "idle":       ("",  "",           "#1a1a2e", "#8b8ba7"),
-    "listening":  ("🎤", "Listening…", "#1a3a1a", "#4ade80"),
-    "processing": ("⏳", "Processing…","#1a2a3a", "#60a5fa"),
-    "done":       ("✅", "Done",       "#1a2a1a", "#4ade80"),
-    "error":      ("❌", "Error",      "#3a1a1a", "#f87171"),
+    "idle": ("", "", "#1a1a2e", "#8b8ba7"),
+    "listening": ("🎤", "Listening…", "#1a3a1a", "#4ade80"),
+    "processing": ("⏳", "Processing…", "#1a2a3a", "#60a5fa"),
+    "done": ("✅", "Done", "#1a2a1a", "#4ade80"),
+    "error": ("❌", "Error", "#3a1a1a", "#f87171"),
 }
 
 # How long to show "done" before auto-hiding (ms)
@@ -76,9 +76,9 @@ class OverlayHUD:
         """Tkinter mainloop (runs in dedicated thread)."""
         self._root = tk.Tk()
         self._root.title("BolSamajh")
-        self._root.overrideredirect(True)        # No title bar
+        self._root.overrideredirect(True)  # No title bar
         self._root.attributes("-topmost", True)  # Always on top
-        self._root.attributes("-alpha", 0.9)     # Slightly transparent
+        self._root.attributes("-alpha", 0.9)  # Slightly transparent
 
         # Position: bottom-center of screen
         screen_w = self._root.winfo_screenwidth()
@@ -103,9 +103,11 @@ class OverlayHUD:
 
         # Apply Windows no-activate extended style so HUD never steals focus from active apps
         import sys
+
         if sys.platform == "win32":
             try:
                 import ctypes
+
                 self._root.update_idletasks()
                 hwnd = self._root.winfo_id()
                 GWL_EXSTYLE = -20
@@ -188,7 +190,9 @@ class OverlayHUD:
 
                 # Schedule auto-hide after "done" or "error"
                 if state == "done":
-                    self._auto_hide_id = self._root.after(_DONE_TIMEOUT, lambda: self.set_state("idle"))
+                    self._auto_hide_id = self._root.after(
+                        _DONE_TIMEOUT, lambda: self.set_state("idle")
+                    )
                 elif state == "error":
                     self._auto_hide_id = self._root.after(3000, lambda: self.set_state("idle"))
             except tk.TclError:
@@ -223,6 +227,7 @@ class OverlayHUD:
     def stop(self) -> None:
         """Stop the overlay."""
         if self._root:
+
             def _destroy():
                 try:
                     if self._auto_hide_id is not None:
@@ -231,4 +236,5 @@ class OverlayHUD:
                     self._root.destroy()
                 except Exception:
                     pass
+
             self._cmd_queue.put(_destroy)

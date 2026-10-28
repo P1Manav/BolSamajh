@@ -1,8 +1,9 @@
 """Unit tests for DocumentRetriever and chunking."""
 
 import pytest
-from bolsamajh.documents.loader import Document, DocumentPage
+
 from bolsamajh.documents.chunker import chunk_document
+from bolsamajh.documents.loader import Document, DocumentPage
 from bolsamajh.documents.retriever import DocumentRetriever
 
 
@@ -13,8 +14,12 @@ def test_chunker_cross_page_and_citations():
         title="Test Report",
         source="report.pdf",
         pages=[
-            DocumentPage(text="First paragraph of page 1. Short ending.", page_number=1, source="report.pdf"),
-            DocumentPage(text="Second paragraph continuing on page 2.", page_number=2, source="report.pdf"),
+            DocumentPage(
+                text="First paragraph of page 1. Short ending.", page_number=1, source="report.pdf"
+            ),
+            DocumentPage(
+                text="Second paragraph continuing on page 2.", page_number=2, source="report.pdf"
+            ),
         ],
         doc_type="pdf",
     )
@@ -33,7 +38,12 @@ def test_chunker_cross_page_and_citations():
         title="Blog Post",
         source="https://example.com/blog",
         pages=[
-            DocumentPage(text="Introduction to BolSamajh. " * 20, page_number=1, section="Section 1", source="https://example.com/blog"),
+            DocumentPage(
+                text="Introduction to BolSamajh. " * 20,
+                page_number=1,
+                section="Section 1",
+                source="https://example.com/blog",
+            ),
         ],
         doc_type="web",
     )
@@ -53,7 +63,7 @@ def test_retriever_indexing_and_refusal():
         pages=[
             DocumentPage(
                 text="कृत्रिम बुद्धिमत्ता (Artificial Intelligence) कंप्यूटर विज्ञान की एक शाखा है जो मशीनों को बुद्धिमान बनाती है। "
-                     "BolSamajh एक बहुभाषी वॉयस-एआई असिस्टेंट है जो हिंदी और हिंग्लिश को समझता है।",
+                "BolSamajh एक बहुभाषी वॉयस-एआई असिस्टेंट है जो हिंदी और हिंग्लिश को समझता है।",
                 page_number=1,
                 section="Section 1",
                 source="ai.txt",
@@ -72,10 +82,14 @@ def test_retriever_indexing_and_refusal():
     assert "BolSamajh" in relevant_hits[0].text
 
     # Completely irrelevant query with threshold check: should return 0 hits
-    irrelevant_hits = retriever.retrieve("How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=True)
+    irrelevant_hits = retriever.retrieve(
+        "How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=True
+    )
     assert len(irrelevant_hits) == 0
 
     # Without threshold, raw top score should be strictly below refusal threshold
-    raw_hits = retriever.retrieve("How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=False)
+    raw_hits = retriever.retrieve(
+        "How do I make chocolate ice cream with caramel syrup?", top_k=2, apply_threshold=False
+    )
     assert len(raw_hits) > 0
     assert raw_hits[0].score < retriever.refusal_threshold

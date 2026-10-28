@@ -1,13 +1,11 @@
 """Unit tests covering Phase 3 API, Security, and Gateway enhancements."""
 
-import io
 import json
-import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+
 from fastapi.testclient import TestClient
 
-from bolsamajh.web.server import app, check_bind_security
 from bolsamajh.documents.loader import Document, DocumentPage
+from bolsamajh.web.server import app, check_bind_security
 
 client = TestClient(app)
 
@@ -37,6 +35,7 @@ def test_command_endpoint_validation_and_errors(monkeypatch):
 
     # 3. LLM exception -> 500
     from bolsamajh.web.server import llm
+
     async def _fail_llm(*args, **kwargs):
         raise RuntimeError("LLM exploded")
 
@@ -48,10 +47,11 @@ def test_command_endpoint_validation_and_errors(monkeypatch):
 
 def test_transcriptions_text_format_and_params(monkeypatch):
     """Verify /v1/audio/transcriptions honors response_format='text' returning plain text, and passes language/prompt."""
-    from bolsamajh.web.server import stt
     from bolsamajh.stt.base import TranscriptResult
+    from bolsamajh.web.server import stt
 
     called_kwargs = {}
+
     def mock_transcribe(audio_bytes, **kwargs):
         called_kwargs.update(kwargs)
         return TranscriptResult(
@@ -95,6 +95,7 @@ def test_transcriptions_text_format_and_params(monkeypatch):
 
 def test_transcriptions_corrupt_audio_returns_400(monkeypatch):
     """Verify corrupt audio cannot decode/resample and returns HTTP 400 rather than passing raw bytes to STT."""
+
     def _fail_resample(b):
         raise ValueError("Cannot decode corrupt MP3")
 
@@ -171,7 +172,9 @@ def test_check_bind_security_help_flag(monkeypatch):
 
 def test_realtime_websocket_events_and_origin():
     """Verify WebSocket realtime events: session.created, input_audio_buffer.committed."""
-    with client.websocket_connect("/v1/realtime", headers={"Origin": "http://localhost:8000"}) as ws:
+    with client.websocket_connect(
+        "/v1/realtime", headers={"Origin": "http://localhost:8000"}
+    ) as ws:
         # First message must be session.created
         created_msg = json.loads(ws.receive_text())
         assert created_msg["type"] == "session.created"

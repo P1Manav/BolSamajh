@@ -11,10 +11,11 @@ Or:
     python scripts/check_gemini.py --api-key "your-key"
 """
 
-import sys
-import os
 import argparse
 import asyncio
+import os
+import sys
+
 import httpx
 
 
@@ -24,7 +25,7 @@ async def check_gemini(api_key: str, model: str = "gemini-3.5-flash") -> bool:
         "Content-Type": "application/json",
     }
 
-    print(f"[*] Querying Google AI Studio models endpoint...")
+    print("[*] Querying Google AI Studio models endpoint...")
     async with httpx.AsyncClient(timeout=15.0) as client:
         # 1. List available models
         try:
@@ -88,7 +89,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Verify live Google AI Studio Gemini API access.")
     api_key_env = os.getenv("GOOGLE_AI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
     parser.add_argument("--api-key", default=api_key_env, help="Google AI Studio Gemini API Key")
-    parser.add_argument("--model", default="gemini-3.5-flash", help="Gemini model to test (default: gemini-3.5-flash)")
+    parser.add_argument(
+        "--model",
+        default="gemini-3.5-flash",
+        help="Gemini model to test (default: gemini-3.5-flash)",
+    )
     args = parser.parse_args()
 
     api_key = args.api_key.strip()

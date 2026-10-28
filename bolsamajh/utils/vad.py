@@ -14,9 +14,9 @@ Adheres strictly to Tier 5 Requirements:
     and RMS energy gate to suppress acoustic speaker echo and bleed.
 """
 
-import time
 import logging
 import threading
+import time
 from typing import Callable, Optional
 
 import numpy as np
@@ -64,6 +64,7 @@ class VoiceActivityDetector:
                 return
             try:
                 from silero_vad import load_silero_vad
+
                 log.info("Preloading Silero VAD model...")
                 self._model = load_silero_vad()
                 log.info("Silero VAD model preloaded successfully.")
@@ -133,7 +134,10 @@ class BargeInMonitor:
         """Notify the monitor that the first audio sample has started playing."""
         self._playback_started = True
         self._playback_start_time = time.time()
-        log.debug("BargeInMonitor notified: playback started (echo suppression active for %.0f ms)", self.mute_ms)
+        log.debug(
+            "BargeInMonitor notified: playback started (echo suppression active for %.0f ms)",
+            self.mute_ms,
+        )
 
     def start(self):
         """Start monitoring mic for speech."""
@@ -189,7 +193,7 @@ class BargeInMonitor:
                         continue
 
                     # 2. RMS energy check: ignore ambient speaker bleed below threshold
-                    rms = float(np.sqrt(np.mean(audio ** 2))) if len(audio) > 0 else 0.0
+                    rms = float(np.sqrt(np.mean(audio**2))) if len(audio) > 0 else 0.0
                     if rms < min_rms:
                         consecutive_speech_chunks = max(0, consecutive_speech_chunks - 1)
                         continue
@@ -198,8 +202,11 @@ class BargeInMonitor:
                     if self.vad.is_speech(audio, sample_rate=self.sample_rate):
                         consecutive_speech_chunks += 1
                         if consecutive_speech_chunks >= required_chunks:
-                            log.info("Voice barge-in detected (sustained %d chunks, RMS=%.4f)! Halting TTS playback.",
-                                     consecutive_speech_chunks, rms)
+                            log.info(
+                                "Voice barge-in detected (sustained %d chunks, RMS=%.4f)! Halting TTS playback.",
+                                consecutive_speech_chunks,
+                                rms,
+                            )
                             self.on_barge_in()
                             break
                     else:

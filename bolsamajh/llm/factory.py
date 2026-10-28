@@ -1,11 +1,12 @@
 """LLM adapter factory — constructs primary or auto-fallback LLM adapter."""
 
 import logging
+
 from bolsamajh.config import AppConfig
 from bolsamajh.llm.base import LLMAdapter
-from bolsamajh.llm.ollama_adapter import OllamaAdapter
-from bolsamajh.llm.google_ai import GoogleAIAdapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
+from bolsamajh.llm.google_ai import GoogleAIAdapter
+from bolsamajh.llm.ollama_adapter import OllamaAdapter
 
 log = logging.getLogger(__name__)
 

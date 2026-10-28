@@ -20,6 +20,7 @@ import logging
 import socket
 import time
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # --- Socket Monkeypatching ---
@@ -60,7 +61,9 @@ async def run_offline_suite():
     evidence_lines.append("================================================")
     evidence_lines.append(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S IST')}")
     evidence_lines.append("Host OS:   Windows (RTX 3060 Ti)")
-    evidence_lines.append("Guards:    HF_HUB_OFFLINE=1, TRANSFORMERS_OFFLINE=1, socket.connect outbound blocker")
+    evidence_lines.append(
+        "Guards:    HF_HUB_OFFLINE=1, TRANSFORMERS_OFFLINE=1, socket.connect outbound blocker"
+    )
     evidence_lines.append("")
 
     results = {}
@@ -95,6 +98,7 @@ async def run_offline_suite():
     tts_wav_bytes = None
     try:
         from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
         tts = PiperTTSAdapter()
         test_text = "नमस्ते दुनिया, बोलसमझ पूरी तरह से ऑफ़लाइन काम कर रहा है।"
         tts_wav_bytes = tts.synthesize_to_bytes(test_text)
@@ -105,7 +109,9 @@ async def run_offline_suite():
         log.error("   -> Piper TTS failed offline: %s", e)
 
     results["Piper TTS Offline Synthesis"] = tts_pass
-    evidence_lines.append(f"2. Piper TTS Offline Synthesis: {'PASS' if tts_pass else 'FAIL'} ({len(tts_wav_bytes) if tts_wav_bytes else 0} bytes generated)")
+    evidence_lines.append(
+        f"2. Piper TTS Offline Synthesis: {'PASS' if tts_pass else 'FAIL'} ({len(tts_wav_bytes) if tts_wav_bytes else 0} bytes generated)"
+    )
     assert tts_pass, "Piper TTS failed to synthesize offline!"
 
     # -----------------------------------------------------------------
@@ -116,6 +122,7 @@ async def run_offline_suite():
     transcription_text = ""
     try:
         from faster_whisper import WhisperModel
+
         whisper = WhisperModel(
             "deepdml/faster-whisper-large-v3-turbo-ct2",
             device="cuda",
@@ -123,22 +130,30 @@ async def run_offline_suite():
             local_files_only=True,
         )
         import wave
+
         import numpy as np
+
         with wave.open(io.BytesIO(tts_wav_bytes), "rb") as wf:
             pcm = wf.readframes(wf.getnframes())
             audio_np = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
 
         segments, info = whisper.transcribe(audio_np, language="hi", beam_size=1)
         transcription_text = " ".join(s.text for s in segments).strip()
-        log.info("   -> Transcribed offline: '%s' (language=%s, prob=%.2f)",
-                 transcription_text, info.language, info.language_probability)
+        log.info(
+            "   -> Transcribed offline: '%s' (language=%s, prob=%.2f)",
+            transcription_text,
+            info.language,
+            info.language_probability,
+        )
         if len(transcription_text) > 0:
             stt_pass = True
     except Exception as e:
         log.error("   -> Faster-Whisper STT failed offline: %s", e)
 
     results["Faster-Whisper STT Offline"] = stt_pass
-    evidence_lines.append(f"3. Faster-Whisper STT Offline: {'PASS' if stt_pass else 'FAIL'} (Transcript: '{transcription_text}')")
+    evidence_lines.append(
+        f"3. Faster-Whisper STT Offline: {'PASS' if stt_pass else 'FAIL'} (Transcript: '{transcription_text}')"
+    )
     assert stt_pass, "Faster-Whisper failed to transcribe offline!"
 
     # -----------------------------------------------------------------
@@ -149,6 +164,7 @@ async def run_offline_suite():
     ollama_response = ""
     try:
         from bolsamajh.llm.ollama_adapter import OllamaAdapter
+
         llm = OllamaAdapter(model="gemma3:4b", base_url="http://127.0.0.1:11434")
         prompt = "Answer in exactly 3 words: Is BolSamajh operational offline?"
         ollama_response = await llm.generate(prompt)
@@ -159,7 +175,9 @@ async def run_offline_suite():
         log.error("   -> Ollama LLM failed offline: %s", e)
 
     results["Local Ollama LLM Offline"] = ollama_pass
-    evidence_lines.append(f"4. Local Ollama LLM Offline: {'PASS' if ollama_pass else 'FAIL'} (Response: '{ollama_response.strip()}')")
+    evidence_lines.append(
+        f"4. Local Ollama LLM Offline: {'PASS' if ollama_pass else 'FAIL'} (Response: '{ollama_response.strip()}')"
+    )
     assert ollama_pass, "Local Ollama LLM failed offline!"
 
     # -----------------------------------------------------------------
@@ -187,17 +205,23 @@ async def run_offline_suite():
         )
 
         retriever = DocumentRetriever(embedding_model="intfloat/multilingual-e5-base")
-        n_chunks = retriever.index_document(sample_doc)
+        _n_chunks = retriever.index_document(sample_doc)
         chunks = retriever.retrieve("Does BolSamajh require internet connectivity?", top_k=1)
         if chunks and len(chunks) > 0:
             citation_got = chunks[0].citation
-            log.info("   -> Retrieved offline chunk: citation='%s', text='%s'", citation_got, chunks[0].text[:60])
+            log.info(
+                "   -> Retrieved offline chunk: citation='%s', text='%s'",
+                citation_got,
+                chunks[0].text[:60],
+            )
             retriever_pass = True
     except Exception as e:
         log.error("   -> Document Retriever failed offline: %s", e)
 
     results["Document Retriever Offline"] = retriever_pass
-    evidence_lines.append(f"5. Document Retriever (FAISS + E5) Offline: {'PASS' if retriever_pass else 'FAIL'} (Citation: {citation_got})")
+    evidence_lines.append(
+        f"5. Document Retriever (FAISS + E5) Offline: {'PASS' if retriever_pass else 'FAIL'} (Citation: {citation_got})"
+    )
     assert retriever_pass, "Document Retriever failed offline!"
 
     # -----------------------------------------------------------------
@@ -220,7 +244,9 @@ async def run_offline_suite():
         log.error("   -> Dictation pipeline failed offline: %s", e)
 
     results["Dictation Pipeline Offline"] = dictation_pass
-    evidence_lines.append(f"6. Dictation Pipeline Offline: {'PASS' if dictation_pass else 'FAIL'} (Normalized: '{dictation_result}')")
+    evidence_lines.append(
+        f"6. Dictation Pipeline Offline: {'PASS' if dictation_pass else 'FAIL'} (Normalized: '{dictation_result}')"
+    )
     assert dictation_pass, "Dictation pipeline failed offline!"
 
     # -----------------------------------------------------------------
@@ -240,7 +266,9 @@ async def run_offline_suite():
         log.error("   -> Doc-QA pipeline failed offline: %s", e)
 
     results["Doc-QA Pipeline Offline"] = doc_qa_pass
-    evidence_lines.append(f"7. End-to-End Doc-QA Pipeline Offline: {'PASS' if doc_qa_pass else 'FAIL'} (Answer: '{doc_qa_ans.strip()}')")
+    evidence_lines.append(
+        f"7. End-to-End Doc-QA Pipeline Offline: {'PASS' if doc_qa_pass else 'FAIL'} (Answer: '{doc_qa_ans.strip()}')"
+    )
     assert doc_qa_pass, "Doc-QA pipeline failed offline!"
 
     # Summary
@@ -249,10 +277,14 @@ async def run_offline_suite():
     evidence_lines.append("| Component | Offline Test Status | Details |")
     evidence_lines.append("|---|---|---|")
     for comp, status in results.items():
-        evidence_lines.append(f"| {comp} | {'Verified' if status else 'FAILED'} | Local execution verified with outbound network blocked |")
+        evidence_lines.append(
+            f"| {comp} | {'Verified' if status else 'FAILED'} | Local execution verified with outbound network blocked |"
+        )
 
     evidence_lines.append("")
-    evidence_lines.append("All 7 offline pipeline components verified successfully with zero external internet traffic.")
+    evidence_lines.append(
+        "All 7 offline pipeline components verified successfully with zero external internet traffic."
+    )
     evidence_lines.append("Offline Mode: VERIFIED LIVE")
 
     evidence_file = Path("docs/evidence/offline_mode.txt")

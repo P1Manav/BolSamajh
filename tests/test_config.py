@@ -1,8 +1,9 @@
 """Unit tests for configuration loading, validation, and adapter factories."""
 
-import os
 import sys
+
 import pytest
+
 from bolsamajh.config import AppConfig, load_config
 from bolsamajh.llm.factory import create_llm_adapter
 from bolsamajh.tts.factory import create_tts_adapter
@@ -87,6 +88,7 @@ def test_prompts_lightweight_isolation():
             del sys.modules[mod]
 
     import bolsamajh.prompts as prompts
+
     assert hasattr(prompts, "_SYSTEM_PROMPT")
     assert hasattr(prompts, "_LANG_INSTRUCTIONS")
     assert "tkinter" not in sys.modules

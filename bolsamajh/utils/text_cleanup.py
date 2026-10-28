@@ -12,10 +12,10 @@ Adheres strictly to Tier 5 Requirements:
 - Roman mode with lazy Aksharamukha and anusvara -> 'n' fix (never produces 'himdi' for 'hindi').
 """
 
-import re
 import logging
+import re
 import unicodedata
-from typing import Literal, Optional
+from typing import Literal
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ def _get_transliterate():
     """Lazy optional import for aksharamukha."""
     try:
         from aksharamukha import transliterate
+
         return transliterate
     except ImportError:
         log.warning("aksharamukha is not installed; script transliteration disabled.")
@@ -68,7 +69,7 @@ def remove_fillers(text: str) -> str:
 
 def format_numbers(text: str) -> str:
     """Format currency, percentages, and phone numbers with strict word boundaries.
-    
+
     Prevents bugs like 'doctors 5' -> 'docto₹5'.
     Correctly converts:
     - 'Rs. 500', 'rupees 500', '500 rupees', '500 rupaya', 'rupaye 500' -> '₹500'
@@ -166,11 +167,10 @@ def format_numbers(text: str) -> str:
 
 
 def apply_script_control(
-    text: str,
-    script: Literal["roman", "devanagari", "natural"] = "natural"
+    text: str, script: Literal["roman", "devanagari", "natural"] = "natural"
 ) -> str:
     """Apply verified offline script transliteration using Aksharamukha.
-    
+
     - 'natural': keeps mixed script from STT output as-is (recommended for Hinglish).
     - 'roman': converts Devanagari/Gujarati script into phonetic Roman Latin script.
       Fixes the anusvara -> 'm' bug so 'हिंदी' converts to 'hindi' (not 'himdi').
@@ -252,4 +252,3 @@ def cleanup_text(
         result = result[0].upper() + result[1:]
 
     return result
-

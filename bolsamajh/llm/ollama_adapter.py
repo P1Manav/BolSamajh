@@ -1,9 +1,9 @@
 """Ollama LLM adapter — local LLM via Ollama HTTP API."""
 
-import os
 import json
-import time
 import logging
+import os
+import time
 from typing import AsyncIterator
 
 import httpx
@@ -59,7 +59,10 @@ class OllamaAdapter(LLMAdapter):
                 has_model = any(_matches_exact(n) for n in model_names)
                 if has_model:
                     return True, f"Ollama ready ({self.model})"
-                return False, f"Model '{self.model}' not found in Ollama. Run: ollama run {self.model}"
+                return (
+                    False,
+                    f"Model '{self.model}' not found in Ollama. Run: ollama run {self.model}",
+                )
         except httpx.ConnectError:
             return False, "Ollama is not running. Start with: ollama serve"
         except Exception as e:
@@ -139,4 +142,3 @@ class OllamaAdapter(LLMAdapter):
                                 return
                         except json.JSONDecodeError:
                             continue
-

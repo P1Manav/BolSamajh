@@ -9,14 +9,16 @@ Adheres strictly to Tier 5 Requirements:
 - Documents limitation for non-text clipboard data (bitmaps/files are replaced during insertion; text is never lost).
 """
 
+import logging
 import os
 import sys
 import time
 import uuid
-import logging
+
 import pyperclip
 
 log = logging.getLogger(__name__)
+
 
 class _StubKey:
     shift = "shift"
@@ -37,7 +39,9 @@ class _NullKeyboard:
 
 
 try:
-    from pynput.keyboard import Controller, Key as _PynputKey
+    from pynput.keyboard import Controller
+    from pynput.keyboard import Key as _PynputKey
+
     _keyboard = Controller()
     Key = _PynputKey
 except Exception:
@@ -78,6 +82,7 @@ class ModifierGuard:
         if sys.platform == "win32":
             try:
                 import ctypes
+
                 for k, vk in [(Key.shift, 0x10), (Key.ctrl, 0x11), (Key.alt, 0x12)]:
                     if k is not None and (ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000):
                         self._released_keys.append((k, vk))
@@ -105,6 +110,7 @@ class ModifierGuard:
         if sys.platform == "win32":
             try:
                 import ctypes
+
                 for k, vk in self._released_keys:
                     if vk == 0 or (ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000):
                         try:
@@ -166,7 +172,6 @@ def insert_text(text: str) -> bool:
     except Exception:
         original = ""
 
-    success = False
     try:
         # Copy our text to clipboard
         pyperclip.copy(text)
@@ -182,7 +187,6 @@ def insert_text(text: str) -> bool:
 
         time.sleep(0.08)  # Wait for paste to complete
         log.info("Inserted %d characters", len(text))
-        success = True
         return True
 
     except Exception as e:

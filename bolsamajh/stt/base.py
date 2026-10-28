@@ -7,11 +7,12 @@ from dataclasses import dataclass
 @dataclass
 class TranscriptResult:
     """Result from a speech-to-text transcription."""
+
     text: str
     language: str = ""
     confidence: float = 0.0
     duration_seconds: float = 0.0
-    processing_seconds: float = 0.0   # Wall-clock time for transcription
+    processing_seconds: float = 0.0  # Wall-clock time for transcription
 
 
 class SpeechToText(ABC):

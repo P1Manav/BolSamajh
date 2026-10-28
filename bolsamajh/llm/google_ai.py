@@ -10,11 +10,11 @@ Free-tier model:
   queries live models and selects the first available Flash-family model.
 """
 
-import os
-import json
-import time
-import logging
 import asyncio
+import json
+import logging
+import os
+import time
 from typing import AsyncIterator, List, Optional, Set, Tuple
 
 import httpx
@@ -88,8 +88,12 @@ class GoogleAIAdapter(LLMAdapter):
         self._consecutive_errors += 1
         cooldown = min(base_cooldown * (2 ** (self._consecutive_errors - 1)), 600.0)
         self._disabled_until = time.time() + cooldown
-        log.warning("Google AI adapter entered cooldown for %.1fs until %.1f (error count: %d)",
-                    cooldown, self._disabled_until, self._consecutive_errors)
+        log.warning(
+            "Google AI adapter entered cooldown for %.1fs until %.1f (error count: %d)",
+            cooldown,
+            self._disabled_until,
+            self._consecutive_errors,
+        )
 
     def _record_success(self) -> None:
         self._consecutive_errors = 0
@@ -136,11 +140,13 @@ class GoogleAIAdapter(LLMAdapter):
     async def _get_flash_candidates(self, excluded: Optional[Set[str]] = None) -> List[str]:
         """Return candidate Flash-family models deterministically sorted."""
         import re
+
         if excluded is None:
             excluded = set()
         models = await self.list_available_models()
         candidates = [
-            m for m in models
+            m
+            for m in models
             if "flash" in m.lower()
             and not any(x in m.lower() for x in ["tts", "image", "transcribe", "embedding"])
             and m not in excluded
@@ -180,7 +186,9 @@ class GoogleAIAdapter(LLMAdapter):
                             headers=self._get_headers(),
                         )
                         if c_resp.status_code == 200:
-                            log.warning("Automatically selected '%s' to replace '%s'", candidate, self.model)
+                            log.warning(
+                                "Automatically selected '%s' to replace '%s'", candidate, self.model
+                            )
                             self.model = candidate
                             self._record_success()
                             return True
@@ -202,7 +210,9 @@ class GoogleAIAdapter(LLMAdapter):
     async def generate(self, prompt: str, system: str = "") -> str:
         """Generate using Gemini API with native systemInstruction and header auth."""
         if self.disabled or not self._api_key:
-            raise RuntimeError("Gemini fallback unavailable: GOOGLE_AI_API_KEY not set or disabled.")
+            raise RuntimeError(
+                "Gemini fallback unavailable: GOOGLE_AI_API_KEY not set or disabled."
+            )
 
         t0 = time.time()
 
@@ -227,7 +237,10 @@ class GoogleAIAdapter(LLMAdapter):
 
             # 429 rate limit: retry with backoff once
             if resp.status_code == 429:
-                log.warning("Google AI model '%s' returned HTTP 429 rate limit. Retrying with backoff...", self.model)
+                log.warning(
+                    "Google AI model '%s' returned HTTP 429 rate limit. Retrying with backoff...",
+                    self.model,
+                )
                 if self.backoff_seconds > 0:
                     await asyncio.sleep(self.backoff_seconds)
                 resp = await client.post(
@@ -237,7 +250,9 @@ class GoogleAIAdapter(LLMAdapter):
                 )
                 if resp.status_code == 429:
                     self._record_error(base_cooldown=60.0)
-                    log.warning("Google AI model '%s' rate limited after retry (HTTP 429).", self.model)
+                    log.warning(
+                        "Google AI model '%s' rate limited after retry (HTTP 429).", self.model
+                    )
                     raise RuntimeError("Google AI rate limit exceeded (HTTP 429) after retry.")
 
             if resp.status_code == 404:
@@ -276,7 +291,9 @@ class GoogleAIAdapter(LLMAdapter):
         if not candidates_data:
             block_reason = data.get("promptFeedback", {}).get("blockReason")
             if block_reason:
-                raise RuntimeError(f"Google AI generation blocked by safety filters: {block_reason}")
+                raise RuntimeError(
+                    f"Google AI generation blocked by safety filters: {block_reason}"
+                )
             raise RuntimeError(f"Google AI returned no candidates: {data}")
 
         candidate = candidates_data[0]
@@ -289,7 +306,9 @@ class GoogleAIAdapter(LLMAdapter):
 
         self._record_success()
         elapsed = time.time() - t0
-        log.info("Google AI generated %d chars in %.1fs (model: %s)", len(text), elapsed, self.model)
+        log.info(
+            "Google AI generated %d chars in %.1fs (model: %s)", len(text), elapsed, self.model
+        )
         return text
 
     @staticmethod
@@ -320,7 +339,9 @@ class GoogleAIAdapter(LLMAdapter):
     async def generate_stream(self, prompt: str, system: str = "") -> AsyncIterator[str]:
         """Stream using Gemini API (streamGenerateContent) with header auth."""
         if self.disabled or not self._api_key:
-            raise RuntimeError("Gemini fallback unavailable: GOOGLE_AI_API_KEY not set or disabled.")
+            raise RuntimeError(
+                "Gemini fallback unavailable: GOOGLE_AI_API_KEY not set or disabled."
+            )
 
         payload = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
@@ -345,14 +366,20 @@ class GoogleAIAdapter(LLMAdapter):
                     json=payload,
                 ) as resp:
                     if resp.status_code == 429:
-                        raise httpx.HTTPStatusError("Rate limited (429)", request=resp.request, response=resp)
+                        raise httpx.HTTPStatusError(
+                            "Rate limited (429)", request=resp.request, response=resp
+                        )
                     if resp.status_code == 404:
-                        raise httpx.HTTPStatusError("Model not found (404)", request=resp.request, response=resp)
+                        raise httpx.HTTPStatusError(
+                            "Model not found (404)", request=resp.request, response=resp
+                        )
                     resp.raise_for_status()
                     async for line in resp.aiter_lines():
                         token, error = self._parse_sse_line(line)
                         if error:
-                            raise RuntimeError(f"Google AI generation blocked by safety filters: {error}")
+                            raise RuntimeError(
+                                f"Google AI generation blocked by safety filters: {error}"
+                            )
                         if token:
                             yield token
 
@@ -363,7 +390,10 @@ class GoogleAIAdapter(LLMAdapter):
                 return
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
-                    log.warning("Google AI model '%s' returned HTTP 429 during stream. Retrying once...", self.model)
+                    log.warning(
+                        "Google AI model '%s' returned HTTP 429 during stream. Retrying once...",
+                        self.model,
+                    )
                     if self.backoff_seconds > 0:
                         await asyncio.sleep(self.backoff_seconds)
                     try:
@@ -373,10 +403,18 @@ class GoogleAIAdapter(LLMAdapter):
                         return
                     except Exception as retry_err:
                         self._record_error(base_cooldown=60.0)
-                        log.warning("Google AI model '%s' stream rate limited after retry (HTTP 429).", self.model)
-                        raise RuntimeError(f"Google AI stream rate limit exceeded (HTTP 429) after retry: {retry_err}")
+                        log.warning(
+                            "Google AI model '%s' stream rate limited after retry (HTTP 429).",
+                            self.model,
+                        )
+                        raise RuntimeError(
+                            f"Google AI stream rate limit exceeded (HTTP 429) after retry: {retry_err}"
+                        )
                 elif e.response.status_code == 404:
-                    log.warning("Google AI model '%s' returned HTTP 404 during stream. Attempting Flash fallback...", self.model)
+                    log.warning(
+                        "Google AI model '%s' returned HTTP 404 during stream. Attempting Flash fallback...",
+                        self.model,
+                    )
                     candidates = await self._get_flash_candidates(excluded={self.model})
                     for candidate in candidates:
                         self.model = candidate
@@ -390,7 +428,9 @@ class GoogleAIAdapter(LLMAdapter):
                             log.debug("Candidate stream failed for '%s': %s", candidate, cand_err)
                             continue
                     self._record_error(base_cooldown=300.0)
-                    raise RuntimeError("Google AI model returned HTTP 404 and no available Flash-family fallback could be streamed.")
+                    raise RuntimeError(
+                        "Google AI model returned HTTP 404 and no available Flash-family fallback could be streamed."
+                    )
                 else:
                     self._record_error()
                     raise

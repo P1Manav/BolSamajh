@@ -1,14 +1,14 @@
 """Piper TTS adapter — 100% offline local text-to-speech using ONNX models."""
 
-import io
-import os
-import wave
-import hashlib
-import logging
-import threading
 import asyncio
+import hashlib
+import io
+import logging
+import os
+import threading
+import wave
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import numpy as np
 
@@ -42,8 +42,9 @@ def _verify_sha256(filepath: Path, expected_sha256: str) -> bool:
             h.update(chunk)
     actual = h.hexdigest()
     if actual.lower() != expected_sha256.lower():
-        log.warning("SHA-256 mismatch for %s: expected %s, got %s",
-                    filepath.name, expected_sha256, actual)
+        log.warning(
+            "SHA-256 mismatch for %s: expected %s, got %s", filepath.name, expected_sha256, actual
+        )
         return False
     return True
 
@@ -51,6 +52,7 @@ def _verify_sha256(filepath: Path, expected_sha256: str) -> bool:
 def _download_file_with_timeout(url: str, dest_path: Path, timeout_sec: float = 30.0) -> None:
     """Download file over HTTP with explicit timeout and progress logging."""
     import urllib.request
+
     req = urllib.request.Request(url, headers={"User-Agent": "BolSamajh-Piper/1.0"})
     with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
         temp_dest = dest_path.with_suffix(".tmp")
@@ -76,10 +78,11 @@ class PiperTTSAdapter(TextToSpeech):
         self._stop_event = threading.Event()
 
         # Locate model directory outside the repo tree in user data directory
-        base_user_data = Path(os.getenv(
-            "BOLSAMAJH_MODELS_DIR",
-            Path.home() / ".cache" / "bolsamajh" / "models" / "piper"
-        ))
+        base_user_data = Path(
+            os.getenv(
+                "BOLSAMAJH_MODELS_DIR", Path.home() / ".cache" / "bolsamajh" / "models" / "piper"
+            )
+        )
         # Fall back to repo models/piper if user already downloaded weights there
         repo_models = Path(__file__).parent.parent.parent / "models" / "piper"
         if repo_models.exists() and (repo_models / _MODEL_FILENAME).exists():
@@ -104,7 +107,11 @@ class PiperTTSAdapter(TextToSpeech):
         """Ensure model and json config files exist and pass SHA-256 verification."""
         if self.model_path and Path(self.model_path).exists():
             model_file = Path(self.model_path)
-            json_file = model_file.with_suffix(".onnx.json") if not model_file.name.endswith(".json") else model_file
+            json_file = (
+                model_file.with_suffix(".onnx.json")
+                if not model_file.name.endswith(".json")
+                else model_file
+            )
             if not json_file.exists():
                 json_file = Path(str(model_file) + ".json")
             return model_file, json_file
@@ -117,13 +124,21 @@ class PiperTTSAdapter(TextToSpeech):
 
         if not valid_model or not valid_config:
             log.info("Downloading Piper Hindi voice (%s) with timeout...", _MODEL_FILENAME)
-            _download_file_with_timeout(f"{_PIPER_HF_BASE}/{_MODEL_FILENAME}", model_file, timeout_sec=60.0)
-            _download_file_with_timeout(f"{_PIPER_HF_BASE}/{_CONFIG_FILENAME}", json_file, timeout_sec=30.0)
+            _download_file_with_timeout(
+                f"{_PIPER_HF_BASE}/{_MODEL_FILENAME}", model_file, timeout_sec=60.0
+            )
+            _download_file_with_timeout(
+                f"{_PIPER_HF_BASE}/{_CONFIG_FILENAME}", json_file, timeout_sec=30.0
+            )
 
             if not _verify_sha256(model_file, _MODEL_SHA256):
-                raise ValueError(f"Downloaded Piper model {model_file.name} failed SHA-256 verification!")
+                raise ValueError(
+                    f"Downloaded Piper model {model_file.name} failed SHA-256 verification!"
+                )
             if not _verify_sha256(json_file, _CONFIG_SHA256):
-                raise ValueError(f"Downloaded Piper config {json_file.name} failed SHA-256 verification!")
+                raise ValueError(
+                    f"Downloaded Piper config {json_file.name} failed SHA-256 verification!"
+                )
 
             log.info("Piper Hindi voice verified and saved to %s", model_file)
 
@@ -153,11 +168,12 @@ class PiperTTSAdapter(TextToSpeech):
         if self._voice is None:
             self._load_voice()
 
-        has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
-        has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
+        has_devanagari = any("\u0900" <= c <= "\u097f" for c in text)
+        has_gujarati = any("\u0a80" <= c <= "\u0aff" for c in text)
         if has_gujarati and not has_devanagari:
             try:
                 from aksharamukha import transliterate
+
                 text = transliterate.process("Gujarati", "Devanagari", text)
             except Exception as e:
                 log.debug("Transliteration to Devanagari skipped: %s", e)
@@ -200,10 +216,14 @@ class PiperTTSAdapter(TextToSpeech):
             if self.allow_edge_fallback:
                 log.warning("Piper TTS is Hindi-only. Delegating %s text to Edge-TTS.", lang)
                 from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
+
                 edge = EdgeTTSAdapter()
                 return await edge.synthesize(text, lang=lang)
             else:
-                log.warning("Piper offline TTS only voices Hindi text. Refusing non-Hindi audio for lang='%s'.", lang)
+                log.warning(
+                    "Piper offline TTS only voices Hindi text. Refusing non-Hindi audio for lang='%s'.",
+                    lang,
+                )
                 return b""
 
         return await asyncio.to_thread(self.synthesize_to_bytes, text)

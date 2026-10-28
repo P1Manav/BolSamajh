@@ -3,9 +3,10 @@
 Run with:  python -m bolsamajh
 """
 
-import time
-import threading
 import logging
+import threading
+import time
+
 try:
     import tkinter as tk
     from tkinter import filedialog
@@ -14,10 +15,11 @@ except Exception:
     filedialog = None
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from bolsamajh import __version__
-from bolsamajh.config import load_config, AppConfig
+from bolsamajh.config import AppConfig, load_config
 from bolsamajh.overlay.hud import OverlayHUD
 from bolsamajh.tts.factory import create_tts_adapter
 
@@ -33,6 +35,7 @@ def _create_stt(config: AppConfig):
     """Create the STT engine based on config."""
     if config.stt.engine == "faster_whisper":
         from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
+
         return FasterWhisperSTT(
             model_size=config.stt.model_size,
             device=config.stt.device,
@@ -46,6 +49,7 @@ def _create_stt(config: AppConfig):
 def _create_llm(config: AppConfig):
     """Create the LLM adapter based on config with auto-fallback."""
     from bolsamajh.llm.factory import create_llm_adapter
+
     return create_llm_adapter(config)
 
 
@@ -98,6 +102,7 @@ def _setup_hotkeys(
             path = hud.prompt_open_file()
             if path:
                 doc_qa_pipeline.load_document(path)
+
         threading.Thread(target=_load, daemon=True).start()
 
     keyboard.add_hotkey(doc_load_key, on_doc_load, suppress=suppress)
@@ -169,9 +174,13 @@ def main() -> None:
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  BolSamajh v%s — Bolo. Samjho.", __version__)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    log.info("Config: STT=%s  LLM=%s  TTS=%s  Script=%s",
-             config.stt.engine, config.llm.engine,
-             config.tts.engine, config.dictation.script)
+    log.info(
+        "Config: STT=%s  LLM=%s  TTS=%s  Script=%s",
+        config.stt.engine,
+        config.llm.engine,
+        config.tts.engine,
+        config.dictation.script,
+    )
 
     shutdown_event = threading.Event()
 
@@ -186,9 +195,9 @@ def main() -> None:
     log.info("Engines: STT=%s  LLM=%s  TTS=%s", stt.name, llm.name, tts.name)
 
     # 3. Create pipelines
+    from bolsamajh.pipeline.commands import VoiceCommandsPipeline
     from bolsamajh.pipeline.dictation import DictationPipeline
     from bolsamajh.pipeline.doc_qa import DocQAPipeline
-    from bolsamajh.pipeline.commands import VoiceCommandsPipeline
 
     dictation = DictationPipeline(config, stt, hud)
     doc_qa = DocQAPipeline(config, stt, llm, tts, hud)
@@ -234,12 +243,14 @@ def main() -> None:
         commands.cancel()
         try:
             import keyboard
+
             keyboard.unhook_all_hotkeys()
         except Exception:
             pass
 
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray
+
     tray = create_tray(config, on_quit_callback=on_quit)
     if tray:
         tray.run()

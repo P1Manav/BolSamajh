@@ -9,11 +9,11 @@ Adheres to Tier 1 Requirement 5:
   * 8 kHz telephony phone-codec simulation (300 Hz – 3,400 Hz bandpass filter)
 """
 
+import asyncio
+import io
 import json
 import time
-import io
 import wave
-import asyncio
 from pathlib import Path
 from typing import Optional
 
@@ -26,10 +26,10 @@ AUDIO_DIR = Path("benchmark_data/audio")
 METADATA_FILE = Path("benchmark_data/metadata.json")
 
 VOICES = [
-    "hi-IN-SwaraNeural",    # Female Hindi
-    "hi-IN-MadhurNeural",   # Male Hindi
-    "gu-IN-DhwaniNeural",   # Female Gujarati
-    "en-IN-NeerjaNeural",   # Female Indian English
+    "hi-IN-SwaraNeural",  # Female Hindi
+    "hi-IN-MadhurNeural",  # Male Hindi
+    "gu-IN-DhwaniNeural",  # Female Gujarati
+    "en-IN-NeerjaNeural",  # Female Indian English
 ]
 
 
@@ -53,14 +53,12 @@ def apply_audio_degradations(
 ) -> np.ndarray:
     """Apply automated degradations to clean audio: speed change, noise, and 8kHz phone filter."""
     out = audio.copy()
-    
+
     # 1. Speed factor variation via linear interpolation resampling
     if speed_factor != 1.0 and len(out) > 0:
         new_length = int(len(out) / speed_factor)
         out = np.interp(
-            np.linspace(0, len(out), new_length, endpoint=False),
-            np.arange(len(out)),
-            out
+            np.linspace(0, len(out), new_length, endpoint=False), np.arange(len(out)), out
         ).astype(np.float32)
 
     # 2. 8 kHz Telephony simulation (G.711 standard passband 300 Hz - 3400 Hz)
@@ -68,25 +66,21 @@ def apply_audio_degradations(
         nyquist = sr / 2.0
         low = 300.0 / nyquist
         high = 3400.0 / nyquist
-        sos = scipy.signal.butter(4, [low, high], btype='bandpass', output='sos')
+        sos = scipy.signal.butter(4, [low, high], btype="bandpass", output="sos")
         out = scipy.signal.sosfilt(sos, out).astype(np.float32)
-        
+
         # Downsample to 8kHz then back to 16kHz to simulate telephone quantization
         half_len = int(len(out) * 8000 / sr)
         down = np.interp(
-            np.linspace(0, len(out), half_len, endpoint=False),
-            np.arange(len(out)),
-            out
+            np.linspace(0, len(out), half_len, endpoint=False), np.arange(len(out)), out
         )
         out = np.interp(
-            np.linspace(0, half_len, len(out), endpoint=False),
-            np.arange(half_len),
-            down
+            np.linspace(0, half_len, len(out), endpoint=False), np.arange(half_len), down
         ).astype(np.float32)
 
     # 3. Additive Gaussian ambient noise
     if snr_db is not None and len(out) > 0:
-        signal_power = np.mean(out ** 2)
+        signal_power = np.mean(out**2)
         if signal_power > 1e-8:
             snr_linear = 10.0 ** (snr_db / 10.0)
             noise_power = signal_power / snr_linear
@@ -99,8 +93,8 @@ def apply_audio_degradations(
 
 async def generate_synthetic_dataset():
     """Generate audio for all 100 sentences with multi-voice rotation and automated degradations."""
-    import edge_tts
     import av
+    import edge_tts
 
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     metadata = []
@@ -114,10 +108,10 @@ async def generate_synthetic_dataset():
 
     for i, s in enumerate(SENTENCES, 1):
         wav_path = AUDIO_DIR / f"sentence_{s.id:03d}.wav"
-        
+
         # Multi-voice rotation
         voice = VOICES[(s.id - 1) % len(VOICES)]
-        
+
         # Determine degradation profile based on index
         if 1 <= s.id <= 20:
             deg_profile = "clean"
@@ -145,13 +139,16 @@ async def generate_synthetic_dataset():
             snr = 22.0
             phone = True
 
-        print(f"[{i:03d}/100] ({s.category:10s} | {voice.split('-')[2][:5]} | {deg_profile}): {s.reference_roman[:35]}...")
+        print(
+            f"[{i:03d}/100] ({s.category:10s} | {voice.split('-')[2][:5]} | {deg_profile}): {s.reference_roman[:35]}..."
+        )
 
         # Select appropriate script according to TTS voice locale
         if voice.startswith("hi-IN"):
             text = s.reference_devanagari
         elif voice.startswith("gu-IN"):
             from aksharamukha import transliterate
+
             text = transliterate.process("Devanagari", "Gujarati", s.reference_devanagari)
         else:
             text = s.reference_roman
@@ -196,28 +193,26 @@ async def generate_synthetic_dataset():
 
         # Apply automated degradations
         degraded_audio = apply_audio_degradations(
-            audio_16k,
-            sr=sample_rate,
-            speed_factor=speed,
-            snr_db=snr,
-            phone_filter=phone
+            audio_16k, sr=sample_rate, speed_factor=speed, snr_db=snr, phone_filter=phone
         )
 
         _save_wav(wav_path, degraded_audio, sample_rate)
         duration = len(degraded_audio) / sample_rate
 
-        metadata.append({
-            "id": s.id,
-            "category": s.category,
-            "reference_roman": s.reference_roman,
-            "reference_devanagari": s.reference_devanagari,
-            "wav_path": str(wav_path).replace("\\", "/"),
-            "duration_sec": round(duration, 2),
-            "voice": voice,
-            "degradation": deg_profile,
-            "dataset_type": "synthetic_stress_test",
-            "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        metadata.append(
+            {
+                "id": s.id,
+                "category": s.category,
+                "reference_roman": s.reference_roman,
+                "reference_devanagari": s.reference_devanagari,
+                "wav_path": str(wav_path).replace("\\", "/"),
+                "duration_sec": round(duration, 2),
+                "voice": voice,
+                "degradation": deg_profile,
+                "dataset_type": "synthetic_stress_test",
+                "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     with open(METADATA_FILE, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)

@@ -20,12 +20,8 @@ from typing import Tuple
 import jiwer
 from aksharamukha import transliterate
 
-
 # Indic to ASCII digit translation map
-DIGIT_MAP = str.maketrans(
-    "०१२३४५६७८९૦૧૨૩૪૫૬૭૮૯",
-    "01234567890123456789"
-)
+DIGIT_MAP = str.maketrans("०१२३४५६७८९૦૧૨૩૪૫૬૭૮૯", "01234567890123456789")
 
 # Punctuation and dandas regex (excluding periods between digits)
 PUNCT_REGEX = re.compile(r"[\u0964\u0965।,!?;:\-\"\'\(\)\[\]\{\}\/\\`~@#$%^&*+=<>_]")
@@ -39,58 +35,215 @@ NUKTA_REGEX = re.compile(r"[\u093c\u0abc]")
 # Single digit word mappings for spoken numbers (English, Devanagari, Gujarati, and standard Roman Hindi)
 SINGLE_DIGIT_WORDS = {
     # English
-    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
-    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+    "zero": "0",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
     # Devanagari
-    "शून्य": "0", "सुन्ना": "0", "सिफर": "0",
-    "एक": "1", "दो": "2", "तीन": "3", "चार": "4", "पाँच": "5", "पांच": "5",
-    "छह": "6", "छः": "6", "सात": "7", "आठ": "8", "नौ": "9",
+    "शून्य": "0",
+    "सुन्ना": "0",
+    "सिफर": "0",
+    "एक": "1",
+    "दो": "2",
+    "तीन": "3",
+    "चार": "4",
+    "पाँच": "5",
+    "पांच": "5",
+    "छह": "6",
+    "छः": "6",
+    "सात": "7",
+    "आठ": "8",
+    "नौ": "9",
     # Gujarati
-    "શૂન્ય": "0", "એક": "1", "બે": "2", "ત્રણ": "3", "ચાર": "4",
-    "પાંચ": "5", "છ": "6", "સાત": "7", "આઠ": "8", "નવ": "9",
+    "શૂન્ય": "0",
+    "એક": "1",
+    "બે": "2",
+    "ત્રણ": "3",
+    "ચાર": "4",
+    "પાંચ": "5",
+    "છ": "6",
+    "સાત": "7",
+    "આઠ": "8",
+    "નવ": "9",
     # Standard Roman Hindi (real romanizations a human would write)
-    "shunya": "0", "shoonya": "0",
-    "ek": "1", "do": "2", "teen": "3", "tin": "3",
-    "char": "4", "chaar": "4", "paanch": "5", "panch": "5",
-    "chhe": "6", "chhah": "6", "chah": "6", "saat": "7", "sat": "7",
-    "aath": "8", "ath": "8", "nau": "9",
+    "shunya": "0",
+    "shoonya": "0",
+    "ek": "1",
+    "do": "2",
+    "teen": "3",
+    "tin": "3",
+    "char": "4",
+    "chaar": "4",
+    "paanch": "5",
+    "panch": "5",
+    "chhe": "6",
+    "chhah": "6",
+    "chah": "6",
+    "saat": "7",
+    "sat": "7",
+    "aath": "8",
+    "ath": "8",
+    "nau": "9",
 }
 
 # Unit numbers for compound number conversion
 UNITS_MAP = {
     # English
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-    "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-    "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
     # Devanagari
-    "शून्य": 0, "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाँच": 5, "पांच": 5, "छह": 6, "छः": 6, "सात": 7, "आठ": 8, "नौ": 9,
-    "दस": 10, "ग्यारह": 11, "बारह": 12, "तेरह": 13, "चौदह": 14, "पंद्रह": 15, "सोलह": 16, "सत्रह": 17, "अठारह": 18, "उन्नीस": 19,
-    "बीस": 20, "तीस": 30, "चालीस": 40, "पचास": 50, "साठ": 60, "सत्तर": 70, "अस्सी": 80, "नब्बे": 90,
+    "शून्य": 0,
+    "एक": 1,
+    "दो": 2,
+    "तीन": 3,
+    "चार": 4,
+    "पाँच": 5,
+    "पांच": 5,
+    "छह": 6,
+    "छः": 6,
+    "सात": 7,
+    "आठ": 8,
+    "नौ": 9,
+    "दस": 10,
+    "ग्यारह": 11,
+    "बारह": 12,
+    "तेरह": 13,
+    "चौदह": 14,
+    "पंद्रह": 15,
+    "सोलह": 16,
+    "सत्रह": 17,
+    "अठारह": 18,
+    "उन्नीस": 19,
+    "बीस": 20,
+    "तीस": 30,
+    "चालीस": 40,
+    "पचास": 50,
+    "साठ": 60,
+    "सत्तर": 70,
+    "अस्सी": 80,
+    "नब्बे": 90,
     # Gujarati
-    "શૂન્ય": 0, "એક": 1, "બે": 2, "ત્રણ": 3, "ચાર": 4, "પાંચ": 5, "છ": 6, "સાત": 7, "આઠ": 8, "નવ": 9, "દસ": 10,
-    "વીસ": 20, "ત્રીસ": 30, "ચાલીસ": 40, "પચાસ": 50, "સાઇઠ": 60, "સિત્તેર": 70, "એંસી": 80, "નેવું": 90, "નેવુ": 90,
+    "શૂન્ય": 0,
+    "એક": 1,
+    "બે": 2,
+    "ત્રણ": 3,
+    "ચાર": 4,
+    "પાંચ": 5,
+    "છ": 6,
+    "સાત": 7,
+    "આઠ": 8,
+    "નવ": 9,
+    "દસ": 10,
+    "વીસ": 20,
+    "ત્રીસ": 30,
+    "ચાલીસ": 40,
+    "પચાસ": 50,
+    "સાઇઠ": 60,
+    "સિત્તેર": 70,
+    "એંસી": 80,
+    "નેવું": 90,
+    "નેવુ": 90,
     # Standard Roman Hindi (real romanizations a human would write)
-    "shunya": 0, "shoonya": 0,
-    "ek": 1, "do": 2, "teen": 3, "tin": 3, "char": 4, "chaar": 4, "paanch": 5, "panch": 5,
-    "chhe": 6, "chhah": 6, "chah": 6, "saat": 7, "sat": 7, "aath": 8, "ath": 8, "nau": 9,
-    "das": 10, "gyarah": 11, "barah": 12, "terah": 13, "chaudah": 14, "pandrah": 15, "solah": 16,
-    "satrah": 17, "atharah": 18, "unnis": 19, "bees": 20, "bis": 20, "tees": 30, "tis": 30, "chalis": 40,
-    "pachaas": 50, "pachas": 50, "saath": 60, "sath": 60, "sattar": 70, "assi": 80, "nabbe": 90,
+    "shunya": 0,
+    "shoonya": 0,
+    "ek": 1,
+    "do": 2,
+    "teen": 3,
+    "tin": 3,
+    "char": 4,
+    "chaar": 4,
+    "paanch": 5,
+    "panch": 5,
+    "chhe": 6,
+    "chhah": 6,
+    "chah": 6,
+    "saat": 7,
+    "sat": 7,
+    "aath": 8,
+    "ath": 8,
+    "nau": 9,
+    "das": 10,
+    "gyarah": 11,
+    "barah": 12,
+    "terah": 13,
+    "chaudah": 14,
+    "pandrah": 15,
+    "solah": 16,
+    "satrah": 17,
+    "atharah": 18,
+    "unnis": 19,
+    "bees": 20,
+    "bis": 20,
+    "tees": 30,
+    "tis": 30,
+    "chalis": 40,
+    "pachaas": 50,
+    "pachas": 50,
+    "saath": 60,
+    "sath": 60,
+    "sattar": 70,
+    "assi": 80,
+    "nabbe": 90,
 }
 
 # Scale multipliers with Indian lakh and crore support
 SCALES_MAP = {
     # English
-    "hundred": 100, "thousand": 1000, "lakh": 100000, "lakhs": 100000,
-    "crore": 10000000, "crores": 10000000,
+    "hundred": 100,
+    "thousand": 1000,
+    "lakh": 100000,
+    "lakhs": 100000,
+    "crore": 10000000,
+    "crores": 10000000,
     # Devanagari
-    "सौ": 100, "हज़ार": 1000, "हजार": 1000, "लाख": 100000, "करोड़": 10000000, "करोड": 10000000,
+    "सौ": 100,
+    "हज़ार": 1000,
+    "हजार": 1000,
+    "लाख": 100000,
+    "करोड़": 10000000,
+    "करोड": 10000000,
     # Gujarati
-    "સો": 100, "હજાર": 1000, "લાખ": 100000, "કરોડ": 10000000,
+    "સો": 100,
+    "હજાર": 1000,
+    "લાખ": 100000,
+    "કરોડ": 10000000,
     # Standard Roman Hindi
-    "sau": 100, "so": 100,
-    "hazaar": 1000, "hazar": 1000,
+    "sau": 100,
+    "so": 100,
+    "hazaar": 1000,
+    "hazar": 1000,
     "karod": 10000000,
 }
 
@@ -99,27 +252,91 @@ AMBIGUOUS_ROMAN_WORDS = {"do", "so", "sat", "ath", "nau"}
 
 # Scale words allowed to satisfy condition (b) for ambiguous word conversion
 SCALE_WORDS_UNAMBIGUOUS = {
-    "sau", "hazaar", "hazar", "lakh", "lakhs", "crore", "crores", "karod",
-    "hundred", "thousand",
-    "सौ", "हज़ार", "हजार", "लाख", "करोड़", "करोड",
-    "સો", "હજાર", "લાખ", "કરોડ",
+    "sau",
+    "hazaar",
+    "hazar",
+    "lakh",
+    "lakhs",
+    "crore",
+    "crores",
+    "karod",
+    "hundred",
+    "thousand",
+    "सौ",
+    "हज़ार",
+    "हजार",
+    "लाख",
+    "करोड़",
+    "करोड",
+    "સો",
+    "હજાર",
+    "લાખ",
+    "કરોડ",
 }
 
 DECIMAL_SEPARATORS = {"point", "dashamlav", "दशमलव", "દશાંશ"}
 
 SCALE_PRIORITY = {
-    "crore": 4, "crores": 4, "karod": 4, "करोड़": 4, "करोड": 4, "કરોડ": 4,
-    "lakh": 3, "lakhs": 3, "लाख": 3,
-    "hazar": 2, "hazaar": 2, "thousand": 2, "हज़ार": 2, "हजार": 2, "હજાર": 2,
-    "sau": 1, "so": 1, "hundred": 1, "सौ": 1, "સો": 1,
+    "crore": 4,
+    "crores": 4,
+    "karod": 4,
+    "करोड़": 4,
+    "करोड": 4,
+    "કરોડ": 4,
+    "lakh": 3,
+    "lakhs": 3,
+    "लाख": 3,
+    "hazar": 2,
+    "hazaar": 2,
+    "thousand": 2,
+    "हज़ार": 2,
+    "हजार": 2,
+    "હજાર": 2,
+    "sau": 1,
+    "so": 1,
+    "hundred": 1,
+    "सौ": 1,
+    "સો": 1,
 }
 
 TENS_WORDS = {
-    "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
-    "bees", "bis", "tees", "tis", "chalis", "pachaas", "pachas", "saath", "sath",
-    "sattar", "assi", "nabbe",
-    "बीस", "तीस", "चालीस", "पचास", "साठ", "सत्तर", "अस्सी", "नब्बे",
-    "વીસ", "ત્રીસ", "ચાલીસ", "પચાસ", "સાઇઠ", "સિત્તેર", "એંસી", "નેવું", "નેવુ",
+    "twenty",
+    "thirty",
+    "forty",
+    "fifty",
+    "sixty",
+    "seventy",
+    "eighty",
+    "ninety",
+    "bees",
+    "bis",
+    "tees",
+    "tis",
+    "chalis",
+    "pachaas",
+    "pachas",
+    "saath",
+    "sath",
+    "sattar",
+    "assi",
+    "nabbe",
+    "बीस",
+    "तीस",
+    "चालीस",
+    "पचास",
+    "साठ",
+    "सत्तर",
+    "अस्सी",
+    "नब्बे",
+    "વીસ",
+    "ત્રીસ",
+    "ચાલીસ",
+    "પચાસ",
+    "સાઇઠ",
+    "સિત્તેર",
+    "એંસી",
+    "નેવું",
+    "નેવુ",
 }
 
 
@@ -218,14 +435,14 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
     text = text.translate(DIGIT_MAP)
 
     # 2. Strip commas within numbers (e.g. 50,000 -> 50000, 1,299 -> 1299)
-    text = re.sub(r'(?<=\d),(?=\d)', '', text)
+    text = re.sub(r"(?<=\d),(?=\d)", "", text)
 
     # 3. Collapse spaced/hyphenated digit runs: "9 8 7 6" or "9-8-7-6" -> "9876"
-    digit_run_pattern = re.compile(r'\b\d(?:[\s\-]+\d)+\b')
+    digit_run_pattern = re.compile(r"\b\d(?:[\s\-]+\d)+\b")
     prev = ""
     while prev != text:
         prev = text
-        text = digit_run_pattern.sub(lambda m: re.sub(r'[\s\-]+', '', m.group(0)), text)
+        text = digit_run_pattern.sub(lambda m: re.sub(r"[\s\-]+", "", m.group(0)), text)
 
     if not normalize_number_words:
         return text
@@ -235,12 +452,9 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
     out_words = []
     i = 0
     while i < len(words):
-        if (
-            i + 2 < len(words)
-            and words[i+1].lower() in DECIMAL_SEPARATORS
-        ):
+        if i + 2 < len(words) and words[i + 1].lower() in DECIMAL_SEPARATORS:
             w1 = words[i].lower()
-            w2 = words[i+2].lower()
+            w2 = words[i + 2].lower()
             d1 = SINGLE_DIGIT_WORDS.get(w1, w1 if w1.isdigit() else None)
             d2 = SINGLE_DIGIT_WORDS.get(w2, w2 if w2.isdigit() else None)
             if d1 is not None and d2 is not None:
@@ -260,8 +474,7 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
         run = []
         run_tokens = []
         while j < len(tokens) and (
-            tokens[j].lower() in SINGLE_DIGIT_WORDS
-            or (tokens[j].isdigit() and len(tokens[j]) == 1)
+            tokens[j].lower() in SINGLE_DIGIT_WORDS or (tokens[j].isdigit() and len(tokens[j]) == 1)
         ):
             tok_lower = tokens[j].lower()
             digit_val = SINGLE_DIGIT_WORDS.get(tok_lower, tokens[j])
@@ -323,7 +536,9 @@ def normalize_numbers(text: str, normalize_number_words: bool = True) -> str:
         has_digit = any(w.isdigit() for w in run)
         has_scale_unambig = any(w.lower() in SCALE_WORDS_UNAMBIGUOUS for w in run)
         has_unambig_tens_teens = any(
-            w.lower() in UNITS_MAP and UNITS_MAP[w.lower()] >= 10 and w.lower() not in AMBIGUOUS_ROMAN_WORDS
+            w.lower() in UNITS_MAP
+            and UNITS_MAP[w.lower()] >= 10
+            and w.lower() not in AMBIGUOUS_ROMAN_WORDS
             for w in run
         )
 
@@ -452,4 +667,3 @@ def compute_normalized_wer_cer(
     wer = float(jiwer.wer(canon_ref, canon_hyp))
     cer = float(jiwer.cer(canon_ref, canon_hyp))
     return wer, cer, canon_ref, canon_hyp
-

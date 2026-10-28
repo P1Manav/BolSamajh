@@ -8,20 +8,22 @@ installs from requirements.lock.txt, and verifies the smoke tests:
 Saves raw transcript to docs/evidence/fresh_clone.txt.
 """
 
-import os
-import sys
-import time
-import shutil
-import urllib.request
 import json
+import os
+import shutil
 import subprocess
+import sys
 import tempfile
+import time
+import urllib.request
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
+
 def run_fresh_clone_test():
     transcript = []
+
     def log_print(msg: str):
         print(msg)
         transcript.append(msg)
@@ -55,21 +57,35 @@ def run_fresh_clone_test():
     clone_pip = venv_dir / "Scripts" / "pip.exe"
     log_print(f"[+] Fresh venv created: {clone_python}")
 
-    log_print("\n[Step 3] Installing dependencies from requirements.lock.txt (or requirements.txt)...")
+    log_print(
+        "\n[Step 3] Installing dependencies from requirements.lock.txt (or requirements.txt)..."
+    )
     t0 = time.time()
     # Install locked dependencies
     pip_res = subprocess.run(
-        [str(clone_pip), "install", "-r", str(temp_clone_dir / "requirements.lock.txt"), "--no-warn-script-location"],
+        [
+            str(clone_pip),
+            "install",
+            "-r",
+            str(temp_clone_dir / "requirements.lock.txt"),
+            "--no-warn-script-location",
+        ],
         capture_output=True,
         text=True,
     )
-    log_print(f"[+] Pip install finished in {time.time() - t0:.1f}s (Return Code: {pip_res.returncode})")
+    log_print(
+        f"[+] Pip install finished in {time.time() - t0:.1f}s (Return Code: {pip_res.returncode})"
+    )
     if pip_res.returncode != 0:
         log_print(f"Pip stderr: {pip_res.stderr[:500]}")
-    assert pip_res.returncode == 0, f"Pip install failed!"
+    assert pip_res.returncode == 0, "Pip install failed!"
 
     log_print("\n[Step 4] Running smoke test 1: Package import & version check...")
-    import_cmd = [str(clone_python), "-c", "import bolsamajh; print('BolSamajh Version:', bolsamajh.__version__)"]
+    import_cmd = [
+        str(clone_python),
+        "-c",
+        "import bolsamajh; print('BolSamajh Version:', bolsamajh.__version__)",
+    ]
     import_res = subprocess.run(import_cmd, cwd=str(temp_clone_dir), capture_output=True, text=True)
     log_print(f"Output: {import_res.stdout.strip()}")
     assert import_res.returncode == 0, f"Import smoke test failed: {import_res.stderr}"

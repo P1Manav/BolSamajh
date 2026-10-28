@@ -1,0 +1,21 @@
+# BolSamajh — Development, Testing, and Evaluation Dependencies
+# Install: pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# Testing framework & async test harness
+pytest==9.1.1
+pytest-asyncio>=0.23.0
+anyio==4.15.1
+
+# Code quality & static analysis
+ruff==0.17.2
+
+# Evaluation & Metrics
+jiwer==4.0.0
+tabulate==0.10.0
+tqdm==4.70.1
+
+# Bolna Client Integration & Verification
+bolna==0.11.10
+openai>=1.50.0

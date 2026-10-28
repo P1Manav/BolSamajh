@@ -1,7 +1,8 @@
 """Unit tests for clipboard text insertion and selection with sentinel verification."""
 
-from unittest.mock import patch, MagicMock
-from bolsamajh.utils.clipboard import insert_text, get_selected_text
+from unittest.mock import patch
+
+from bolsamajh.utils.clipboard import get_selected_text, insert_text
 
 
 def test_get_selected_text_with_sentinel():
@@ -14,10 +15,11 @@ def test_get_selected_text_with_sentinel():
     def mock_paste():
         return clipboard_state["content"]
 
-    with patch("pyperclip.copy", side_effect=mock_copy), \
-         patch("pyperclip.paste", side_effect=mock_paste), \
-         patch("bolsamajh.utils.clipboard._keyboard") as mock_kb:
-
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
+        patch("bolsamajh.utils.clipboard._keyboard") as mock_kb,
+    ):
         # Scenario 1: Target app copies new text
         def on_press(key):
             if key == "c":
@@ -41,10 +43,11 @@ def test_get_selected_text_no_selection_sentinel_remains():
     def mock_paste():
         return clipboard_state["content"]
 
-    with patch("pyperclip.copy", side_effect=mock_copy), \
-         patch("pyperclip.paste", side_effect=mock_paste), \
-         patch("bolsamajh.utils.clipboard._keyboard"):
-
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
+        patch("bolsamajh.utils.clipboard._keyboard"),
+    ):
         # Target app does NOT modify clipboard upon Ctrl+C
         selected = get_selected_text(timeout_sec=0.05)
         assert selected == ""
@@ -62,10 +65,11 @@ def test_insert_text_mocked():
     def mock_paste():
         return clipboard_state["content"]
 
-    with patch("pyperclip.copy", side_effect=mock_copy), \
-         patch("pyperclip.paste", side_effect=mock_paste), \
-         patch("bolsamajh.utils.clipboard._keyboard"):
-
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
+        patch("bolsamajh.utils.clipboard._keyboard"),
+    ):
         insert_text("New dictated Hinglish sentence")
         # Restores prior text
         assert clipboard_state["content"] == "prior text"
@@ -82,10 +86,11 @@ def test_insert_text_restores_empty_clipboard(monkeypatch):
     def mock_paste():
         return clipboard_state["content"]
 
-    with patch("pyperclip.copy", side_effect=mock_copy), \
-         patch("pyperclip.paste", side_effect=mock_paste), \
-         patch("bolsamajh.utils.clipboard._keyboard"):
-
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
+        patch("bolsamajh.utils.clipboard._keyboard"),
+    ):
         insert_text("New text")
         # Must be cleared to empty string, not left with "New text"
         assert clipboard_state["content"] == ""
@@ -102,12 +107,12 @@ def test_get_selected_text_restores_empty_clipboard(monkeypatch):
     def mock_paste():
         return clipboard_state["content"]
 
-    with patch("pyperclip.copy", side_effect=mock_copy), \
-         patch("pyperclip.paste", side_effect=mock_paste), \
-         patch("bolsamajh.utils.clipboard._keyboard"):
-
+    with (
+        patch("pyperclip.copy", side_effect=mock_copy),
+        patch("pyperclip.paste", side_effect=mock_paste),
+        patch("bolsamajh.utils.clipboard._keyboard"),
+    ):
         selected = get_selected_text(timeout_sec=0.02)
         assert selected == ""
         # Must restore to empty string, not leave the sentinel
         assert clipboard_state["content"] == ""
-

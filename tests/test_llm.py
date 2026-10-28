@@ -1,8 +1,10 @@
 """Unit tests for LLM adapters and fallback mechanism."""
 
-import pytest
-import httpx
 from typing import AsyncIterator
+
+import httpx
+import pytest
+
 from bolsamajh.llm.base import LLMAdapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
 from bolsamajh.llm.google_ai import GoogleAIAdapter
@@ -10,7 +12,9 @@ from bolsamajh.llm.ollama_adapter import OllamaAdapter
 
 
 class MockLLMAdapter(LLMAdapter):
-    def __init__(self, name_str: str, should_fail: bool = False, response_text: str = "mock answer"):
+    def __init__(
+        self, name_str: str, should_fail: bool = False, response_text: str = "mock answer"
+    ):
         self._name = name_str
         self.should_fail = should_fail
         self.response_text = response_text
@@ -257,6 +261,7 @@ def test_api_status_reports_llm_fallback_unavailable(monkeypatch):
     """Test that /api/status reports 'LLM fallback unavailable' when no key is set."""
     monkeypatch.delenv("GOOGLE_AI_API_KEY", raising=False)
     from fastapi.testclient import TestClient
+
     from bolsamajh.web.server import app
 
     client = TestClient(app)
@@ -264,6 +269,3 @@ def test_api_status_reports_llm_fallback_unavailable(monkeypatch):
     assert resp.status_code == 200
     data = resp.json()
     assert data["llm_fallback"] == "LLM fallback unavailable"
-
-
-

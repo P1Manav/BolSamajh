@@ -10,9 +10,9 @@ Adheres strictly to Tier 1 Guidelines:
 - Displays calibrated refusal threshold with F1, Precision, and Recall.
 """
 
-import sys
 import json
 import re
+import sys
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -81,11 +81,15 @@ def format_real_speech_table(real_results: dict) -> str:
             gu_str = "— *(N/A: Hinglish-only)*"
             display_name = f"{model_name} <br><sub>third-party CT2 conversion of Oriserve Swift (unverified)</sub>"
 
-        lines.append(f"| **{display_name}** | `{prec}` | {hi_str} | {gu_str} | **{cs_str}** | {all_real_str} | **{lat_str}** | **{rtf_str}** |")
+        lines.append(
+            f"| **{display_name}** | `{prec}` | {hi_str} | {gu_str} | **{cs_str}** | {all_real_str} | **{lat_str}** | **{rtf_str}** |"
+        )
 
     lines.append("")
     lines.append("> **Recommended Default Engine:**  ")
-    lines.append("> **`large-v3-turbo` is the recommended default model.** On the directly comparable 100-clip conversational Hinglish split (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20%, +11.68% margin) and `whisper-hinglish-swift` (52.70%, +14.18% margin). Across the full 300-clip real-world evaluation, `large-v3-turbo` achieves **43.47% WER** with multilingual Hindi/Gujarati coverage at 316.7 ms latency (0.059x RTF, over 16x faster than realtime).")
+    lines.append(
+        "> **`large-v3-turbo` is the recommended default model.** On the directly comparable 100-clip conversational Hinglish split (HiACC), `large-v3-turbo` achieves **38.52% WER**, outperforming `medium` (50.20%, +11.68% margin) and `whisper-hinglish-swift` (52.70%, +14.18% margin). Across the full 300-clip real-world evaluation, `large-v3-turbo` achieves **43.47% WER** with multilingual Hindi/Gujarati coverage at 316.7 ms latency (0.059x RTF, over 16x faster than realtime)."
+    )
 
     return "\n".join(lines)
 
@@ -166,7 +170,9 @@ def format_hardware_table(hw_data: dict) -> str:
         real_speech_row = f"| **STT Latency (Real Speech)** | Median over {real_count} real speech clips (`{real_dev}` `{real_comp_type}`) | **{real_median} ms**{p95_str} (RTF **{real_rtf}x**) | < 2,000 ms | **{real_status}** |"
         notes_line = "> Measured across 3 runs with warmup (excluded). Host GPU state was recorded via nvidia-smi with background processes logged."
     else:
-        real_speech_row = "| **STT Latency (Real Speech)** | Real speech audio | *not measured* | — | — |"
+        real_speech_row = (
+            "| **STT Latency (Real Speech)** | Real speech audio | *not measured* | — | — |"
+        )
         notes_line = "> Real speech latency not measured."
 
     lines = [
@@ -192,20 +198,22 @@ def format_hardware_table(hw_data: dict) -> str:
 
 def format_retrieval_table(retrieval_data: dict) -> str:
     """Format calibrated XQuAD retrieval benchmark table."""
-    return "\n".join([
-        "### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)",
-        "",
-        "> Grounded evaluation on Google XQuAD Hindi validation set (CC-BY-SA-4.0). Calibrated across 200 relevant queries and 200 irrelevant/unanswerable queries by F1-score maximization.",
-        "",
-        "| Metric | Measured Value | Target / Notes |",
-        "| :--- | :---: | :--- |",
-        f"| **Embedding Model** | `{retrieval_data['embedding_model']}` | 512 token context, passage/query prefixes |",
-        f"| **Hit@1** | **{retrieval_data['hit_at_1_pct']}%** | Target passage retrieved at rank 1 |",
-        f"| **Hit@3** | **{retrieval_data['hit_at_3_pct']}%** | Target passage retrieved in top 3 |",
-        f"| **Hit@5** | **{retrieval_data['hit_at_5_pct']}%** | Target passage retrieved in top 5 |",
-        f"| **Mean Retrieval Latency** | **{retrieval_data['mean_latency_ms']} ms** | Sub-35ms local FAISS search |",
-        f"| **Calibrated Refusal Threshold** | **{retrieval_data['calibrated_refusal_threshold']}** | F1: **{retrieval_data['f1_score']}** (Precision: **{retrieval_data['precision_pct']}%**, Recall: **{retrieval_data['recall_pct']}%**) |",
-    ])
+    return "\n".join(
+        [
+            "### 4. Multilingual Document Retrieval Benchmark (Google XQuAD Hindi)",
+            "",
+            "> Grounded evaluation on Google XQuAD Hindi validation set (CC-BY-SA-4.0). Calibrated across 200 relevant queries and 200 irrelevant/unanswerable queries by F1-score maximization.",
+            "",
+            "| Metric | Measured Value | Target / Notes |",
+            "| :--- | :---: | :--- |",
+            f"| **Embedding Model** | `{retrieval_data['embedding_model']}` | 512 token context, passage/query prefixes |",
+            f"| **Hit@1** | **{retrieval_data['hit_at_1_pct']}%** | Target passage retrieved at rank 1 |",
+            f"| **Hit@3** | **{retrieval_data['hit_at_3_pct']}%** | Target passage retrieved in top 3 |",
+            f"| **Hit@5** | **{retrieval_data['hit_at_5_pct']}%** | Target passage retrieved in top 5 |",
+            f"| **Mean Retrieval Latency** | **{retrieval_data['mean_latency_ms']} ms** | Sub-35ms local FAISS search |",
+            f"| **Calibrated Refusal Threshold** | **{retrieval_data['calibrated_refusal_threshold']}** | F1: **{retrieval_data['f1_score']}** (Precision: **{retrieval_data['precision_pct']}%**, Recall: **{retrieval_data['recall_pct']}%**) |",
+        ]
+    )
 
 
 BENCHMARK_MD_PATH = ROOT_DIR / "benchmark_data" / "BENCHMARK_RESULTS.md"
@@ -233,7 +241,12 @@ def format_ablation_table(full_results: dict) -> str:
         data = ablation.get(key, {})
         r_norm = data.get("real_speech_wer_normalized_pct", "—")
         r_raw = data.get("real_speech_wer_raw_pct", "—")
-        if r_norm != "—" and r_raw != "—" and isinstance(r_norm, (int, float)) and isinstance(r_raw, (int, float)):
+        if (
+            r_norm != "—"
+            and r_raw != "—"
+            and isinstance(r_norm, (int, float))
+            and isinstance(r_raw, (int, float))
+        ):
             r_diff = f"{round(r_norm - r_raw, 2):+.2f}%"
             r_norm_str = f"{r_norm}%"
             r_raw_str = f"{r_raw}%"
@@ -244,7 +257,12 @@ def format_ablation_table(full_results: dict) -> str:
 
         s_norm = data.get("synthetic_stress_wer_normalized_pct", "—")
         s_raw = data.get("synthetic_stress_wer_raw_pct", "—")
-        if s_norm != "—" and s_raw != "—" and isinstance(s_norm, (int, float)) and isinstance(s_raw, (int, float)):
+        if (
+            s_norm != "—"
+            and s_raw != "—"
+            and isinstance(s_norm, (int, float))
+            and isinstance(s_raw, (int, float))
+        ):
             s_diff = f"{round(s_norm - s_raw, 2):+.2f}%"
             s_norm_str = f"{s_norm}%"
             s_raw_str = f"{s_raw}%"
@@ -253,7 +271,9 @@ def format_ablation_table(full_results: dict) -> str:
             s_norm_str = f"{s_norm}%" if s_norm != "—" else "—"
             s_raw_str = f"{s_raw}%" if s_raw != "—" else "—"
 
-        lines.append(f"| **{name}** | {r_norm_str} | {r_raw_str} | {r_diff} | {s_norm_str} | {s_raw_str} | {s_diff} |")
+        lines.append(
+            f"| **{name}** | {r_norm_str} | {r_raw_str} | {r_diff} | {s_norm_str} | {s_raw_str} | {s_diff} |"
+        )
 
     return "\n".join(lines)
 
@@ -265,14 +285,20 @@ def update_benchmark_results_summary(
     full_results: dict = None,
     hw_data: dict = None,
 ) -> str:
-    content = md_text if md_text is not None else (BENCHMARK_MD_PATH.read_text(encoding="utf-8") if BENCHMARK_MD_PATH.exists() else "")
+    content = (
+        md_text
+        if md_text is not None
+        else (BENCHMARK_MD_PATH.read_text(encoding="utf-8") if BENCHMARK_MD_PATH.exists() else "")
+    )
     if not content:
         return ""
 
     # Dynamic header stamps from empirical JSON truth
     if full_results and "timestamp" in full_results:
         run_date = full_results["timestamp"].split()[0]
-        content = re.sub(r">\s*\*\*Last Updated:\*\*.*", f"> **Last Updated:** {run_date}  ", content)
+        content = re.sub(
+            r">\s*\*\*Last Updated:\*\*.*", f"> **Last Updated:** {run_date}  ", content
+        )
     if hw_data and "gpu_specs" in hw_data:
         gpu_name = hw_data["gpu_specs"].get("device_name", "NVIDIA GeForce RTX 3060 Ti")
         vram_mb = int(hw_data["gpu_specs"].get("total_vram_mb", 8192))
@@ -284,9 +310,17 @@ def update_benchmark_results_summary(
         )
 
     meta = {
-        "large-v3-turbo": ("faster-whisper large-v3-turbo", "Whisper Large-v3-turbo CT2", "Apache-2.0"),
+        "large-v3-turbo": (
+            "faster-whisper large-v3-turbo",
+            "Whisper Large-v3-turbo CT2",
+            "Apache-2.0",
+        ),
         "medium": ("faster-whisper medium", "Whisper Medium CT2", "MIT"),
-        "whisper-hinglish-swift": ("whisper-hinglish-swift", "Whisper Small Hinglish CT2", "Apache-2.0"),
+        "whisper-hinglish-swift": (
+            "whisper-hinglish-swift",
+            "Whisper Small Hinglish CT2",
+            "Apache-2.0",
+        ),
     }
 
     rows = [
@@ -337,7 +371,9 @@ def update_benchmark_results_summary(
         if key != "medium":
             rtf_str = f"**{rtf_str}**"
 
-        rows.append(f"| **{name}** | {arch} | {lic} | {all_real_str} | {h_str} | {s_str} | {lat_str} | {rtf_str} |")
+        rows.append(
+            f"| **{name}** | {arch} | {lic} | {all_real_str} | {h_str} | {s_str} | {lat_str} | {rtf_str} |"
+        )
 
     table_str = "\n".join(rows)
     recommendation = (
@@ -365,13 +401,19 @@ def update_benchmark_results_summary(
         else:
             new_content = new_content.replace(
                 "<!-- WORST_CLIPS_START -->",
-                f"{ablation_table}\n\n---\n\n<!-- WORST_CLIPS_START -->"
+                f"{ablation_table}\n\n---\n\n<!-- WORST_CLIPS_START -->",
             )
 
     return new_content
 
 
-def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, retrieval_data: dict, full_results: dict = None) -> dict:
+def get_metrics_dict(
+    real_results: dict,
+    synth_results: dict,
+    hw_data: dict,
+    retrieval_data: dict,
+    full_results: dict = None,
+) -> dict:
     t_data = real_results.get("large-v3-turbo", {})
     t_splits = t_data.get("splits", {})
     t_synth = synth_results.get("large-v3-turbo", {})
@@ -415,7 +457,6 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "stt.turbo.synth_wer": f"{t_synth.get('mean_wer_pct', 'N/A')}%",
         "stt.turbo.synth_latency_ms": str(t_synth.get("mean_latency_ms", "N/A")),
         "stt.turbo.synth_rtf": str(t_synth.get("mean_rtf", "N/A")),
-
         # STT Medium
         "stt.medium.hiacc_wer": f"{m_hiacc}%",
         "stt.medium.hiacc_wer_val": str(m_hiacc),
@@ -430,7 +471,6 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "stt.medium.synth_wer": f"{m_synth.get('mean_wer_pct', 'N/A')}%",
         "stt.medium.synth_latency_ms": str(m_synth.get("mean_latency_ms", "N/A")),
         "stt.medium.synth_rtf": str(m_synth.get("mean_rtf", "N/A")),
-
         # STT Swift
         "stt.swift.hiacc_wer": f"{s_hiacc}%",
         "stt.swift.hiacc_wer_val": str(s_hiacc),
@@ -440,12 +480,15 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "stt.swift.synth_wer": f"{s_synth.get('mean_wer_pct', 'N/A')}%",
         "stt.swift.synth_latency_ms": str(s_synth.get("mean_latency_ms", "N/A")),
         "stt.swift.synth_rtf": str(s_synth.get("mean_rtf", "N/A")),
-
         # Hardware measurements
         "hw.device_name": str(hw_data.get("gpu_specs", {}).get("device_name", "NVIDIA GPU")),
         "hw.vram_total_mb": str(hw_data.get("gpu_specs", {}).get("total_vram_mb", 8192.0)),
         "hw.stt_model": str(stt_hw.get("model", "faster-whisper-large-v3-turbo")),
-        "hw.stt_synth_latency_ms": str(stt_hw.get("latency_ms", {}).get("median", stt_hw.get("latency_ms", {}).get("mean", "N/A"))),
+        "hw.stt_synth_latency_ms": str(
+            stt_hw.get("latency_ms", {}).get(
+                "median", stt_hw.get("latency_ms", {}).get("mean", "N/A")
+            )
+        ),
         "hw.stt_synth_median_latency_ms": str(stt_hw.get("latency_ms", {}).get("median", "N/A")),
         "hw.stt_synth_p95_latency_ms": str(stt_hw.get("latency_ms", {}).get("p95", "N/A")),
         "hw.stt_synth_rtf": str(stt_hw.get("real_time_factor_rtf", "N/A")),
@@ -454,14 +497,17 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "hw.stt_real_median_latency_ms": str(real_comp.get("median_latency_ms", "N/A")),
         "hw.stt_real_p95_latency_ms": str(real_comp.get("p95_latency_ms", "N/A")),
         "hw.stt_real_rtf": str(real_comp.get("real_time_factor_rtf", "N/A")),
-        "hw.vram_allocated_delta_mb": str(stt_hw.get("vram_mb", {}).get("model_allocated_delta", "N/A")),
+        "hw.vram_allocated_delta_mb": str(
+            stt_hw.get("vram_mb", {}).get("model_allocated_delta", "N/A")
+        ),
         "hw.vram_peak_used_mb": str(stt_hw.get("vram_mb", {}).get("peak_total_used", "N/A")),
         "hw.retrieval_latency_ms": str(rag_hw.get("median", rag_hw.get("mean", "N/A"))),
         "hw.tts_first_packet_ms": str(tts_hw.get("first_packet_latency_ms", "N/A")),
         "hw.total_ttfa_ms": str(pipe_hw.get("total_pipeline_ttfa_ms", "N/A")),
-
         # RAG XQuAD
-        "rag.embedding_model": str(retrieval_data.get("embedding_model", "intfloat/multilingual-e5-base")),
+        "rag.embedding_model": str(
+            retrieval_data.get("embedding_model", "intfloat/multilingual-e5-base")
+        ),
         "rag.hit_at_1": f"{retrieval_data.get('hit_at_1_pct', 'N/A')}%",
         "rag.hit_at_3": f"{retrieval_data.get('hit_at_3_pct', 'N/A')}%",
         "rag.hit_at_5": f"{retrieval_data.get('hit_at_5_pct', 'N/A')}%",
@@ -470,11 +516,14 @@ def get_metrics_dict(real_results: dict, synth_results: dict, hw_data: dict, ret
         "rag.f1": str(retrieval_data.get("f1_score", "N/A")),
         "rag.precision": f"{retrieval_data.get('precision_pct', 'N/A')}%",
         "rag.recall": f"{retrieval_data.get('recall_pct', 'N/A')}%",
-
         # General
         "benchmark.total_clips": "1,000",
-        "benchmark.last_updated": str((full_results or {}).get("timestamp", "2026-10-26")).split()[0],
-        "benchmark.cuda_version": str(hw_data.get("gpu_specs", {}).get("cuda_version", "Direct CTranslate2 CUDA / cuBLAS")),
+        "benchmark.last_updated": str((full_results or {}).get("timestamp", "2026-10-26")).split()[
+            0
+        ],
+        "benchmark.cuda_version": str(
+            hw_data.get("gpu_specs", {}).get("cuda_version", "Direct CTranslate2 CUDA / cuBLAS")
+        ),
     }
     return metrics
 
@@ -523,7 +572,9 @@ def sync_all_documentation(check_only: bool = False) -> bool:
     with open(RETRIEVAL_PATH, "r", encoding="utf-8") as f:
         retrieval_data = json.load(f)
 
-    metrics = get_metrics_dict(real_results, synth_results, hw_data, retrieval_data, full_results=full_results)
+    metrics = get_metrics_dict(
+        real_results, synth_results, hw_data, retrieval_data, full_results=full_results
+    )
 
     has_diff = False
 
@@ -548,14 +599,20 @@ def sync_all_documentation(check_only: bool = False) -> bool:
             ]
             gen_tables = "\n".join(blocks)
             pattern = r"<!-- BENCHMARK_TABLE_START -->.*?<!-- BENCHMARK_TABLE_END -->"
-            replacement = f"<!-- BENCHMARK_TABLE_START -->\n\n{gen_tables}\n<!-- BENCHMARK_TABLE_END -->"
+            replacement = (
+                f"<!-- BENCHMARK_TABLE_START -->\n\n{gen_tables}\n<!-- BENCHMARK_TABLE_END -->"
+            )
             if re.search(pattern, updated_text, flags=re.DOTALL):
                 updated_text = re.sub(pattern, replacement, updated_text, flags=re.DOTALL)
 
         # 2. Update BENCHMARK_RESULTS.md Section 1 Executive Summary, Section 2 Ablation, and Header Stamps
         if doc_path == BENCHMARK_MD_PATH:
             updated_text = update_benchmark_results_summary(
-                real_results, synth_results, updated_text, full_results=full_results, hw_data=hw_data
+                real_results,
+                synth_results,
+                updated_text,
+                full_results=full_results,
+                hw_data=hw_data,
             )
 
         # 3. Render all placeholders
@@ -569,7 +626,9 @@ def sync_all_documentation(check_only: bool = False) -> bool:
 
         if updated_text != orig_text:
             if check_only:
-                print(f"[CHECK FAILED] File {doc_path.name} differs from generated output or has un-rendered placeholders.")
+                print(
+                    f"[CHECK FAILED] File {doc_path.name} differs from generated output or has un-rendered placeholders."
+                )
                 has_diff = True
             else:
                 doc_path.write_text(updated_text, encoding="utf-8")
@@ -586,8 +645,15 @@ def update_readme():
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Generate and sync README and documentation tables")
-    parser.add_argument("--check", action="store_true", help="Exit non-zero if any file differs or has un-rendered placeholders")
+
+    parser = argparse.ArgumentParser(
+        description="Generate and sync README and documentation tables"
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Exit non-zero if any file differs or has un-rendered placeholders",
+    )
     args = parser.parse_args()
 
     success = sync_all_documentation(check_only=args.check)
@@ -596,10 +662,11 @@ def main():
             print("[OK] All documentation numbers and tables match JSON source of truth.")
             sys.exit(0)
         else:
-            print("[FAIL] Documentation differs from JSON source of truth or contains un-rendered placeholders.")
+            print(
+                "[FAIL] Documentation differs from JSON source of truth or contains un-rendered placeholders."
+            )
             sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
-

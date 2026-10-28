@@ -1,12 +1,13 @@
 """faster-whisper STT adapter — CTranslate2-backed Whisper for fast local transcription."""
 
 import io
-import re
+import logging
 import time
 import wave
-import logging
-from typing import Optional, Union, Dict, Any
+from typing import Optional
+
 import numpy as np
+
 from bolsamajh.stt.base import SpeechToText, TranscriptResult
 
 log = logging.getLogger(__name__)
@@ -23,10 +24,24 @@ MODEL_NAME_MAP = {
 }
 
 _HALLUCINATION_PHRASES = {
-    "thank you", "thank you very much", "thanks for watching", "subtitles by",
-    "subscribe", "thank you.", "[blank_audio]", "you", "bye", "so", "the end",
-    "धन्यवाद", "देखने के लिए धन्यवाद", "सब्सक्राइब करें", "कृपया चैनल को सब्सक्राइब करें",
-    "शुक्रिया", "नमस्ते", "धन्यवाद।"
+    "thank you",
+    "thank you very much",
+    "thanks for watching",
+    "subtitles by",
+    "subscribe",
+    "thank you.",
+    "[blank_audio]",
+    "you",
+    "bye",
+    "so",
+    "the end",
+    "धन्यवाद",
+    "देखने के लिए धन्यवाद",
+    "सब्सक्राइब करें",
+    "कृपया चैनल को सब्सक्राइब करें",
+    "शुक्रिया",
+    "नमस्ते",
+    "धन्यवाद।",
 }
 
 
@@ -41,13 +56,18 @@ def _has_repeated_ngrams(text: str) -> bool:
     if len(words) >= 4:
         # Check repeated unigrams (>= 4 times consecutively)
         for i in range(len(words) - 3):
-            if words[i].lower() == words[i+1].lower() == words[i+2].lower() == words[i+3].lower():
+            if (
+                words[i].lower()
+                == words[i + 1].lower()
+                == words[i + 2].lower()
+                == words[i + 3].lower()
+            ):
                 return True
         # Check repeated bigrams (>= 3 times consecutively)
         if len(words) >= 6:
-            bigrams = [f"{words[i]} {words[i+1]}".lower() for i in range(len(words) - 1)]
+            bigrams = [f"{words[i]} {words[i + 1]}".lower() for i in range(len(words) - 1)]
             for i in range(len(bigrams) - 2):
-                if bigrams[i] == bigrams[i+1] == bigrams[i+2]:
+                if bigrams[i] == bigrams[i + 1] == bigrams[i + 2]:
                     return True
     return False
 
@@ -80,8 +100,13 @@ class FasterWhisperSTT(SpeechToText):
         from faster_whisper import WhisperModel
 
         resolved_model = resolve_model_id(self.model_size)
-        log.info("Loading faster-whisper model '%s' (resolved to '%s') on %s (%s)…",
-                 self.model_size, resolved_model, self.device, self.compute_type)
+        log.info(
+            "Loading faster-whisper model '%s' (resolved to '%s') on %s (%s)…",
+            self.model_size,
+            resolved_model,
+            self.device,
+            self.compute_type,
+        )
         t0 = time.time()
         try:
             self._model = WhisperModel(
@@ -91,8 +116,12 @@ class FasterWhisperSTT(SpeechToText):
             )
         except Exception as e:
             if self.device != "cpu":
-                log.warning("Failed to initialize model on %s (%s), falling back to CPU small model (int8): %s",
-                            self.device, self.compute_type, e)
+                log.warning(
+                    "Failed to initialize model on %s (%s), falling back to CPU small model (int8): %s",
+                    self.device,
+                    self.compute_type,
+                    e,
+                )
                 self.device = "cpu"
                 self.compute_type = "int8"
                 self.model_size = "small"
@@ -138,11 +167,11 @@ class FasterWhisperSTT(SpeechToText):
                 language="",
                 confidence=0.0,
                 duration_seconds=duration,
-                processing_seconds=0.0
+                processing_seconds=0.0,
             )
 
         # Silence / low-energy gate: discard audio with RMS energy below 0.003
-        rms = float(np.sqrt(np.mean(audio_np ** 2))) if len(audio_np) > 0 else 0.0
+        rms = float(np.sqrt(np.mean(audio_np**2))) if len(audio_np) > 0 else 0.0
         if rms < 0.003:
             log.debug("Audio clip RMS (%.5f) below silence threshold; skipping.", rms)
             return TranscriptResult(
@@ -150,7 +179,7 @@ class FasterWhisperSTT(SpeechToText):
                 language="",
                 confidence=0.0,
                 duration_seconds=duration,
-                processing_seconds=0.0
+                processing_seconds=0.0,
             )
 
         log.debug("Transcribing %.1fs of audio (RMS=%.4f)…", duration, rms)
@@ -191,7 +220,10 @@ class FasterWhisperSTT(SpeechToText):
                 texts.append(segment.text.strip())
         except Exception as e:
             if self.device != "cpu" and ("cublas" in str(e).lower() or "cuda" in str(e).lower()):
-                log.warning("CUDA execution failed at runtime (%s), falling back to CPU small model (int8)", e)
+                log.warning(
+                    "CUDA execution failed at runtime (%s), falling back to CPU small model (int8)",
+                    e,
+                )
                 self.device = "cpu"
                 self.compute_type = "int8"
                 self.model_size = "small"
@@ -221,8 +253,9 @@ class FasterWhisperSTT(SpeechToText):
 
         elapsed = time.time() - t0
 
-        log.info("Transcribed in %.2fs (RTF=%.2f): %s",
-                 elapsed, elapsed / max(duration, 0.01), text[:80])
+        log.info(
+            "Transcribed in %.2fs (RTF=%.2f): %s", elapsed, elapsed / max(duration, 0.01), text[:80]
+        )
 
         return TranscriptResult(
             text=text,
@@ -240,6 +273,7 @@ class FasterWhisperSTT(SpeechToText):
             # Trigger CUDA memory cleanup
             try:
                 import torch
+
                 torch.cuda.empty_cache()
             except ImportError:
                 pass
@@ -276,4 +310,3 @@ class FasterWhisperSTT(SpeechToText):
             audio = np.interp(new_indices, old_indices, audio).astype(np.float32)
 
         return audio
-

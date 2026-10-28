@@ -1,10 +1,10 @@
 """Document chunker — sentence-aware chunking with cross-page merging and format-specific citations."""
 
-import re
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
 from bolsamajh.documents.loader import Document
 from bolsamajh.utils.sentence_splitter import split_sentences
@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 @dataclass
 class Chunk:
     """A chunk of text with source metadata for citation."""
+
     text: str
     page_number: int = 0
     page_start: int = 0
@@ -46,9 +47,8 @@ class Chunk:
         """
         # Strict document type check: rely on doc_type or exact .pdf file extension,
         # never loose substring matching.
-        is_pdf = (
-            self.doc_type.lower() == "pdf" or
-            (not self.doc_type and self.source.lower().endswith(".pdf"))
+        is_pdf = self.doc_type.lower() == "pdf" or (
+            not self.doc_type and self.source.lower().endswith(".pdf")
         )
 
         if is_pdf:
@@ -97,7 +97,9 @@ def count_tokens(text: str, tokenizer: Optional[Any] = None) -> int:
     return max(1, tokens)
 
 
-def _split_oversized_sentence(sentence: str, max_tokens: int, tokenizer: Optional[Any] = None) -> List[str]:
+def _split_oversized_sentence(
+    sentence: str, max_tokens: int, tokenizer: Optional[Any] = None
+) -> List[str]:
     """Split an unpunctuated or oversized sentence into segments fitting within max_tokens."""
     tok_count = count_tokens(sentence, tokenizer)
     if tok_count <= max_tokens:
@@ -177,19 +179,21 @@ def chunk_document(
                     src = current_items[0][3] or default_source
                     src_name = Path(src).name if src else "doc"
 
-                    chunks.append(Chunk(
-                        text=chunk_text,
-                        page_number=page_start,
-                        page_start=page_start,
-                        page_end=page_end,
-                        section=sec_name,
-                        section_start=page_start,
-                        section_end=page_end,
-                        source=src,
-                        chunk_index=chunk_index,
-                        chunk_id=f"{src_name}_chunk_{chunk_index}",
-                        doc_type=document.doc_type,
-                    ))
+                    chunks.append(
+                        Chunk(
+                            text=chunk_text,
+                            page_number=page_start,
+                            page_start=page_start,
+                            page_end=page_end,
+                            section=sec_name,
+                            section_start=page_start,
+                            section_end=page_end,
+                            source=src,
+                            chunk_index=chunk_index,
+                            chunk_id=f"{src_name}_chunk_{chunk_index}",
+                            doc_type=document.doc_type,
+                        )
+                    )
                     chunk_index += 1
 
                     # Overlap: preserve trailing items whose tokens sum to <= chunk_overlap
@@ -205,7 +209,9 @@ def chunk_document(
                     current_items = overlap_items
                     current_tokens = overlap_tokens
 
-                current_items.append((sentence, page.page_number, page.section or "", page.source or default_source))
+                current_items.append(
+                    (sentence, page.page_number, page.section or "", page.source or default_source)
+                )
                 current_tokens += sent_tokens
 
     # Flush final remaining sentences
@@ -217,20 +223,27 @@ def chunk_document(
         src = current_items[0][3] or default_source
         src_name = Path(src).name if src else "doc"
 
-        chunks.append(Chunk(
-            text=chunk_text,
-            page_number=page_start,
-            page_start=page_start,
-            page_end=page_end,
-            section=sec_name,
-            section_start=page_start,
-            section_end=page_end,
-            source=src,
-            chunk_index=chunk_index,
-            chunk_id=f"{src_name}_chunk_{chunk_index}",
-            doc_type=document.doc_type,
-        ))
+        chunks.append(
+            Chunk(
+                text=chunk_text,
+                page_number=page_start,
+                page_start=page_start,
+                page_end=page_end,
+                section=sec_name,
+                section_start=page_start,
+                section_end=page_end,
+                source=src,
+                chunk_index=chunk_index,
+                chunk_id=f"{src_name}_chunk_{chunk_index}",
+                doc_type=document.doc_type,
+            )
+        )
 
-    log.debug("Chunked document '%s' into %d chunks (size=%d, overlap=%d)",
-              document.title, len(chunks), chunk_size, chunk_overlap)
+    log.debug(
+        "Chunked document '%s' into %d chunks (size=%d, overlap=%d)",
+        document.title,
+        len(chunks),
+        chunk_size,
+        chunk_overlap,
+    )
     return chunks

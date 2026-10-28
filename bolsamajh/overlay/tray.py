@@ -3,7 +3,8 @@ from __future__ import annotations
 """BolSamajh system-tray icon using pystray."""
 
 import logging
-from typing import Optional, Callable
+from typing import Callable, Optional
+
 from PIL import Image, ImageDraw, ImageFont
 
 try:
@@ -31,12 +32,13 @@ def _create_icon_image(size: int = 64) -> Image.Image:
         font = ImageFont.load_default()
     bbox = draw.textbbox((0, 0), "B", font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    draw.text(((size - tw) / 2, (size - th) / 2 - 4), "B",
-              fill=(255, 255, 255, 255), font=font)
+    draw.text(((size - tw) / 2, (size - th) / 2 - 4), "B", fill=(255, 255, 255, 255), font=font)
     return img
 
 
-def create_tray(config, on_quit_callback: Optional[Callable[[], None]] = None) -> Optional[pystray.Icon]:
+def create_tray(
+    config, on_quit_callback: Optional[Callable[[], None]] = None
+) -> Optional[pystray.Icon]:
     """Create and return the system-tray icon with Script Control menu."""
     if pystray is None or Item is None:
         log.warning("pystray is not available; system tray icon disabled.")
@@ -52,6 +54,7 @@ def create_tray(config, on_quit_callback: Optional[Callable[[], None]] = None) -
         def _handler(icon, item):
             log.info("Script mode switched to: %s", mode)
             config.dictation.script = mode
+
         return _handler
 
     icon = pystray.Icon(
@@ -67,22 +70,28 @@ def create_tray(config, on_quit_callback: Optional[Callable[[], None]] = None) -
                     Item(
                         "Natural (Mixed)",
                         set_script("natural"),
-                        checked=lambda item: getattr(config.dictation, "script", "natural") == "natural",
-                        radio=True
+                        checked=lambda item: (
+                            getattr(config.dictation, "script", "natural") == "natural"
+                        ),
+                        radio=True,
                     ),
                     Item(
                         "Roman (English Letters)",
                         set_script("roman"),
-                        checked=lambda item: getattr(config.dictation, "script", "natural") == "roman",
-                        radio=True
+                        checked=lambda item: (
+                            getattr(config.dictation, "script", "natural") == "roman"
+                        ),
+                        radio=True,
                     ),
                     Item(
                         "Devanagari (Hindi Script)",
                         set_script("devanagari"),
-                        checked=lambda item: getattr(config.dictation, "script", "natural") == "devanagari",
-                        radio=True
+                        checked=lambda item: (
+                            getattr(config.dictation, "script", "natural") == "devanagari"
+                        ),
+                        radio=True,
                     ),
-                )
+                ),
             ),
             pystray.Menu.SEPARATOR,
             Item("Quit", on_quit),

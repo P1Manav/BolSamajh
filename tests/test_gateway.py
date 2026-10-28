@@ -4,9 +4,9 @@ Tests TTS (/v1/audio/speech) and STT (/v1/audio/transcriptions) for Bolna agent 
 """
 
 import io
-import os
 import tempfile
 from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -28,7 +28,9 @@ def test_openai_speech_synthesis_end_to_end(fake_edge_tts):
     assert "audio/mpeg" in response.headers.get("content-type", "")
 
     audio_bytes = response.content
-    assert len(audio_bytes) > 1000, f"Expected non-trivial audio payload, got {len(audio_bytes)} bytes"
+    assert len(audio_bytes) > 1000, (
+        f"Expected non-trivial audio payload, got {len(audio_bytes)} bytes"
+    )
 
     # Save to a playable MP3 file
     with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_file:
@@ -41,7 +43,10 @@ def test_openai_speech_synthesis_end_to_end(fake_edge_tts):
 
         # Verify valid MP3 signature: ID3 header (b'ID3') or MPEG sync frame (b'\xff')
         is_id3 = audio_bytes[:3] == b"ID3"
-        has_sync_frame = any(audio_bytes[i:i+2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2") for i in range(min(512, len(audio_bytes)-1)))
+        has_sync_frame = any(
+            audio_bytes[i : i + 2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")
+            for i in range(min(512, len(audio_bytes) - 1))
+        )
         assert is_id3 or has_sync_frame, "Audio bytes do not contain valid MP3 header or sync frame"
     finally:
         if tmp_path.exists():
@@ -162,8 +167,9 @@ def test_openai_speech_edge_tts_failure_502(monkeypatch):
 
 def test_openai_speech_piper_singleton_load_voice_once(monkeypatch):
     """Verify that multiple /v1/audio/speech requests reuse the cached Piper instance and call _load_voice only once."""
-    from bolsamajh.web import server
     from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+    from bolsamajh.web import server
+
     server.reset_piper_adapter()
 
     load_voice_calls = []
@@ -171,6 +177,7 @@ def test_openai_speech_piper_singleton_load_voice_once(monkeypatch):
     def stub_load_voice(self):
         load_voice_calls.append(1)
         import unittest.mock
+
         stub_voice = unittest.mock.MagicMock()
 
         def mock_synth(text, wav_file=None):
@@ -190,29 +197,38 @@ def test_openai_speech_piper_singleton_load_voice_once(monkeypatch):
 
     monkeypatch.setattr(PiperTTSAdapter, "_load_voice", stub_load_voice)
 
-    resp1 = client.post("/v1/audio/speech", json={
-        "model": "tts-1",
-        "input": "First request text",
-        "voice": "piper",
-        "response_format": "wav",
-    })
+    resp1 = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "tts-1",
+            "input": "First request text",
+            "voice": "piper",
+            "response_format": "wav",
+        },
+    )
     assert resp1.status_code == 200
 
-    resp2 = client.post("/v1/audio/speech", json={
-        "model": "tts-1",
-        "input": "Second request text",
-        "voice": "piper",
-        "response_format": "wav",
-    })
+    resp2 = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "tts-1",
+            "input": "Second request text",
+            "voice": "piper",
+            "response_format": "wav",
+        },
+    )
     assert resp2.status_code == 200
 
-    assert len(load_voice_calls) == 1, f"Expected _load_voice to be called once, got {len(load_voice_calls)}"
+    assert len(load_voice_calls) == 1, (
+        f"Expected _load_voice to be called once, got {len(load_voice_calls)}"
+    )
     server.reset_piper_adapter()
 
 
 def test_openai_speech_piper_voice_wav(monkeypatch):
     """Verify /v1/audio/speech routes to Piper when voice='piper' and returns WAV."""
     import wave
+
     from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 
     def mock_synthesize(self, text):
@@ -226,12 +242,15 @@ def test_openai_speech_piper_voice_wav(monkeypatch):
 
     monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
 
-    response = client.post("/v1/audio/speech", json={
-        "model": "tts-1",
-        "input": "नमस्ते, Piper voice test.",
-        "voice": "piper",
-        "response_format": "wav",
-    })
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "tts-1",
+            "input": "नमस्ते, Piper voice test.",
+            "voice": "piper",
+            "response_format": "wav",
+        },
+    )
     assert response.status_code == 200
     assert "audio/wav" in response.headers.get("content-type", "")
     assert response.content[:4] == b"RIFF"
@@ -240,6 +259,7 @@ def test_openai_speech_piper_voice_wav(monkeypatch):
 def test_openai_speech_piper_voice_mp3(monkeypatch):
     """Verify /v1/audio/speech routes to Piper when voice='piper' and returns converted MP3."""
     import wave
+
     from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 
     def mock_synthesize(self, text):
@@ -253,12 +273,15 @@ def test_openai_speech_piper_voice_mp3(monkeypatch):
 
     monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
 
-    response = client.post("/v1/audio/speech", json={
-        "model": "tts-1",
-        "input": "Testing Piper MP3 output.",
-        "voice": "piper",
-        "response_format": "mp3",
-    })
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "tts-1",
+            "input": "Testing Piper MP3 output.",
+            "voice": "piper",
+            "response_format": "mp3",
+        },
+    )
     assert response.status_code == 200
     assert "audio/mpeg" in response.headers.get("content-type", "")
     assert len(response.content) > 100
@@ -267,9 +290,11 @@ def test_openai_speech_piper_voice_mp3(monkeypatch):
 def test_openai_speech_piper_model_routing(monkeypatch):
     """Verify /v1/audio/speech routes to Piper when model='piper'."""
     import wave
+
     from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 
     called = []
+
     def mock_synthesize(self, text):
         called.append(text)
         buf = io.BytesIO()
@@ -282,12 +307,15 @@ def test_openai_speech_piper_model_routing(monkeypatch):
 
     monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
 
-    response = client.post("/v1/audio/speech", json={
-        "model": "piper",
-        "input": "Testing model routing to Piper.",
-        "voice": "alloy",
-        "response_format": "wav",
-    })
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "piper",
+            "input": "Testing model routing to Piper.",
+            "voice": "alloy",
+            "response_format": "wav",
+        },
+    )
     assert response.status_code == 200
     assert len(called) == 1
     assert "Testing model routing" in called[0]
@@ -302,11 +330,13 @@ def test_openai_speech_piper_failure_502(monkeypatch):
 
     monkeypatch.setattr(PiperTTSAdapter, "synthesize_to_bytes", mock_synthesize)
 
-    response = client.post("/v1/audio/speech", json={
-        "model": "tts-1",
-        "input": "Testing Piper failure.",
-        "voice": "piper",
-    })
+    response = client.post(
+        "/v1/audio/speech",
+        json={
+            "model": "tts-1",
+            "input": "Testing Piper failure.",
+            "voice": "piper",
+        },
+    )
     assert response.status_code == 502
     assert "Piper TTS offline synthesis failed" in str(response.json())
-

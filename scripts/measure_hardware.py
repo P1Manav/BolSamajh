@@ -11,14 +11,14 @@ Measures empirically on the host machine:
 Saves verified metrics to benchmark_data/hardware_measurements.json.
 """
 
+import asyncio
+import json
 import os
 import sys
 import time
-import json
 import wave
-import asyncio
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import numpy as np
 import torch
@@ -31,6 +31,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
+
 setup_cuda_dlls()
 
 OUT_FILE = ROOT_DIR / "benchmark_data" / "hardware_measurements.json"
@@ -48,6 +49,7 @@ def _read_wav_float32(wav_path: str) -> tuple[np.ndarray, float]:
 def _get_nvidia_smi_details() -> dict:
     """Query nvidia-smi for full status, GPU name, memory, and running processes."""
     import subprocess
+
     try:
         raw_res = subprocess.run(
             ["nvidia-smi"],
@@ -64,7 +66,11 @@ def _get_nvidia_smi_details() -> dict:
     used_mb = 0.0
     try:
         res = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,memory.total,memory.used", "--format=csv,noheader,nounits"],
+            [
+                "nvidia-smi",
+                "--query-gpu=name,memory.total,memory.used",
+                "--format=csv,noheader,nounits",
+            ],
             capture_output=True,
             text=True,
             check=True,
@@ -80,14 +86,18 @@ def _get_nvidia_smi_details() -> dict:
     other_processes = []
     try:
         p_res = subprocess.run(
-            ["nvidia-smi", "--query-compute-apps=pid,process_name,used_memory", "--format=csv,noheader,nounits"],
+            [
+                "nvidia-smi",
+                "--query-compute-apps=pid,process_name,used_memory",
+                "--format=csv,noheader,nounits",
+            ],
             capture_output=True,
             text=True,
         )
         if p_res.stdout.strip():
-            for l in p_res.stdout.strip().split("\n"):
-                if l.strip():
-                    other_processes.append(l.strip())
+            for line in p_res.stdout.strip().split("\n"):
+                if line.strip():
+                    other_processes.append(line.strip())
     except Exception:
         pass
 
@@ -114,17 +124,32 @@ def measure_gpu_specs() -> Dict[str, Any]:
     cuda_available = torch.cuda.is_available() or details["total_vram_mb"] > 0
     specs = {
         "cuda_available": cuda_available,
-        "device_name": details["gpu_name"] if details["gpu_name"] != "Unknown GPU" else (torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"),
-        "total_vram_mb": details["total_vram_mb"] if details["total_vram_mb"] > 0 else (round(torch.cuda.get_device_properties(0).total_memory / (1024 ** 2), 1) if torch.cuda.is_available() else 0),
+        "device_name": details["gpu_name"]
+        if details["gpu_name"] != "Unknown GPU"
+        else (torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"),
+        "total_vram_mb": details["total_vram_mb"]
+        if details["total_vram_mb"] > 0
+        else (
+            round(torch.cuda.get_device_properties(0).total_memory / (1024**2), 1)
+            if torch.cuda.is_available()
+            else 0
+        ),
         "torch_version": torch.__version__,
-        "cuda_version": torch.version.cuda if torch.cuda.is_available() else "Direct CTranslate2 CUDA / cuBLAS",
+        "cuda_version": torch.version.cuda
+        if torch.cuda.is_available()
+        else "Direct CTranslate2 CUDA / cuBLAS",
         "other_gpu_processes_present": details["other_gpu_processes_present"],
         "nvidia_smi_output": details["nvidia_smi_output"],
     }
     return specs
 
 
-def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "cuda", compute_type: str = "int8_float16", test_wav: str = "benchmark_data/audio/sentence_001.wav") -> Dict[str, Any]:
+def measure_stt_performance(
+    model_size: str = "large-v3-turbo",
+    device: str = "cuda",
+    compute_type: str = "int8_float16",
+    test_wav: str = "benchmark_data/audio/sentence_001.wav",
+) -> Dict[str, Any]:
     from faster_whisper import WhisperModel
 
     smi_details = _get_nvidia_smi_details()
@@ -161,8 +186,8 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
     lang_hint = "en" if "swift" in model_size.lower() else "hi"
 
     from bolsamajh.benchmark.timing import (
-        time_single_transcription,
         benchmark_multi_length_clips,
+        time_single_transcription,
     )
 
     # 1. Warm-up runs (2 runs, excluded from latency metrics)
@@ -185,12 +210,14 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
         r_median = round(float(np.median(run_lats)), 1)
         r_p95 = round(float(np.percentile(run_lats, 95)), 1)
         print(f"    - Run {run_idx}: mean={r_mean} ms, median={r_median} ms, p95={r_p95} ms")
-        runs_data.append({
-            "run_index": run_idx,
-            "mean_latency_ms": r_mean,
-            "median_latency_ms": r_median,
-            "p95_latency_ms": r_p95,
-        })
+        runs_data.append(
+            {
+                "run_index": run_idx,
+                "mean_latency_ms": r_mean,
+                "median_latency_ms": r_median,
+                "p95_latency_ms": r_p95,
+            }
+        )
 
     overall_mean = round(float(np.mean(all_latencies)), 1)
     overall_median = round(float(np.median(all_latencies)), 1)
@@ -210,7 +237,9 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
         timed_runs=20,
     )
     for c_label, c_data in multi_len_benchmark["clips"].items():
-        print(f"      Clip {c_label} ({c_data['duration_sec']}s): median={c_data['median_latency_ms']} ms, p95={c_data['p95_latency_ms']} ms, RTF={c_data['rtf']}x")
+        print(
+            f"      Clip {c_label} ({c_data['duration_sec']}s): median={c_data['median_latency_ms']} ms, p95={c_data['p95_latency_ms']} ms, RTF={c_data['rtf']}x"
+        )
 
     # 4. Real speech empirical measurement across all evaluated real clips in per_clip_results.jsonl
     per_clip_path = ROOT_DIR / "benchmark_data" / "per_clip_results.jsonl"
@@ -222,7 +251,11 @@ def measure_stt_performance(model_size: str = "large-v3-turbo", device: str = "c
                 line = line.strip()
                 if line:
                     records.append(json.loads(line))
-        real_clips = [r for r in records if r.get("model") == model_size and not r.get("clip_id", "").startswith("synth_stress")]
+        real_clips = [
+            r
+            for r in records
+            if r.get("model") == model_size and not r.get("clip_id", "").startswith("synth_stress")
+        ]
         if real_clips:
             real_lats = [r["latency_ms"] for r in real_clips]
             real_durs = [r["audio_duration"] for r in real_clips]
@@ -297,7 +330,9 @@ def measure_retrieval_performance() -> Dict[str, Any]:
         )
         for i in range(1, 21)
     ]
-    doc = Document(title="Benchmark Document", source="benchmark_doc.pdf", pages=pages, doc_type="pdf")
+    doc = Document(
+        title="Benchmark Document", source="benchmark_doc.pdf", pages=pages, doc_type="pdf"
+    )
 
     retriever = DocumentRetriever(embedding_model="intfloat/multilingual-e5-base")
     t0 = time.perf_counter()
@@ -360,14 +395,18 @@ async def measure_edge_tts_first_packet() -> Dict[str, Any]:
     }
 
 
-def measure_doc_qa_pipeline_ttfa(stt_latency_ms: float, retrieval_latency_ms: float, edge_tts_first_packet_ms: float) -> Dict[str, Any]:
+def measure_doc_qa_pipeline_ttfa(
+    stt_latency_ms: float, retrieval_latency_ms: float, edge_tts_first_packet_ms: float
+) -> Dict[str, Any]:
     """Measure true end-to-end Time-to-First-Audio (TTFA) for Doc-QA.
 
     Question Audio End -> STT -> Vector Retrieval -> LLM First Sentence -> TTS Audio Begins.
     Empirical local LLM first-sentence time on RTX 3060 Ti (Gemma 4B ~45 tok/s, ~15 tok first sentence): ~340 ms.
     """
     llm_first_sentence_ms = 350.0  # Empirical local Gemma 4B time to emit first punctuated sentence
-    total_pipeline_ttfa_ms = round(stt_latency_ms + retrieval_latency_ms + llm_first_sentence_ms + edge_tts_first_packet_ms, 1)
+    total_pipeline_ttfa_ms = round(
+        stt_latency_ms + retrieval_latency_ms + llm_first_sentence_ms + edge_tts_first_packet_ms, 1
+    )
 
     return {
         "pipeline_description": "End-to-end question audio release -> first audio sample played",
@@ -392,12 +431,16 @@ def main():
     for m in ["large-v3-turbo", "medium", "whisper-hinglish-swift"]:
         perf = measure_stt_performance(model_size=m, device="cuda")
         models_perf[m] = perf
-        print(f"STT [{m}]: Median Latency: {perf['latency_ms']['median']} ms (p95: {perf['latency_ms']['p95']} ms) | RTF: {perf['real_time_factor_rtf']}x")
+        print(
+            f"STT [{m}]: Median Latency: {perf['latency_ms']['median']} ms (p95: {perf['latency_ms']['p95']} ms) | RTF: {perf['real_time_factor_rtf']}x"
+        )
 
     stt_perf = models_perf["large-v3-turbo"]
 
     retrieval_perf = measure_retrieval_performance()
-    print(f"RAG: E5 Model: {retrieval_perf['embedding_model']} | Median Latency: {retrieval_perf['query_latency_ms']['median']} ms")
+    print(
+        f"RAG: E5 Model: {retrieval_perf['embedding_model']} | Median Latency: {retrieval_perf['query_latency_ms']['median']} ms"
+    )
 
     tts_perf = asyncio.run(measure_edge_tts_first_packet())
     print(f"TTS: Edge-TTS First-Packet Latency: {tts_perf['first_packet_latency_ms']} ms")
@@ -407,7 +450,9 @@ def main():
         retrieval_latency_ms=retrieval_perf["query_latency_ms"]["median"],
         edge_tts_first_packet_ms=tts_perf["first_packet_latency_ms"],
     )
-    print(f"Pipeline: True End-to-End Doc-QA TTFA: {pipeline_ttfa['total_pipeline_ttfa_ms']} ms (Target: < 2,000 ms)")
+    print(
+        f"Pipeline: True End-to-End Doc-QA TTFA: {pipeline_ttfa['total_pipeline_ttfa_ms']} ms (Target: < 2,000 ms)"
+    )
 
     summary = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),

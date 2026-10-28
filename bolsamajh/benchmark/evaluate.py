@@ -13,13 +13,13 @@ Adheres strictly to Tier 1 Guidelines:
 - Outputs comprehensive benchmark JSON to benchmark_data/benchmark_results.json.
 """
 
-import sys
+import argparse
 import json
+import sys
 import time
 import wave
-import argparse
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -29,8 +29,8 @@ from faster_whisper import WhisperModel
 
 from bolsamajh.benchmark.normalization import compute_normalized_wer_cer
 from bolsamajh.benchmark.timing import (
-    time_single_transcription,
     benchmark_multi_length_clips,
+    time_single_transcription,
 )
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
 
@@ -51,7 +51,9 @@ MODEL_MAP = {
 }
 
 
-def compute_bootstrap_ci(data: List[float], n_bootstrap: int = 1000, ci: float = 0.95, seed: int = 42) -> List[float]:
+def compute_bootstrap_ci(
+    data: List[float], n_bootstrap: int = 1000, ci: float = 0.95, seed: int = 42
+) -> List[float]:
     """Calculate non-parametric bootstrap 95% confidence interval for mean metric (percentage)."""
     if not data:
         return [0.0, 0.0]
@@ -71,6 +73,8 @@ def load_audio_array(wav_path: Path) -> np.ndarray:
         frames = wf.readframes(wf.getnframes())
         audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
     return audio_np
+
+
 def evaluate_clip(
     model: WhisperModel,
     audio_np: np.ndarray,
@@ -142,27 +146,37 @@ def evaluate_real_speech(
                 continue
             hint = "en"
         else:
-            hint = "gu" if "gujarati" in split else ("hi" if ("hindi" in split or "code_switched" in split) else None)
+            hint = (
+                "gu"
+                if "gujarati" in split
+                else ("hi" if ("hindi" in split or "code_switched" in split) else None)
+            )
 
         res = evaluate_clip(
-            model, audio_np, item["reference"], dur, lang_hint=hint,
-            normalize_number_words=normalize_number_words
+            model,
+            audio_np,
+            item["reference"],
+            dur,
+            lang_hint=hint,
+            normalize_number_words=normalize_number_words,
         )
         splits_data.setdefault(split, []).append(res)
 
         if per_clip_records is not None:
-            per_clip_records.append({
-                "model": model_key,
-                "clip_id": item.get("id", Path(item.get("wav_file", "")).stem),
-                "reference": item["reference"],
-                "raw_hypothesis": res["hypothesis"],
-                "canonical_ref": res["canonical_ref"],
-                "canonical_hyp": res["canonical_hyp"],
-                "wer": res["wer"],
-                "latency_ms": res["latency_ms"],
-                "audio_duration": res["duration_sec"],
-                "device": device,
-            })
+            per_clip_records.append(
+                {
+                    "model": model_key,
+                    "clip_id": item.get("id", Path(item.get("wav_file", "")).stem),
+                    "reference": item["reference"],
+                    "raw_hypothesis": res["hypothesis"],
+                    "canonical_ref": res["canonical_ref"],
+                    "canonical_hyp": res["canonical_hyp"],
+                    "wer": res["wer"],
+                    "latency_ms": res["latency_ms"],
+                    "audio_duration": res["duration_sec"],
+                    "device": device,
+                }
+            )
 
         if i % 25 == 0 or i == len(manifest):
             all_so_far = [c for s in splits_data.values() for c in s]
@@ -188,8 +202,16 @@ def evaluate_real_speech(
         for split, clips in splits_data.items()
     }
     if model_key == "whisper-hinglish-swift":
-        splits_dict["read_hindi"] = {"count": 0, "wer_pct": "N/A", "note": "Not applicable (Hinglish-only model)"}
-        splits_dict["read_gujarati"] = {"count": 0, "wer_pct": "N/A", "note": "Not applicable (Hinglish-only model)"}
+        splits_dict["read_hindi"] = {
+            "count": 0,
+            "wer_pct": "N/A",
+            "note": "Not applicable (Hinglish-only model)",
+        }
+        splits_dict["read_gujarati"] = {
+            "count": 0,
+            "wer_pct": "N/A",
+            "note": "Not applicable (Hinglish-only model)",
+        }
 
     return {
         "total_clips": len(all_clips),
@@ -242,25 +264,31 @@ def evaluate_synthetic_stress(
 
         # Evaluate against Roman reference as ground truth
         res = evaluate_clip(
-            model, audio_np, item["reference_roman"], dur, lang_hint=hint,
-            normalize_number_words=normalize_number_words
+            model,
+            audio_np,
+            item["reference_roman"],
+            dur,
+            lang_hint=hint,
+            normalize_number_words=normalize_number_words,
         )
         category_data.setdefault(cat, []).append(res)
         degradation_data.setdefault(deg, []).append(res)
 
         if per_clip_records is not None:
-            per_clip_records.append({
-                "model": model_key,
-                "clip_id": f"synth_stress_{item.get('id', i):03d}",
-                "reference": item["reference_roman"],
-                "raw_hypothesis": res["hypothesis"],
-                "canonical_ref": res["canonical_ref"],
-                "canonical_hyp": res["canonical_hyp"],
-                "wer": res["wer"],
-                "latency_ms": res["latency_ms"],
-                "audio_duration": res["duration_sec"],
-                "device": device,
-            })
+            per_clip_records.append(
+                {
+                    "model": model_key,
+                    "clip_id": f"synth_stress_{item.get('id', i):03d}",
+                    "reference": item["reference_roman"],
+                    "raw_hypothesis": res["hypothesis"],
+                    "canonical_ref": res["canonical_ref"],
+                    "canonical_hyp": res["canonical_hyp"],
+                    "wer": res["wer"],
+                    "latency_ms": res["latency_ms"],
+                    "audio_duration": res["duration_sec"],
+                    "device": device,
+                }
+            )
 
         if i % 25 == 0 or i == len(metadata):
             all_so_far = [c for s in category_data.values() for c in s]
@@ -291,7 +319,9 @@ def evaluate_synthetic_stress(
                 "mean_cer_pct": round(float(np.mean([c["cer"] for c in clips]) * 100), 2),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
                 "median_latency_ms": round(float(np.median([c["latency_ms"] for c in clips])), 1),
-                "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in clips], 95)), 1),
+                "p95_latency_ms": round(
+                    float(np.percentile([c["latency_ms"] for c in clips], 95)), 1
+                ),
             }
             for cat, clips in category_data.items()
         },
@@ -302,20 +332,33 @@ def evaluate_synthetic_stress(
                 "wer_ci_95": compute_bootstrap_ci([c["wer"] for c in clips]),
                 "mean_latency_ms": round(float(np.mean([c["latency_ms"] for c in clips])), 1),
                 "median_latency_ms": round(float(np.median([c["latency_ms"] for c in clips])), 1),
-                "p95_latency_ms": round(float(np.percentile([c["latency_ms"] for c in clips], 95)), 1),
+                "p95_latency_ms": round(
+                    float(np.percentile([c["latency_ms"] for c in clips], 95)), 1
+                ),
             }
             for deg, clips in degradation_data.items()
-        }
+        },
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="BolSamajh Benchmark v2 Evaluator")
-    parser.add_argument("--models", nargs="+", default=["medium", "large-v3-turbo", "whisper-hinglish-swift"], help="Models to evaluate")
-    parser.add_argument("--suite", choices=["real", "synthetic", "all"], default="all", help="Test suite to run")
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        default=["medium", "large-v3-turbo", "whisper-hinglish-swift"],
+        help="Models to evaluate",
+    )
+    parser.add_argument(
+        "--suite", choices=["real", "synthetic", "all"], default="all", help="Test suite to run"
+    )
     parser.add_argument("--device", default="cuda", help="Inference device (cuda or cpu)")
-    parser.add_argument("--compute_type", default="int8_float16", help="Precision (int8_float16, int8, float16)")
-    parser.add_argument("--max_clips", type=int, default=None, help="Limit number of clips for fast smoke test")
+    parser.add_argument(
+        "--compute_type", default="int8_float16", help="Precision (int8_float16, int8, float16)"
+    )
+    parser.add_argument(
+        "--max_clips", type=int, default=None, help="Limit number of clips for fast smoke test"
+    )
     parser.add_argument(
         "--no_normalize_number_words",
         dest="normalize_number_words",
@@ -329,12 +372,9 @@ def main():
         "benchmark_version": "v2.0",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "normalize_number_words": args.normalize_number_words,
-        "hardware": {
-            "device": args.device,
-            "compute_type": args.compute_type
-        },
+        "hardware": {"device": args.device, "compute_type": args.compute_type},
         "real_speech": {},
-        "synthetic_stress": {}
+        "synthetic_stress": {},
     }
 
     all_per_clip_records: List[Dict[str, Any]] = []
@@ -351,7 +391,9 @@ def main():
             model = WhisperModel(model_id, device=args.device, compute_type=args.compute_type)
         except Exception as e:
             print("\n" + "!" * 72)
-            print(f"LOUD WARNING: Requested device '{args.device}' with precision '{args.compute_type}' FAILED!")
+            print(
+                f"LOUD WARNING: Requested device '{args.device}' with precision '{args.compute_type}' FAILED!"
+            )
             print(f"Exception: {e}")
             print("FALLING BACK TO CPU (compute_type='int8').")
             print("Latency and Real-Time Factor (RTF) will be severely degraded on CPU.")
@@ -363,9 +405,12 @@ def main():
         # 1. Real Speech
         if args.suite in ["real", "all"]:
             real_res = evaluate_real_speech(
-                model, model_key=model_key, device=actual_device,
-                max_clips=args.max_clips, per_clip_records=all_per_clip_records,
-                normalize_number_words=args.normalize_number_words
+                model,
+                model_key=model_key,
+                device=actual_device,
+                max_clips=args.max_clips,
+                per_clip_records=all_per_clip_records,
+                normalize_number_words=args.normalize_number_words,
             )
             if real_res:
                 real_res["device"] = actual_device
@@ -375,9 +420,12 @@ def main():
         # 2. Synthetic Stress
         if args.suite in ["synthetic", "all"]:
             synth_res = evaluate_synthetic_stress(
-                model, model_key=model_key, device=actual_device,
-                max_clips=args.max_clips, per_clip_records=all_per_clip_records,
-                normalize_number_words=args.normalize_number_words
+                model,
+                model_key=model_key,
+                device=actual_device,
+                max_clips=args.max_clips,
+                per_clip_records=all_per_clip_records,
+                normalize_number_words=args.normalize_number_words,
             )
             if synth_res:
                 synth_res["device"] = actual_device
@@ -403,10 +451,18 @@ def main():
     # Record normalizer ablation summary
     results["ablation"] = {
         model_key: {
-            "real_speech_wer_normalized_pct": results["real_speech"].get(model_key, {}).get("mean_wer_pct", "N/A"),
-            "real_speech_wer_raw_pct": results["real_speech"].get(model_key, {}).get("mean_wer_raw_pct", "N/A"),
-            "synthetic_stress_wer_normalized_pct": results["synthetic_stress"].get(model_key, {}).get("mean_wer_pct", "N/A"),
-            "synthetic_stress_wer_raw_pct": results["synthetic_stress"].get(model_key, {}).get("mean_wer_raw_pct", "N/A"),
+            "real_speech_wer_normalized_pct": results["real_speech"]
+            .get(model_key, {})
+            .get("mean_wer_pct", "N/A"),
+            "real_speech_wer_raw_pct": results["real_speech"]
+            .get(model_key, {})
+            .get("mean_wer_raw_pct", "N/A"),
+            "synthetic_stress_wer_normalized_pct": results["synthetic_stress"]
+            .get(model_key, {})
+            .get("mean_wer_pct", "N/A"),
+            "synthetic_stress_wer_raw_pct": results["synthetic_stress"]
+            .get(model_key, {})
+            .get("mean_wer_raw_pct", "N/A"),
         }
         for model_key in args.models
     }
@@ -426,11 +482,13 @@ def main():
 
     # Generate Markdown report and update README
     from scripts.generate_readme_tables import update_readme
+
     update_readme()
     print("[OK] Updated README.md and benchmark tables from results JSON.")
 
     # Update worst clips section in BENCHMARK_RESULTS.md
     from scripts.dump_worst_clips import update_benchmark_results_markdown
+
     update_benchmark_results_markdown()
     print("[OK] Updated worst clips in BENCHMARK_RESULTS.md.")
 

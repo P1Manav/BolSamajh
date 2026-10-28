@@ -1,15 +1,15 @@
 """Dictation pipeline — hotkey → record → STT → cleanup → insert text."""
 
-import time
 import logging
 import threading
+import time
 
 from bolsamajh.config import AppConfig
+from bolsamajh.overlay.hud import OverlayHUD
+from bolsamajh.stt.base import SpeechToText
 from bolsamajh.utils.audio import MicRecorder
 from bolsamajh.utils.clipboard import insert_text
 from bolsamajh.utils.text_cleanup import cleanup_text
-from bolsamajh.stt.base import SpeechToText
-from bolsamajh.overlay.hud import OverlayHUD
 
 log = logging.getLogger(__name__)
 
@@ -112,8 +112,12 @@ class DictationPipeline:
                 return
 
             elapsed = time.time() - t0
-            log.info("✅ Dictation: inserting %d chars (%.2fs total): %s",
-                     len(cleaned), elapsed, cleaned[:80])
+            log.info(
+                "✅ Dictation: inserting %d chars (%.2fs total): %s",
+                len(cleaned),
+                elapsed,
+                cleaned[:80],
+            )
 
             inserted = insert_text(cleaned)
             if inserted:

@@ -1,9 +1,8 @@
 """Unit tests for documentation synchronization and single source of truth verification."""
-import pytest
-from scripts.generate_readme_tables import sync_all_documentation, render_placeholders_in_text, get_metrics_dict
-from bolsamajh.config import AppConfig, load_config
+
+from bolsamajh.config import AppConfig
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
-from bolsamajh.utils.cuda_setup import auto_detect_device
+from scripts.generate_readme_tables import render_placeholders_in_text, sync_all_documentation
 
 
 def test_documentation_in_sync_with_benchmark_truth():

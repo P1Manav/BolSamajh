@@ -4,13 +4,12 @@ Tests indexing, retrieval, page/section citations, and LLM answer generation.
 Saves transcript to docs/evidence/doc_qa_e2e.txt.
 """
 
-import sys
-import os
-import time
 import asyncio
+import sys
 import threading
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 if sys.stdout.encoding.lower() != "utf-8":
@@ -21,17 +20,17 @@ if sys.stdout.encoding.lower() != "utf-8":
 
 import fitz  # PyMuPDF
 from docx import Document as DocxDocument
-from bolsamajh.documents.loader import load_pdf, load_docx, load_webpage
+
+from bolsamajh.documents.loader import load_docx, load_pdf, load_webpage
 from bolsamajh.documents.retriever import DocumentRetriever
 from bolsamajh.llm.ollama_adapter import OllamaAdapter
-from bolsamajh.pipeline.doc_qa import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
 
 
 # --- Helper: Generate Sample PDF ---
 def create_sample_pdf(pdf_path: Path):
     doc = fitz.open()
     rect = fitz.Rect(50, 50, 550, 750)
-    
+
     # Page 1
     p1 = doc.new_page()
     p1.insert_textbox(
@@ -44,7 +43,7 @@ def create_sample_pdf(pdf_path: Path):
         "Meetings should be scheduled within core hours to ensure cross-timezone alignment and maintain work-life balance for everyone.",
         fontsize=11,
     )
-    
+
     # Page 2
     p2 = doc.new_page()
     p2.insert_textbox(
@@ -56,7 +55,7 @@ def create_sample_pdf(pdf_path: Path):
         "In addition, the IT department provides a company-managed 16-inch M3 MacBook Pro or Lenovo ThinkPad workstation with 32 GB RAM.",
         fontsize=11,
     )
-    
+
     # Page 3
     p3 = doc.new_page()
     p3.insert_textbox(
@@ -68,7 +67,7 @@ def create_sample_pdf(pdf_path: Path):
         "Our comprehensive corporate health insurance covers the employee, spouse, and up to two dependent children up to Rs 10,00,000 annually with cashless hospital admission.",
         fontsize=11,
     )
-    
+
     doc.save(str(pdf_path))
     doc.close()
 
@@ -76,28 +75,28 @@ def create_sample_pdf(pdf_path: Path):
 # --- Helper: Generate Sample DOCX ---
 def create_sample_docx(docx_path: Path):
     doc = DocxDocument()
-    
+
     doc.add_heading("Shakedown Architecture Overview", level=1)
     doc.add_paragraph(
         "The distributed system architecture comprises five decoupled microservices communicating over high-performance gRPC channels. "
         "Each service is independently deployable via Kubernetes containers and scales horizontally based on real-time request queue depth. "
         "Event delivery guarantees adhere to at-least-once semantics through an Apache Kafka message bus with triple-replication across availability zones."
     )
-    
+
     doc.add_heading("Database Latency Thresholds", level=1)
     doc.add_paragraph(
         "Target P95 query latency for primary read replicas must remain strictly under 25 milliseconds across all production database clusters. "
         "Automated read-write connection pooling maintains active persistent sessions to eliminate TLS negotiation overhead. "
         "Any slow query exceeding 100 milliseconds automatically triggers a critical PagerDuty incident warning and logs an execution plan to the telemetry dashboard."
     )
-    
+
     doc.add_heading("Security Compliance and Audits", level=1)
     doc.add_paragraph(
         "Independent SOC2 Type II penetration testing is conducted quarterly by external certified cybersecurity auditing firms. "
         "All data at rest is encrypted using military-grade AES-256 cipher suites with automated AWS KMS envelope key rotation. "
         "Access to production environments requires hardware-backed FIDO2 multi-factor authentication and role-based access control with zero-trust network boundaries."
     )
-    
+
     doc.save(str(docx_path))
 
 
@@ -145,9 +144,9 @@ async def run_pipeline_test():
     evidence_lines.append("BolSamajh — Document Intelligence Empirical E2E Verification")
     evidence_lines.append("============================================================")
     evidence_lines.append(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S IST')}")
-    evidence_lines.append(f"Host OS:   Windows (RTX 3060 Ti)")
-    evidence_lines.append(f"Embedder:  intfloat/multilingual-e5-base (FAISS inner-product)")
-    evidence_lines.append(f"Local LLM: Ollama gemma3:4b (tested live)")
+    evidence_lines.append("Host OS:   Windows (RTX 3060 Ti)")
+    evidence_lines.append("Embedder:  intfloat/multilingual-e5-base (FAISS inner-product)")
+    evidence_lines.append("Local LLM: Ollama gemma3:4b (tested live)")
     evidence_lines.append("")
 
     work_dir = Path("scratch/doc_qa_e2e")
@@ -172,7 +171,9 @@ async def run_pipeline_test():
     print(f"[+] PDF indexed: {chunks_count} chunks.")
 
     evidence_lines.append("--- TEST 1: PDF Document Pipeline ---")
-    evidence_lines.append(f"Document: {pdf_doc.title} ({pdf_doc.page_count} pages, {chunks_count} chunks)")
+    evidence_lines.append(
+        f"Document: {pdf_doc.title} ({pdf_doc.page_count} pages, {chunks_count} chunks)"
+    )
 
     pdf_queries = [
         ("What are the core collaboration hours for engineering teams?", "Page 1", 1),
@@ -186,10 +187,12 @@ async def run_pipeline_test():
         assert top_chunk is not None, f"Failed retrieval for query: {q}"
         citation_str = top_chunk.citation
         print(f"  Q: '{q}'")
-        print(f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_citation}")
-        assert (top_chunk.page_start <= expected_page <= top_chunk.page_end) or (str(expected_page) in citation_str), (
-            f"Page citation mismatch: got {citation_str}, expected {expected_citation}"
+        print(
+            f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_citation}"
         )
+        assert (top_chunk.page_start <= expected_page <= top_chunk.page_end) or (
+            str(expected_page) in citation_str
+        ), f"Page citation mismatch: got {citation_str}, expected {expected_citation}"
 
         # LLM Answer generation
         prompt = (
@@ -200,7 +203,9 @@ async def run_pipeline_test():
         answer = await llm.generate(prompt)
         print(f"     LLM Answer: {answer.strip()}")
         evidence_lines.append(f"Q: {q}")
-        evidence_lines.append(f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_citation}]")
+        evidence_lines.append(
+            f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_citation}]"
+        )
         evidence_lines.append(f"Retrieved Passage: {top_chunk.text[:120]}...")
         evidence_lines.append(f"LLM Answer: {answer.strip()}")
         evidence_lines.append("")
@@ -216,12 +221,26 @@ async def run_pipeline_test():
     print(f"[+] DOCX indexed: {chunks_count} chunks.")
 
     evidence_lines.append("--- TEST 2: DOCX Document Pipeline ---")
-    evidence_lines.append(f"Document: {docx_doc.title} ({docx_doc.page_count} sections, {chunks_count} chunks)")
+    evidence_lines.append(
+        f"Document: {docx_doc.title} ({docx_doc.page_count} sections, {chunks_count} chunks)"
+    )
 
     docx_queries = [
-        ("How many microservices make up the system architecture?", "Shakedown Architecture Overview", 1),
-        ("What is the target P95 database query latency threshold?", "Database Latency Thresholds", 2),
-        ("How frequently is SOC2 penetration testing conducted by auditors?", "Security Compliance and Audits", 3),
+        (
+            "How many microservices make up the system architecture?",
+            "Shakedown Architecture Overview",
+            1,
+        ),
+        (
+            "What is the target P95 database query latency threshold?",
+            "Database Latency Thresholds",
+            2,
+        ),
+        (
+            "How frequently is SOC2 penetration testing conducted by auditors?",
+            "Security Compliance and Audits",
+            3,
+        ),
     ]
 
     for q, expected_section, expected_sec_num in docx_queries:
@@ -230,10 +249,14 @@ async def run_pipeline_test():
         assert top_chunk is not None, f"Failed retrieval for query: {q}"
         citation_str = top_chunk.citation
         print(f"  Q: '{q}'")
-        print(f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_section}")
-        assert (expected_section.lower() in citation_str.lower()) or (top_chunk.section_start <= expected_sec_num <= top_chunk.section_end) or (str(expected_sec_num) in citation_str), (
-            f"Section mismatch: got {citation_str}, expected {expected_section}"
+        print(
+            f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_section}"
         )
+        assert (
+            (expected_section.lower() in citation_str.lower())
+            or (top_chunk.section_start <= expected_sec_num <= top_chunk.section_end)
+            or (str(expected_sec_num) in citation_str)
+        ), f"Section mismatch: got {citation_str}, expected {expected_section}"
 
         prompt = (
             f"Context:\n{top_chunk.text}\n\n"
@@ -243,7 +266,9 @@ async def run_pipeline_test():
         answer = await llm.generate(prompt)
         print(f"     LLM Answer: {answer.strip()}")
         evidence_lines.append(f"Q: {q}")
-        evidence_lines.append(f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_section}]")
+        evidence_lines.append(
+            f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_section}]"
+        )
         evidence_lines.append(f"Retrieved Passage: {top_chunk.text[:120]}...")
         evidence_lines.append(f"LLM Answer: {answer.strip()}")
         evidence_lines.append("")
@@ -256,6 +281,7 @@ async def run_pipeline_test():
     print(f"\n[*] Started local web server on {test_url}. Loading with load_webpage...")
 
     import urllib.request
+
     with urllib.request.urlopen(test_url) as resp:
         html_content = resp.read().decode("utf-8")
 
@@ -264,7 +290,9 @@ async def run_pipeline_test():
     print(f"[+] Web page indexed: {chunks_count} chunks.")
 
     evidence_lines.append("--- TEST 3: Web Page Document Pipeline (Local HTTP Server) ---")
-    evidence_lines.append(f"Document URL: {test_url} ({web_doc.page_count} sections, {chunks_count} chunks)")
+    evidence_lines.append(
+        f"Document URL: {test_url} ({web_doc.page_count} sections, {chunks_count} chunks)"
+    )
 
     web_queries = [
         ("How many astronauts can the Martian habitat sustain?", "Section 1", 1),
@@ -278,10 +306,14 @@ async def run_pipeline_test():
         assert top_chunk is not None, f"Failed retrieval for query: {q}"
         citation_str = top_chunk.citation
         print(f"  Q: '{q}'")
-        print(f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_section}")
-        assert (expected_section.lower() in citation_str.lower()) or (top_chunk.section_start <= expected_sec_num <= top_chunk.section_end) or (str(expected_sec_num) in citation_str), (
-            f"Section mismatch: got {citation_str}, expected {expected_section}"
+        print(
+            f"     Top citation: {citation_str} (Score: {top_chunk.score:.3f}) | Expected: {expected_section}"
         )
+        assert (
+            (expected_section.lower() in citation_str.lower())
+            or (top_chunk.section_start <= expected_sec_num <= top_chunk.section_end)
+            or (str(expected_sec_num) in citation_str)
+        ), f"Section mismatch: got {citation_str}, expected {expected_section}"
 
         prompt = (
             f"Context:\n{top_chunk.text}\n\n"
@@ -291,7 +323,9 @@ async def run_pipeline_test():
         answer = await llm.generate(prompt)
         print(f"     LLM Answer: {answer.strip()}")
         evidence_lines.append(f"Q: {q}")
-        evidence_lines.append(f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_section}]")
+        evidence_lines.append(
+            f"Citation: {citation_str} (Score: {top_chunk.score:.4f}) [PASS - expected {expected_section}]"
+        )
         evidence_lines.append(f"Retrieved Passage: {top_chunk.text[:120]}...")
         evidence_lines.append(f"LLM Answer: {answer.strip()}")
         evidence_lines.append("")
@@ -303,9 +337,13 @@ async def run_pipeline_test():
     # -------------------------------------------------------------
     evidence_lines.append("--- OCR Capability Audit ---")
     evidence_lines.append("Tesseract Binary Status: NOT INSTALLED on host PATH.")
-    evidence_lines.append("Scanned PDF OCR Status:  OCR UNTESTED ON HARDWARE (PyMuPDF text-based PDFs verified).")
+    evidence_lines.append(
+        "Scanned PDF OCR Status:  OCR UNTESTED ON HARDWARE (PyMuPDF text-based PDFs verified)."
+    )
     evidence_lines.append("")
-    evidence_lines.append("Final Result: 9/9 Questions correctly retrieved with accurate page/section citations across PDF, DOCX, and Webpage.")
+    evidence_lines.append(
+        "Final Result: 9/9 Questions correctly retrieved with accurate page/section citations across PDF, DOCX, and Webpage."
+    )
     evidence_lines.append("Document QA Pipeline: VERIFIED LIVE")
 
     evidence_file = Path("docs/evidence/doc_qa_e2e.txt")

@@ -1,6 +1,7 @@
 """TTS adapter factory — constructs configured TTS adapter (Edge-TTS or Piper)."""
 
 import logging
+
 from bolsamajh.config import AppConfig
 from bolsamajh.tts.base import TextToSpeech
 
@@ -17,9 +18,11 @@ def create_tts_adapter(config: AppConfig) -> TextToSpeech:
     engine = str(config.tts.engine).lower().strip()
     if engine in ("edge", "edge_tts"):
         from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
+
         return EdgeTTSAdapter()
     elif engine == "piper":
         from bolsamajh.tts.piper_adapter import PiperTTSAdapter
+
         return PiperTTSAdapter(model_path=config.tts.piper_model_path)
     else:
         raise ValueError(

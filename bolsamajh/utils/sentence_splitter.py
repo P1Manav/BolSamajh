@@ -11,15 +11,36 @@ Handles:
 """
 
 import re
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 # Curated unambiguous abbreviations with trailing period (case-insensitive)
 # Note: words like 'no', 'st', 'col', 'gen', 'vol' that frequently end sentences are excluded.
 COMMON_ABBREVIATIONS = {
-    "dr", "mr", "mrs", "ms", "prof", "sr", "jr", "rs", "vs", "approx",
-    "eg", "ie", "etc", "dept", "ltd", "corp", "inc", "ave", "gov",
+    "dr",
+    "mr",
+    "mrs",
+    "ms",
+    "prof",
+    "sr",
+    "jr",
+    "rs",
+    "vs",
+    "approx",
+    "eg",
+    "ie",
+    "etc",
+    "dept",
+    "ltd",
+    "corp",
+    "inc",
+    "ave",
+    "gov",
     # Hindi abbreviations
-    "डॉ", "पं", "रु", "प्रो", "क्र",
+    "डॉ",
+    "पं",
+    "रु",
+    "प्रो",
+    "क्र",
 }
 
 
@@ -29,7 +50,7 @@ def _is_abbreviation_or_decimal(text: str, match_start: int) -> bool:
         return False
 
     # 1. List item numbering check (e.g. '1. First item' or '\n2. Second item')
-    m_num = re.search(r'(?:^|[\s\n])(\d+)$', text[:match_start])
+    m_num = re.search(r"(?:^|[\s\n])(\d+)$", text[:match_start])
     if m_num:
         if match_start + 1 < len(text) and text[match_start + 1] in " \t":
             return True
@@ -46,8 +67,8 @@ def _is_abbreviation_or_decimal(text: str, match_start: int) -> bool:
             return True
 
     # 3. Single-letter initial check (e.g. 'a.', 'm.', 'J.') and abbreviations
-    lookback = text[max(0, match_start - 10):match_start]
-    m = re.search(r'([A-Za-z\u0900-\u097F]+)$', lookback)
+    lookback = text[max(0, match_start - 10) : match_start]
+    m = re.search(r"([A-Za-z\u0900-\u097F]+)$", lookback)
     if m:
         raw_word = m.group(1)
         if len(raw_word) == 1:
@@ -58,7 +79,7 @@ def _is_abbreviation_or_decimal(text: str, match_start: int) -> bool:
 
     # 4. Lookforward confirmation: if following non-whitespace character is a lowercase letter,
     # it is an intra-sentence period (e.g. 'a.m. today', 'i.e. example') and not a sentence boundary.
-    rest = text[match_start + 1:].lstrip(' \t"\'”’)]}')
+    rest = text[match_start + 1 :].lstrip(" \t\"'”’)]}")
     if rest and rest[0].islower():
         return True
 
@@ -73,15 +94,15 @@ def split_sentences(text: str) -> List[str]:
     text = text.strip()
 
     # Split on newlines followed by list markers or double newlines first
-    chunks = re.split(r'(\n+\s*(?:[-*•]|\d+\.)\s*|\n\n+)', text)
+    chunks = re.split(r"(\n+\s*(?:[-*•]|\d+\.)\s*|\n\n+)", text)
     segments = []
     current = ""
     for part in chunks:
-        if re.match(r'^\n+\s*(?:[-*•]|\d+\.)\s*$', part):
+        if re.match(r"^\n+\s*(?:[-*•]|\d+\.)\s*$", part):
             if current.strip():
                 segments.append(current.strip())
             current = part.strip() + " "
-        elif re.match(r'^\n\n+$', part):
+        elif re.match(r"^\n\n+$", part):
             if current.strip():
                 segments.append(current.strip())
             current = ""
@@ -93,7 +114,7 @@ def split_sentences(text: str) -> List[str]:
     sentences = []
     for segment in segments:
         start = 0
-        for m in re.finditer(r'([.?!।॥]+)(?:\s+|$)', segment):
+        for m in re.finditer(r"([.?!।॥]+)(?:\s+|$)", segment):
             token = m.group(1)
             pos = m.start()
             if "." in token and _is_abbreviation_or_decimal(segment, pos + token.index(".")):
@@ -122,7 +143,7 @@ def extract_next_sentence(buffer: str) -> Tuple[Optional[str], str]:
         return None, buffer
 
     # Look for boundary followed by whitespace, newline, or end-of-sentence list markers
-    pattern = re.compile(r'([.?!।॥]+|\n+\s*(?:[-*•]|\d+\.)\s*|\n\n+)(?:\s+|$)')
+    pattern = re.compile(r"([.?!।॥]+|\n+\s*(?:[-*•]|\d+\.)\s*|\n\n+)(?:\s+|$)")
 
     for match in pattern.finditer(buffer):
         pos = match.start()
@@ -142,7 +163,7 @@ def extract_next_sentence(buffer: str) -> Tuple[Optional[str], str]:
             boundary_end += 1
 
         sentence = buffer[:boundary_end].strip()
-        remaining = buffer[max(match.end(), boundary_end):]
+        remaining = buffer[max(match.end(), boundary_end) :]
         if sentence:
             return sentence, remaining
 

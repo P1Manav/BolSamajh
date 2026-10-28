@@ -9,15 +9,15 @@ Workflow:
 6. Transformed text replaces selection via clipboard paste.
 """
 
-import time
 import asyncio
 import logging
 import threading
+import time
 
 from bolsamajh.config import AppConfig
-from bolsamajh.stt.base import SpeechToText
 from bolsamajh.llm.base import LLMAdapter
 from bolsamajh.overlay.hud import OverlayHUD
+from bolsamajh.stt.base import SpeechToText
 from bolsamajh.utils.audio import MicRecorder
 from bolsamajh.utils.clipboard import get_selected_text, insert_text
 
@@ -54,11 +54,13 @@ def _clean_llm_response(raw: str) -> str:
     ).strip()
 
     # 3. Strip surrounding quotes if model added them
-    if (cleaned.startswith('"""') and cleaned.endswith('"""')) or \
-       (cleaned.startswith("'''") and cleaned.endswith("'''")):
+    if (cleaned.startswith('"""') and cleaned.endswith('"""')) or (
+        cleaned.startswith("'''") and cleaned.endswith("'''")
+    ):
         cleaned = cleaned[3:-3].strip()
-    elif (cleaned.startswith('"') and cleaned.endswith('"')) or \
-         (cleaned.startswith("'") and cleaned.endswith("'")):
+    elif (cleaned.startswith('"') and cleaned.endswith('"')) or (
+        cleaned.startswith("'") and cleaned.endswith("'")
+    ):
         cleaned = cleaned[1:-1].strip()
 
     return cleaned
@@ -102,8 +104,11 @@ class VoiceCommandsPipeline:
 
         def _capture():
             self._selected_text = get_selected_text()
-            log.info("Voice command captured selection (%d chars): %s",
-                     len(self._selected_text), self._selected_text[:40])
+            log.info(
+                "Voice command captured selection (%d chars): %s",
+                len(self._selected_text),
+                self._selected_text[:40],
+            )
             self._selection_event.set()
 
         threading.Thread(target=_capture, daemon=True).start()
@@ -180,7 +185,7 @@ class VoiceCommandsPipeline:
             # 3. Format LLM prompt
             prompt = (
                 f"COMMAND: {command_text}\n\n"
-                f"ORIGINAL TEXT:\n\"\"\"\n{target_text}\n\"\"\"\n\n"
+                f'ORIGINAL TEXT:\n"""\n{target_text}\n"""\n\n'
                 f"MODIFIED TEXT:"
             )
 

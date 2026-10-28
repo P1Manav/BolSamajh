@@ -1,5 +1,6 @@
 """Allow running as `python -m bolsamajh`."""
 
-from bolsamajh.main import main
+if __name__ == "__main__":
+    from bolsamajh.main import main
 
-main()
+    main()

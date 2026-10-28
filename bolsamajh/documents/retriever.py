@@ -9,14 +9,14 @@ Adheres to Tier 2 Requirement 12:
 """
 
 import logging
-import time
 import threading
+import time
 from typing import List, Optional
 
 import numpy as np
 
-from bolsamajh.documents.loader import Document
 from bolsamajh.documents.chunker import Chunk, chunk_document
+from bolsamajh.documents.loader import Document
 
 log = logging.getLogger(__name__)
 
@@ -63,13 +63,6 @@ class DocumentRetriever:
         with self._lock:
             return self._document.title if self._document else ""
 
-    def clear(self) -> None:
-        """Clear currently indexed document and FAISS index under lock."""
-        with self._lock:
-            self._index = None
-            self._chunks = []
-            self._document = None
-
     def _load_embedding_model(self):
         """Lazy-load the sentence-transformer model with fallback and threshold scaling."""
         if self._model is not None:
@@ -89,15 +82,23 @@ class DocumentRetriever:
             log.warning(
                 "CRITICAL WARNING: Failed to load '%s' (%s). Falling back to '%s'. "
                 "Scaling refusal threshold from %.3f to %.3f. High-precision retrieval may be degraded.",
-                self.embedding_model_name, e, fallback_model, prev_thresh, new_thresh
+                self.embedding_model_name,
+                e,
+                fallback_model,
+                prev_thresh,
+                new_thresh,
             )
             self.embedding_model_name = fallback_model
             self.refusal_threshold = new_thresh
             self._model = SentenceTransformer(fallback_model)
             self._tokenizer = getattr(self._model, "tokenizer", None)
 
-        log.info("Embedding model loaded in %.1fs (max_seq_length=%d, threshold=%.3f)",
-                 time.time() - t0, getattr(self._model, "max_seq_length", 512), self.refusal_threshold)
+        log.info(
+            "Embedding model loaded in %.1fs (max_seq_length=%d, threshold=%.3f)",
+            time.time() - t0,
+            getattr(self._model, "max_seq_length", 512),
+            self.refusal_threshold,
+        )
 
     def _prepare_text_for_embedding(self, text: str, is_query: bool = False) -> str:
         """Apply model-specific prefixes (e.g. E5 requires 'passage: ' and 'query: ')."""
@@ -157,7 +158,9 @@ class DocumentRetriever:
             self._chunks = new_chunks
             self._document = document
 
-        log.info("FAISS index built and atomically swapped: %d vectors, dim=%d", len(new_chunks), dim)
+        log.info(
+            "FAISS index built and atomically swapped: %d vectors, dim=%d", len(new_chunks), dim
+        )
         return len(new_chunks)
 
     def retrieve(self, query: str, top_k: int = 5, apply_threshold: bool = True) -> List[Chunk]:
@@ -193,8 +196,12 @@ class DocumentRetriever:
                 score_val = float(score)
                 # Check refusal threshold
                 if apply_threshold and score_val < threshold:
-                    log.debug("Chunk %d score %.3f below refusal threshold %.3f; excluded",
-                              idx, score_val, threshold)
+                    log.debug(
+                        "Chunk %d score %.3f below refusal threshold %.3f; excluded",
+                        idx,
+                        score_val,
+                        threshold,
+                    )
                     continue
 
                 c = chunks[idx]

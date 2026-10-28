@@ -5,5 +5,5 @@ __app_name__ = "BolSamajh"
 __tagline__ = "Bolo. Samjho."
 
 from bolsamajh.utils.cuda_setup import setup_cuda_dlls
-setup_cuda_dlls()
 
+setup_cuda_dlls()

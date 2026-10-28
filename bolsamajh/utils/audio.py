@@ -1,9 +1,10 @@
 """Audio capture utilities — mic recording via sounddevice."""
 
 import io
-import wave
 import logging
 import threading
+import wave
+
 import numpy as np
 
 try:
@@ -14,9 +15,9 @@ except Exception:
 log = logging.getLogger(__name__)
 
 # Audio settings
-SAMPLE_RATE = 16000      # 16 kHz for Whisper
-CHANNELS = 1             # Mono
-DTYPE = "int16"          # 16-bit PCM
+SAMPLE_RATE = 16000  # 16 kHz for Whisper
+CHANNELS = 1  # Mono
+DTYPE = "int16"  # 16-bit PCM
 
 
 class MicRecorder:
@@ -35,10 +36,13 @@ class MicRecorder:
         device: int | str | None = None,
     ):
         import os
+
         self.sample_rate = sample_rate
         if max_duration_seconds is None:
             try:
-                max_duration_seconds = float(os.getenv("BOLSAMAJH_AUDIO_MAX_RECORD_SECONDS", "120.0"))
+                max_duration_seconds = float(
+                    os.getenv("BOLSAMAJH_AUDIO_MAX_RECORD_SECONDS", "120.0")
+                )
             except ValueError:
                 max_duration_seconds = 120.0
         self.max_duration_seconds = max_duration_seconds
@@ -74,8 +78,12 @@ class MicRecorder:
             self._total_samples = 0
             self._recording = True
 
-        log.debug("Mic recording started (rate=%d, max_sec=%.1f, dev=%s)",
-                  self.sample_rate, self.max_duration_seconds, self.device)
+        log.debug(
+            "Mic recording started (rate=%d, max_sec=%.1f, dev=%s)",
+            self.sample_rate,
+            self.max_duration_seconds,
+            self.device,
+        )
 
         max_samples = int(self.max_duration_seconds * self.sample_rate)
 
@@ -86,8 +94,10 @@ class MicRecorder:
                 self._frames.append(indata.copy())
                 self._total_samples += len(indata)
                 if self._total_samples >= max_samples:
-                    log.warning("Recording reached maximum duration limit (%.1f s); capping recording.",
-                                self.max_duration_seconds)
+                    log.warning(
+                        "Recording reached maximum duration limit (%.1f s); capping recording.",
+                        self.max_duration_seconds,
+                    )
                     self._recording = False
 
         self._stream = sd.InputStream(
@@ -116,8 +126,7 @@ class MicRecorder:
 
         audio_data = np.concatenate(self._frames, axis=0)
         duration = len(audio_data) / self.sample_rate
-        log.info("Recorded %.1f seconds of audio (%d samples)",
-                 duration, len(audio_data))
+        log.info("Recorded %.1f seconds of audio (%d samples)", duration, len(audio_data))
 
         return self._to_wav_bytes(audio_data)
 

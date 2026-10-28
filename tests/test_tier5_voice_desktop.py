@@ -11,21 +11,19 @@ Validates:
 8. Model loader resolution for auto-detected CPU fallback model.
 """
 
-import time
 import threading
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+import time
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from bolsamajh.config import AppConfig
-from bolsamajh.pipeline.doc_qa import DocQAPipeline
-from bolsamajh.pipeline.dictation import DictationPipeline
-from bolsamajh.utils.clipboard import ModifierGuard, MODIFIER_KEYS
-from bolsamajh.utils.text_cleanup import format_numbers, remove_fillers, apply_script_control
-from bolsamajh.documents.loader import Document, DocumentPage
 from bolsamajh.documents.chunker import chunk_document
+from bolsamajh.documents.loader import Document, DocumentPage
+from bolsamajh.pipeline.dictation import DictationPipeline
+from bolsamajh.pipeline.doc_qa import DocQAPipeline
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT, resolve_model_id
+from bolsamajh.utils.clipboard import ModifierGuard
 from bolsamajh.utils.cuda_setup import auto_detect_device
-from bolsamajh.tts.piper_adapter import _verify_sha256, _MODEL_SHA256
+from bolsamajh.utils.text_cleanup import apply_script_control, format_numbers, remove_fillers
 
 
 def test_interrupt_generation_id_drops_older_speech():
@@ -131,7 +129,9 @@ def test_chunker_merged_page_span_and_section_citations():
         title="Article",
         source="https://example.com/doc",
         pages=[
-            DocumentPage(text="Para 1.", page_number=1, section="Overview", source="https://example.com/doc"),
+            DocumentPage(
+                text="Para 1.", page_number=1, section="Overview", source="https://example.com/doc"
+            ),
         ],
         doc_type="web",
     )
@@ -155,9 +155,10 @@ def test_short_clip_language_fallback():
     stt = FasterWhisperSTT(model_size="tiny", device="cpu", compute_type="int8", language="auto")
 
     # Generate 1.2 seconds of non-silent audio bytes
-    import numpy as np
-    import wave
     import io
+    import wave
+
+    import numpy as np
 
     sr = 16000
     dur = 1.2
@@ -264,6 +265,7 @@ def test_dictation_pipeline_process_audio_integration():
     class StubSTT:
         def transcribe(self, audio_bytes: bytes):
             from bolsamajh.stt.base import TranscriptResult
+
             return TranscriptResult(
                 text="uh maine 5 lakh rupees pay kiye hmm",
                 language="hi",
@@ -288,6 +290,7 @@ def test_dictation_pipeline_process_audio_integration():
 def test_barge_in_monitor_is_active_and_warning_logging(caplog):
     """Integration test: BargeInMonitor is_active property and warning logging on stream error."""
     import logging
+
     from bolsamajh.utils.vad import BargeInMonitor
 
     triggered = False
@@ -319,4 +322,3 @@ def test_barge_in_monitor_is_active_and_warning_logging(caplog):
 
     assert not monitor.is_active
     assert any("BargeInMonitor microphone exception" in record.message for record in caplog.records)
-

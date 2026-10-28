@@ -10,17 +10,18 @@ Executes:
 7. Writing empirical evidence to docs/evidence/bolna_client_check.txt.
 """
 
-import os
-import sys
-import io
-import time
-import json
-import base64
-import wave
 import asyncio
+import base64
+import io
+import json
 import logging
+import os
 import subprocess
+import sys
+import time
+import wave
 from pathlib import Path
+
 import numpy as np
 
 # Allow Bolna outbound URL validation for local test server
@@ -31,8 +32,8 @@ sys.path.insert(0, str(ROOT_DIR))
 
 import av
 import websockets
-from openai import AsyncOpenAI
 from bolna.synthesizer.openai_synthesizer import OPENAISynthesizer
+from openai import AsyncOpenAI
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("bolna_check")
@@ -54,10 +55,18 @@ def verify_audio_stream(audio_bytes: bytes, label: str):
     total_samples = sum(f.samples for f in frames)
     duration_sec = total_samples / float(sample_rate) if sample_rate else 0.0
 
-    log.info("[%s] Decoded via PyAV: duration=%.2fs, sample_rate=%d Hz, format=%s, frames=%d",
-             label, duration_sec, sample_rate, format_name, len(frames))
+    log.info(
+        "[%s] Decoded via PyAV: duration=%.2fs, sample_rate=%d Hz, format=%s, frames=%d",
+        label,
+        duration_sec,
+        sample_rate,
+        format_name,
+        len(frames),
+    )
 
-    assert duration_sec > 0.5, f"[{label}] Audio duration {duration_sec:.2f}s is too short (<= 0.5s)!"
+    assert duration_sec > 0.5, (
+        f"[{label}] Audio duration {duration_sec:.2f}s is too short (<= 0.5s)!"
+    )
     assert sample_rate >= 8000, f"[{label}] Audio sample rate {sample_rate} Hz is unexpectedly low!"
     return duration_sec, sample_rate, format_name
 
@@ -65,6 +74,7 @@ def verify_audio_stream(audio_bytes: bytes, label: str):
 async def wait_for_server(url: str, timeout: float = 15.0):
     """Poll /api/status until server is ready."""
     import urllib.request
+
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
@@ -83,7 +93,9 @@ async def run_bolna_tests():
     evidence_lines.append(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S IST')}")
     evidence_lines.append("Host OS:   Windows (RTX 3060 Ti)")
     evidence_lines.append("Framework: Bolna (tested directly using Bolna package source code)")
-    evidence_lines.append(f"Gateway:   http://127.0.0.1:{TEST_PORT}/v1 (Auth: Bearer {TEST_API_KEY[:8]}...)")
+    evidence_lines.append(
+        f"Gateway:   http://127.0.0.1:{TEST_PORT}/v1 (Auth: Bearer {TEST_API_KEY[:8]}...)"
+    )
     evidence_lines.append("")
 
     # Step 1: Launch BolSamajh server on port 8008 using the main venv python
@@ -123,7 +135,9 @@ async def run_bolna_tests():
             server_log_fp.flush()
             with open(server_log_file, "r", encoding="utf-8") as lf:
                 log_content = lf.read()
-            raise RuntimeError(f"BolSamajh server failed to initialize on port {TEST_PORT}!\nServer log:\n{log_content}")
+            raise RuntimeError(
+                f"BolSamajh server failed to initialize on port {TEST_PORT}!\nServer log:\n{log_content}"
+            )
         log.info("[+] BolSamajh server ready and healthy.")
 
         # -------------------------------------------------------------
@@ -151,7 +165,7 @@ async def run_bolna_tests():
         evidence_lines.append(f"    Input Text:   '{hindi_text}'")
         evidence_lines.append(f"    Audio Output: {len(hindi_audio):,} bytes ({h_fmt})")
         evidence_lines.append(f"    Duration:     {h_dur:.2f}s (Sample Rate: {h_sr} Hz)")
-        evidence_lines.append(f"    Latency:      {hindi_time*1000:.1f} ms")
+        evidence_lines.append(f"    Latency:      {hindi_time * 1000:.1f} ms")
         evidence_lines.append("    Playable:     PASS (verified via PyAV)")
         evidence_lines.append("")
 
@@ -166,7 +180,7 @@ async def run_bolna_tests():
         evidence_lines.append(f"    Input Text:   '{english_text}'")
         evidence_lines.append(f"    Audio Output: {len(english_audio):,} bytes ({e_fmt})")
         evidence_lines.append(f"    Duration:     {e_dur:.2f}s (Sample Rate: {e_sr} Hz)")
-        evidence_lines.append(f"    Latency:      {english_time*1000:.1f} ms")
+        evidence_lines.append(f"    Latency:      {english_time * 1000:.1f} ms")
         evidence_lines.append("    Playable:     PASS (verified via PyAV)")
         evidence_lines.append("")
 
@@ -197,7 +211,7 @@ async def run_bolna_tests():
         evidence_lines.append("Batch STT Audio Transcription:")
         evidence_lines.append(f"    Audio File:   {test_clip_path.name}")
         evidence_lines.append(f"    Transcript:   '{stt_transcript}'")
-        evidence_lines.append(f"    Latency:      {stt_latency*1000:.1f} ms")
+        evidence_lines.append(f"    Latency:      {stt_latency * 1000:.1f} ms")
         evidence_lines.append("    Status:       PASS")
         evidence_lines.append("")
 
@@ -205,7 +219,9 @@ async def run_bolna_tests():
         # TEST 3: Realtime-Compatible Transcription WebSocket
         # -------------------------------------------------------------
         log.info("\n--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---")
-        evidence_lines.append("--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---")
+        evidence_lines.append(
+            "--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---"
+        )
 
         ws_url = f"ws://127.0.0.1:{TEST_PORT}/v1/realtime?intent=transcription"
         headers = {"Authorization": f"Bearer {TEST_API_KEY}"}
@@ -239,6 +255,7 @@ async def run_bolna_tests():
                 audio_np = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
 
             import scipy.signal
+
             gcd = int(np.gcd(sr, 24000))
             audio_24k = scipy.signal.resample_poly(audio_np, 24000 // gcd, sr // gcd)
             pcm_24k_bytes = (np.clip(audio_24k, -1.0, 1.0) * 32767.0).astype(np.int16).tobytes()
@@ -261,17 +278,25 @@ async def run_bolna_tests():
             assert resp2.get("type") == "conversation.item.input_audio_transcription.completed"
 
             ws_transcript = resp2.get("transcript", "").strip()
-            log.info("Realtime WebSocket transcript: '%s' in %.2fs", ws_transcript, ws_transcribe_time)
+            log.info(
+                "Realtime WebSocket transcript: '%s' in %.2fs", ws_transcript, ws_transcribe_time
+            )
             assert len(ws_transcript) > 0, "WebSocket transcription returned empty transcript!"
 
             evidence_lines.append("Realtime WebSocket Protocol Message Flow:")
-            evidence_lines.append("    1. Client -> Server: session.update (configured model=large-v3-turbo, language=hi)")
-            evidence_lines.append(f"    2. Server -> Client: session.updated [ACK]")
-            evidence_lines.append(f"    3. Client -> Server: input_audio_buffer.append (streamed 24 kHz linear16 PCM audio)")
-            evidence_lines.append(f"    4. Client -> Server: input_audio_buffer.commit")
-            evidence_lines.append(f"    5. Server -> Client: conversation.item.input_audio_transcription.completed")
+            evidence_lines.append(
+                "    1. Client -> Server: session.update (configured model=large-v3-turbo, language=hi)"
+            )
+            evidence_lines.append("    2. Server -> Client: session.updated [ACK]")
+            evidence_lines.append(
+                "    3. Client -> Server: input_audio_buffer.append (streamed 24 kHz linear16 PCM audio)"
+            )
+            evidence_lines.append("    4. Client -> Server: input_audio_buffer.commit")
+            evidence_lines.append(
+                "    5. Server -> Client: conversation.item.input_audio_transcription.completed"
+            )
             evidence_lines.append(f"       Transcript:       '{ws_transcript}'")
-            evidence_lines.append(f"       Inference Time:   {ws_transcribe_time*1000:.1f} ms")
+            evidence_lines.append(f"       Inference Time:   {ws_transcribe_time * 1000:.1f} ms")
             evidence_lines.append("    WebSocket Status:    PASS")
             evidence_lines.append("")
 
@@ -279,8 +304,12 @@ async def run_bolna_tests():
         evidence_lines.append("- Bolna OPENAISynthesizer HTTP integration: VERIFIED LIVE")
         evidence_lines.append("- Bolna OpenAI-compatible Batch STT endpoint: VERIFIED LIVE")
         evidence_lines.append("- Bolna OpenAI-compatible Realtime WebSocket: VERIFIED LIVE")
-        evidence_lines.append("- Tested on host machine with Bolna package source code against local BolSamajh server.")
-        evidence_lines.append("- Note: Not tested on Bolna cloud (no cloud account / credentials required).")
+        evidence_lines.append(
+            "- Tested on host machine with Bolna package source code against local BolSamajh server."
+        )
+        evidence_lines.append(
+            "- Note: Not tested on Bolna cloud (no cloud account / credentials required)."
+        )
         evidence_lines.append("")
         evidence_lines.append("Bolna Local Integration: VERIFIED LIVE")
 
@@ -294,7 +323,9 @@ async def run_bolna_tests():
             sys.stdout.reconfigure(encoding="utf-8")
             print("\n" + "\n".join(evidence_lines))
         except Exception:
-            print("\n" + "\n".join(evidence_lines).encode("ascii", errors="replace").decode("ascii"))
+            print(
+                "\n" + "\n".join(evidence_lines).encode("ascii", errors="replace").decode("ascii")
+            )
 
     finally:
         server_proc.terminate()

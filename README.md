@@ -152,12 +152,24 @@ python -m venv venv
 
 ### Step 2: Install Dependencies
 ```powershell
-# For NVIDIA GPU acceleration (CUDA 12 runtime wheels):
+# Option A: NVIDIA GPU acceleration (CUDA 12 pip runtime wheels — no CUDA Toolkit install required):
 pip install -r requirements-gpu.txt
 
-# Or for CPU-only execution:
+# Option B: CPU-only execution:
 pip install -r requirements.txt
+
+# (Optional for dev/test/eval):
+pip install -r requirements-dev.txt
 ```
+
+> **GPU Auto-Detection:** `bolsamajh.utils.cuda_setup` automatically locates the NVIDIA cuBLAS/cuDNN wheel binaries in `site-packages` and registers their DLL directories with the Windows dynamic linker. To verify GPU detection on your machine:
+> ```powershell
+> python -c "from bolsamajh.utils.cuda_setup import auto_detect_device; print(auto_detect_device())"
+> # On GPU: ('cuda', 'int8_float16', 'large-v3-turbo')
+> # On CPU: ('cpu', 'int8', 'MSpider3/whisper-hindi2hinglish-swift-ct2')
+> ```
+
+> **CPU Execution Path:** If no CUDA GPU is detected or CUDA initialization fails, BolSamajh automatically falls back to CPU execution using `int8` quantization with the lightweight `MSpider3/whisper-hindi2hinglish-swift-ct2` model (or configure explicitly via `BOLSAMAJH_STT_DEVICE=cpu`, `BOLSAMAJH_STT_COMPUTE_TYPE=int8`, and `BOLSAMAJH_STT_MODEL=MSpider3/whisper-hindi2hinglish-swift-ct2`).
 
 ### Step 3: Set Up Local LLM (Ollama)
 ```powershell

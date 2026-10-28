@@ -8,6 +8,7 @@ from typing import AsyncIterator
 @dataclass
 class LLMResponse:
     """Response from an LLM generation."""
+
     text: str
     model: str = ""
     tokens_used: int = 0

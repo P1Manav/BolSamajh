@@ -1,10 +1,12 @@
 """Unit tests for canonical normalization and transliteration scoring."""
+
 import pytest
+
 from bolsamajh.benchmark.normalization import (
+    compute_normalized_wer_cer,
     normalize_indic,
     normalize_numbers,
     to_canonical_script,
-    compute_normalized_wer_cer,
 )
 
 
@@ -43,7 +45,7 @@ def test_canonical_transliteration():
 def test_compute_normalized_wer_cer():
     wer, cer, cref, chyp = compute_normalized_wer_cer(
         "Flight 15th August ko subah 6:30 baje depart hogi",
-        "Flight 15th August ko subah 6:30 baje depart hogi"
+        "Flight 15th August ko subah 6:30 baje depart hogi",
     )
     assert wer == 0.0
     assert cer == 0.0
@@ -122,7 +124,9 @@ def test_no_fused_decimals_in_per_clip_results():
     import re
     from pathlib import Path
 
-    results_path = Path(__file__).resolve().parent.parent / "benchmark_data" / "per_clip_results.jsonl"
+    results_path = (
+        Path(__file__).resolve().parent.parent / "benchmark_data" / "per_clip_results.jsonl"
+    )
     if not results_path.exists():
         pytest.skip("per_clip_results.jsonl not present")
 
@@ -144,16 +148,20 @@ def test_no_fused_decimals_in_per_clip_results():
                 original_decimal = f"{int_part}.{frac_part}"
                 # The canonical reference must preserve the decimal, not fuse it into int_part + frac_part
                 if original_decimal not in canon_ref:
-                    fused_violations.append({
-                        "line": idx,
-                        "model": rec.get("model"),
-                        "clip_id": rec.get("clip_id"),
-                        "decimal": original_decimal,
-                        "ref": ref,
-                        "canonical_ref": canon_ref,
-                    })
+                    fused_violations.append(
+                        {
+                            "line": idx,
+                            "model": rec.get("model"),
+                            "clip_id": rec.get("clip_id"),
+                            "decimal": original_decimal,
+                            "ref": ref,
+                            "canonical_ref": canon_ref,
+                        }
+                    )
 
-    assert not fused_violations, f"Found {len(fused_violations)} fused decimal references: {fused_violations[:5]}"
+    assert not fused_violations, (
+        f"Found {len(fused_violations)} fused decimal references: {fused_violations[:5]}"
+    )
 
 
 def test_phase3_strict_number_grammar_and_idempotence():
@@ -203,10 +211,12 @@ def test_phase3_strict_number_grammar_and_idempotence():
     for text in corpus:
         norm1 = normalize_numbers(text)
         norm2 = normalize_numbers(norm1)
-        assert norm1 == norm2, f"normalize_numbers is not idempotent on {text!r}: {norm1!r} != {norm2!r}"
+        assert norm1 == norm2, (
+            f"normalize_numbers is not idempotent on {text!r}: {norm1!r} != {norm2!r}"
+        )
 
         canon1 = to_canonical_script(text)
         canon2 = to_canonical_script(canon1)
-        assert canon1 == canon2, f"to_canonical_script is not idempotent on {text!r}: {canon1!r} != {canon2!r}"
-
-
+        assert canon1 == canon2, (
+            f"to_canonical_script is not idempotent on {text!r}: {canon1!r} != {canon2!r}"
+        )

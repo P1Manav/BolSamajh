@@ -157,4 +157,14 @@
 **Alternatives considered:** Keeping global document state across all web sessions; polling `/api/qa` instead of streaming SSE; retaining external Google Fonts CDN.  
 **Reason:** Prevents cross-session document leakage, guarantees offline UI execution without external CDN requests, delivers instant streaming feedback, and closes Web / WebSocket security vectors.
 
-
+## D025: Dependency Stratification & Reproducibility
+**Date:** 2026-10-28  
+**Choice:** Stratified project dependencies into distinct, well-bounded tiers and hardened the build and CI pipeline:
+- **Dependency Splitting:** Separated dependencies into `requirements.txt` (core runtime, pinned), `requirements-dev.txt` (testing, evaluation, Bolna integration, ruff), and `requirements-gpu.txt` (pinned CUDA 12 runtime wheels `nvidia-cublas-cu12`, `nvidia-cudnn-cu12`, `nvidia-cuda-nvrtc-cu12` compatible with CTranslate2 4.8.3).
+- **Lockfile Sanitization:** Removed unused and extraneous packages (`pymupdf4llm`, `pymupdf_layout`, `pytest`, `httpx2`, `httpcore2`) from the runtime lockfile `requirements.lock.txt`. Maintained dual Python 3.11/3.12 version markers (`numpy`, `scipy`, `av`, `deprecated`, `networkx`, `wrapt`) to guarantee zero wheel installation failures on both Python 3.11 and 3.12 across Linux and Windows.
+- **Ruff & Static Analysis:** Added `pyproject.toml` with project-tailored ruff linter and formatter settings. Resolved all lint errors (import sorting, ambiguous identifiers, unused variables, and trailing whitespace).
+- **Import Smoke Testing:** Implemented `scripts/smoke_test_imports.py` to recursively import and verify all 45 `bolsamajh` modules both under standard environment conditions and under simulated headless Linux environments where optional desktop/audio hooks (`pystray`, `keyboard`, `tkinter`) are masked. Added guard to `bolsamajh/__main__.py` to prevent desktop initialization during module imports.
+- **CI Hardening:** Updated `.github/workflows/ci.yml` to install sanitized runtime and dev lockfiles, run `ruff check .`, `ruff format --check .`, execute `scripts/smoke_test_imports.py`, and run the unit test suite on Ubuntu and Windows across Python 3.11 and 3.12.
+- **Quickstart Documentation:** Documented Windows GPU verification (`bolsamajh.utils.cuda_setup.auto_detect_device`) and explicitly specified the CPU execution path with `MSpider3/whisper-hindi2hinglish-swift-ct2` and `int8` quantization.  
+**Alternatives considered:** Maintaining a monolithic, unstratified lockfile containing dev and test dependencies; leaving ruff unconfigured; skipping import smoke testing in CI.  
+**Reason:** Ensures deterministic, reproducible installations across runtime, development, and GPU environments; keeps CI green across operating systems and Python versions without pulling heavy dev packages into production runtime containers.

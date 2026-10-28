@@ -2,8 +2,8 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from bolsamajh.web.server import app, is_safe_external_url
 
+from bolsamajh.web.server import app, is_safe_external_url
 
 client = TestClient(app)
 
@@ -21,6 +21,7 @@ def test_status_endpoint():
 import socket
 from unittest.mock import patch
 
+
 def test_ssrf_protection_helper():
     assert not is_safe_external_url("http://localhost:8000")
     assert not is_safe_external_url("http://127.0.0.1:11434")
@@ -29,7 +30,10 @@ def test_ssrf_protection_helper():
     assert not is_safe_external_url("http://10.0.0.1")
     assert not is_safe_external_url("ftp://example.com")
     # Public domain should be allowed — mock DNS lookup for offline-safe CI testing
-    with patch("socket.getaddrinfo", return_value=[(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))]):
+    with patch(
+        "socket.getaddrinfo",
+        return_value=[(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))],
+    ):
         assert is_safe_external_url("https://en.wikipedia.org/wiki/India")
 
 
@@ -43,8 +47,7 @@ def test_upload_file_too_large():
     # 26 MB dummy file
     large_data = b"0" * (26 * 1024 * 1024)
     resp = client.post(
-        "/api/documents/upload",
-        files={"file": ("huge.txt", large_data, "text/plain")}
+        "/api/documents/upload", files={"file": ("huge.txt", large_data, "text/plain")}
     )
     assert resp.status_code == 413
 
@@ -52,12 +55,15 @@ def test_upload_file_too_large():
 def test_cors_headers():
     resp = client.options(
         "/api/status",
-        headers={"Origin": "http://localhost:8000", "Access-Control-Request-Method": "GET"}
+        headers={"Origin": "http://localhost:8000", "Access-Control-Request-Method": "GET"},
     )
     assert resp.status_code == 200
     assert resp.headers.get("access-control-allow-origin") == "http://localhost:8000"
     # Credentials should be false
-    assert "access-control-allow-credentials" not in resp.headers or resp.headers.get("access-control-allow-credentials") == "false"
+    assert (
+        "access-control-allow-credentials" not in resp.headers
+        or resp.headers.get("access-control-allow-credentials") == "false"
+    )
 
 
 def test_audio_path_traversal_blocking():
@@ -72,7 +78,9 @@ def test_audio_path_traversal_blocking():
     ]
     for payload in traversal_payloads:
         resp = client.get(f"/api/audio/{payload}")
-        assert resp.status_code in (400, 403, 404), f"Payload '{payload}' was not rejected: HTTP {resp.status_code}"
+        assert resp.status_code in (400, 403, 404), (
+            f"Payload '{payload}' was not rejected: HTTP {resp.status_code}"
+        )
 
 
 def test_gateway_auth_bearer_token(monkeypatch, fake_edge_tts):
@@ -131,6 +139,7 @@ def test_bind_security_check(monkeypatch):
 def test_background_task_tracking():
     """Verify asyncio tasks are tracked and discarded upon completion."""
     import asyncio
+
     from bolsamajh.web.server import _BACKGROUND_TASKS, track_task
 
     async def _run():
@@ -186,8 +195,8 @@ def test_qa_endpoint_auth_enforcement(monkeypatch):
     """Verify with BOLSAMAJH_API_KEY set: /api/status works without key,
     /api/qa returns 401 without key and 200 with key.
     """
-    from bolsamajh.web.server import retriever, llm
     from bolsamajh.documents.chunker import Chunk
+    from bolsamajh.web.server import llm, retriever
 
     monkeypatch.setenv("BOLSAMAJH_API_KEY", "test-secret-key-42")
 
@@ -229,8 +238,9 @@ def test_safe_fetch_url_dns_rebinding_prevention(monkeypatch):
     """Verify safe_fetch_url connects directly to the resolved IP so DNS rebinding cannot swap addresses,
     and blocks requests if DNS resolves to a private IP on subsequent lookup.
     """
-    from bolsamajh.web.server import safe_fetch_url
     import io
+
+    from bolsamajh.web.server import safe_fetch_url
 
     call_count = 0
 
@@ -288,7 +298,7 @@ def test_safe_fetch_url_dns_rebinding_prevention(monkeypatch):
 
 def test_stream_qa_error_event(monkeypatch):
     """Verify /api/qa/stream catches LLM exceptions and emits an SSE error event before [DONE]."""
-    from bolsamajh.web.server import retriever, llm
+    from bolsamajh.web.server import llm, retriever
 
     monkeypatch.setattr(type(retriever), "is_loaded", property(lambda self: True))
     monkeypatch.setattr(retriever, "retrieve", lambda *a, **kw: [])
@@ -325,27 +335,29 @@ def test_tts_transliteration_preserves_hinglish():
     """
     from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
 
-    adapter = EdgeTTSAdapter()
+    _adapter = EdgeTTSAdapter()
 
     # Roman Hinglish text: must NOT be mangled by ISO transliteration
     hinglish_text = "Yeh ek simple Hinglish text hai."
     # If ISO transliteration were run, words like 'Yeh' would become Devanagari gibberish
     # But since it's Roman, both has_devanagari and has_gujarati are False, so it's untouched.
-    has_dev = any('\u0900' <= c <= '\u097F' for c in hinglish_text)
-    has_guj = any('\u0A80' <= c <= '\u0AFF' for c in hinglish_text)
+    has_dev = any("\u0900" <= c <= "\u097f" for c in hinglish_text)
+    has_guj = any("\u0a80" <= c <= "\u0aff" for c in hinglish_text)
     assert not has_dev and not has_guj
 
     # Cross-script Indic: Devanagari to Gujarati
     from aksharamukha import transliterate
+
     dev_text = "नमस्ते"
     guj_result = transliterate.process("Devanagari", "Gujarati", dev_text)
-    assert any('\u0A80' <= c <= '\u0AFF' for c in guj_result)
+    assert any("\u0a80" <= c <= "\u0aff" for c in guj_result)
 
 
 def test_safe_fetch_url_oversized_body_rejected(monkeypatch):
     """Verify safe_fetch_url rejects response bodies exceeding max_body_size."""
     import io
     import socket
+
     from bolsamajh.web.server import safe_fetch_url
 
     def mock_getaddrinfo(host, port, *args, **kwargs):
@@ -355,7 +367,9 @@ def test_safe_fetch_url_oversized_body_rejected(monkeypatch):
         def __init__(self):
             # Create a 6MB payload (exceeding default 5MB cap)
             large_body = b"A" * (6 * 1024 * 1024)
-            header = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(large_body)}\r\nConnection: close\r\n\r\n".encode("utf-8")
+            header = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(large_body)}\r\nConnection: close\r\n\r\n".encode(
+                "utf-8"
+            )
             self._response = header + large_body
 
         def sendall(self, data):
@@ -379,6 +393,7 @@ def test_safe_fetch_url_non_utf8_decoding(monkeypatch):
     """Verify safe_fetch_url decodes non-UTF-8 pages via Content-Type header and <meta charset>."""
     import io
     import socket
+
     from bolsamajh.web.server import safe_fetch_url
 
     def mock_getaddrinfo(host, port, *args, **kwargs):
@@ -415,7 +430,7 @@ def test_safe_fetch_url_non_utf8_decoding(monkeypatch):
         b"HTTP/1.1 200 OK\r\n"
         b"Content-Type: text/html\r\n"
         b"Connection: close\r\n\r\n"
-        b"<html><head><meta charset=\"windows-1252\"></head><body>Smart \x93quote\x94</body></html>"
+        b'<html><head><meta charset="windows-1252"></head><body>Smart \x93quote\x94</body></html>'
     )
     monkeypatch.setattr("socket.create_connection", lambda *a, **kw: MockCharsetSocket(win_body))
     result2 = safe_fetch_url("http://example.com/win1252")
@@ -426,6 +441,7 @@ def test_safe_fetch_url_non_default_port_in_host(monkeypatch):
     """Verify safe_fetch_url includes non-default port in Host header and omits default port."""
     import io
     import socket
+
     from bolsamajh.web.server import safe_fetch_url
 
     def mock_getaddrinfo(host, port, *args, **kwargs):
@@ -436,10 +452,7 @@ def test_safe_fetch_url_non_default_port_in_host(monkeypatch):
     class MockCaptureSocket:
         def __init__(self):
             self._response = (
-                b"HTTP/1.1 200 OK\r\n"
-                b"Content-Type: text/html\r\n"
-                b"Connection: close\r\n\r\n"
-                b"OK"
+                b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\nOK"
             )
 
         def sendall(self, data):
@@ -506,6 +519,7 @@ def test_safe_fetch_url_gzip_bomb_protection(monkeypatch):
     import gzip
     import io
     import socket
+
     from bolsamajh.web.server import safe_fetch_url
 
     # Create a small gzip payload (<15 KB) that expands to 10 MB
@@ -546,7 +560,3 @@ def test_safe_fetch_url_gzip_bomb_protection(monkeypatch):
         safe_fetch_url("http://example.com/bomb.html", max_body_size=5 * 1024 * 1024)
 
     assert "Decompressed response body exceeds maximum allowed size" in str(excinfo.value)
-
-
-
-

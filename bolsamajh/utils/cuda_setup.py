@@ -6,9 +6,9 @@ Adheres to Tier 3 Requirement 18:
 - Automatically detects GPU vs CPU with int8 fallback and optimized model selection.
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -72,6 +72,7 @@ def auto_detect_device() -> tuple[str, str, str]:
     setup_cuda_dlls()
     try:
         import ctranslate2
+
         cuda_count = ctranslate2.get_cuda_device_count()
         if cuda_count > 0:
             log.info("CUDA GPU detected (%d device(s)). Using cuda:int8_float16", cuda_count)
@@ -79,7 +80,9 @@ def auto_detect_device() -> tuple[str, str, str]:
     except Exception as e:
         log.debug("CUDA check exception: %s", e)
 
-    log.info("No CUDA GPU detected or initialization failed. Falling back to CPU:int8 with MSpider3/whisper-hindi2hinglish-swift-ct2")
+    log.info(
+        "No CUDA GPU detected or initialization failed. Falling back to CPU:int8 with MSpider3/whisper-hindi2hinglish-swift-ct2"
+    )
     return "cpu", "int8", "MSpider3/whisper-hindi2hinglish-swift-ct2"
 
 

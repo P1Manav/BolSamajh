@@ -13,21 +13,20 @@ Adheres to Tier 2 Requirements:
 - Records exact per-clip metadata in metadata.json and real_speech_manifest.json.
 """
 
-import io
-import os
-import sys
-import json
-import wave
-import random
 import argparse
 import asyncio
+import io
+import json
+import random
+import sys
+import wave
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
+import pyarrow.parquet as pq
 import scipy.signal
 import soundfile as sf
-import pyarrow.parquet as pq
 from huggingface_hub import hf_hub_download
 
 # Ensure UTF-8 output on Windows
@@ -42,10 +41,10 @@ REAL_MANIFEST = ROOT_DIR / "benchmark_data" / "real_speech_manifest.json"
 SYNTH_METADATA = ROOT_DIR / "benchmark_data" / "metadata.json"
 
 EDGE_VOICES = [
-    "hi-IN-SwaraNeural",    # Female Hindi
-    "hi-IN-MadhurNeural",   # Male Hindi
-    "en-IN-NeerjaNeural",   # Female Indian English
-    "gu-IN-DhwaniNeural",   # Female Gujarati
+    "hi-IN-SwaraNeural",  # Female Hindi
+    "hi-IN-MadhurNeural",  # Male Hindi
+    "en-IN-NeerjaNeural",  # Female Indian English
+    "gu-IN-DhwaniNeural",  # Female Gujarati
 ]
 
 
@@ -137,7 +136,7 @@ def apply_audio_degradations(
 
     # 4. Additive Gaussian noise at specified SNR
     if snr_db is not None and len(out) > 0:
-        signal_power = np.mean(out ** 2)
+        signal_power = np.mean(out**2)
         if signal_power > 1e-8:
             snr_linear = 10.0 ** (snr_db / 10.0)
             noise_power = signal_power / snr_linear
@@ -169,7 +168,7 @@ def extract_hiacc(num_clips: int = 100) -> List[Dict[str, Any]]:
             audio_dict = table["audio"][i].as_py()
             audio_bytes = audio_dict["bytes"]
 
-            clip_name = f"hiacc_cs_{count+1:03d}.wav"
+            clip_name = f"hiacc_cs_{count + 1:03d}.wav"
             out_file = REAL_DIR / clip_name
             dur = save_audio_bytes_as_wav(audio_bytes, out_file)
 
@@ -177,16 +176,18 @@ def extract_hiacc(num_clips: int = 100) -> List[Dict[str, Any]]:
             if dur > 5.0 and words < 3:
                 continue
 
-            records.append({
-                "id": f"hiacc_{count+1:03d}",
-                "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
-                "split": "code_switched_hinglish",
-                "wav_file": f"benchmark_data/real_speech/{clip_name}",
-                "reference": transcript,
-                "duration_sec": round(dur, 2),
-                "code_switch_points": cs_count,
-                "license": "CC-BY-4.0",
-            })
+            records.append(
+                {
+                    "id": f"hiacc_{count + 1:03d}",
+                    "dataset": "HiACC (Trelis/hiacc-adult-test-eval)",
+                    "split": "code_switched_hinglish",
+                    "wav_file": f"benchmark_data/real_speech/{clip_name}",
+                    "reference": transcript,
+                    "duration_sec": round(dur, 2),
+                    "code_switch_points": cs_count,
+                    "license": "CC-BY-4.0",
+                }
+            )
             count += 1
             if count >= num_clips:
                 break
@@ -211,19 +212,21 @@ def extract_fleurs(lang_code: str, split_name: str, num_clips: int = 100) -> Lis
         audio_dict = table["audio"][i].as_py()
         audio_bytes = audio_dict["bytes"]
 
-        clip_name = f"fleurs_{lang_code}_{i+1:03d}.wav"
+        clip_name = f"fleurs_{lang_code}_{i + 1:03d}.wav"
         out_file = REAL_DIR / clip_name
         dur = save_audio_bytes_as_wav(audio_bytes, out_file)
 
-        records.append({
-            "id": f"fleurs_{lang_code}_{i+1:03d}",
-            "dataset": f"Google FLEURS ({lang_code})",
-            "split": split_name,
-            "wav_file": f"benchmark_data/real_speech/{clip_name}",
-            "reference": transcript,
-            "duration_sec": round(dur, 2),
-            "license": "CC-BY-4.0",
-        })
+        records.append(
+            {
+                "id": f"fleurs_{lang_code}_{i + 1:03d}",
+                "dataset": f"Google FLEURS ({lang_code})",
+                "split": split_name,
+                "wav_file": f"benchmark_data/real_speech/{clip_name}",
+                "reference": transcript,
+                "duration_sec": round(dur, 2),
+                "license": "CC-BY-4.0",
+            }
+        )
 
     print(f"✓ Saved {len(records)} FLEURS {lang_code} clips to {REAL_DIR}")
     return records
@@ -231,8 +234,9 @@ def extract_fleurs(lang_code: str, split_name: str, num_clips: int = 100) -> Lis
 
 async def generate_synthetic_stress_dataset(num_clips: int = 100):
     """Generate 100 synthetic degraded stress clips deterministically with Edge-TTS."""
-    import edge_tts
     import av
+    import edge_tts
+
     from bolsamajh.benchmark.sentences import SENTENCES
 
     SYNTH_DIR.mkdir(parents=True, exist_ok=True)
@@ -288,6 +292,7 @@ async def generate_synthetic_stress_dataset(num_clips: int = 100):
             text = s.reference_devanagari
         elif voice.startswith("gu-IN"):
             from aksharamukha import transliterate
+
             text = transliterate.process("Devanagari", "Gujarati", s.reference_devanagari)
         else:
             text = s.reference_roman
@@ -348,23 +353,25 @@ async def generate_synthetic_stress_dataset(num_clips: int = 100):
             wf.writeframes(out_int16.tobytes())
 
         dur = len(degraded) / sample_rate
-        metadata.append({
-            "id": s.id,
-            "category": s.category,
-            "reference_roman": s.reference_roman,
-            "reference_devanagari": s.reference_devanagari,
-            "wav_path": str(wav_path.relative_to(ROOT_DIR)).replace("\\", "/"),
-            "duration_sec": round(dur, 2),
-            "voice": voice,
-            "degradation": deg_profile,
-            "degradation_params": {
-                "speed_factor": speed,
-                "snr_db": snr,
-                "phone_filter": phone,
-                "mu_law": mu_law,
-            },
-            "dataset_type": "synthetic_stress_test",
-        })
+        metadata.append(
+            {
+                "id": s.id,
+                "category": s.category,
+                "reference_roman": s.reference_roman,
+                "reference_devanagari": s.reference_devanagari,
+                "wav_path": str(wav_path.relative_to(ROOT_DIR)).replace("\\", "/"),
+                "duration_sec": round(dur, 2),
+                "voice": voice,
+                "degradation": deg_profile,
+                "degradation_params": {
+                    "speed_factor": speed,
+                    "snr_db": snr,
+                    "phone_filter": phone,
+                    "mu_law": mu_law,
+                },
+                "dataset_type": "synthetic_stress_test",
+            }
+        )
 
         if i % 20 == 0 or i == num_clips:
             print(f"[{i:03d}/{num_clips}] Generated ({deg_profile}): {s.reference_roman[:35]}...")
@@ -372,14 +379,25 @@ async def generate_synthetic_stress_dataset(num_clips: int = 100):
     with open(SYNTH_METADATA, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    print(f"✓ Saved {len(metadata)} synthetic stress clips to {SYNTH_DIR} (metadata in {SYNTH_METADATA})")
+    print(
+        f"✓ Saved {len(metadata)} synthetic stress clips to {SYNTH_DIR} (metadata in {SYNTH_METADATA})"
+    )
 
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch and build benchmark datasets")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducible generation")
-    parser.add_argument("--real-clips", type=int, default=100, help="Clips per real speech split (default: 100)")
-    parser.add_argument("--synth-clips", type=int, default=100, help="Number of synthetic stress clips (default: 100)")
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed for reproducible generation"
+    )
+    parser.add_argument(
+        "--real-clips", type=int, default=100, help="Clips per real speech split (default: 100)"
+    )
+    parser.add_argument(
+        "--synth-clips",
+        type=int,
+        default=100,
+        help="Number of synthetic stress clips (default: 100)",
+    )
     parser.add_argument("--skip-synth", action="store_true", help="Skip synthetic generation")
     parser.add_argument("--skip-real", action="store_true", help="Skip real dataset extraction")
     args = parser.parse_args()

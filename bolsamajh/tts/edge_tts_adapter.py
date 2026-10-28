@@ -1,12 +1,12 @@
 """Edge-TTS adapter — free Microsoft Edge text-to-speech service."""
 
+import asyncio
 import io
+import logging
 import os
 import re
-import logging
-import asyncio
 import threading
-from typing import Literal, Optional, Callable
+from typing import Callable, Literal, Optional
 
 import numpy as np
 
@@ -82,18 +82,20 @@ class EdgeTTSAdapter(TextToSpeech):
         import edge_tts
 
         # Pre-process text according to script requirements
-        has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
-        has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in text)
+        has_devanagari = any("\u0900" <= c <= "\u097f" for c in text)
+        has_gujarati = any("\u0a80" <= c <= "\u0aff" for c in text)
 
         if lang == "hi" and has_gujarati and not has_devanagari:
             try:
                 from aksharamukha import transliterate
+
                 text = transliterate.process("Gujarati", "Devanagari", text)
             except Exception as e:
                 log.debug("Transliteration to Devanagari skipped: %s", e)
         elif lang == "gu" and has_devanagari and not has_gujarati:
             try:
                 from aksharamukha import transliterate
+
                 text = transliterate.process("Devanagari", "Gujarati", text)
             except Exception as e:
                 log.debug("Transliteration to Gujarati skipped: %s", e)
