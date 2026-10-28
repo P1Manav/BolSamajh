@@ -48,6 +48,14 @@ benchmark_clips/
 
 # Logs
 *.log
+logs/
 
 # Byte-compiled
 *.pyc
+
+# Test, Lint, and Type Check Caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
