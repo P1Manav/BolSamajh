@@ -2,7 +2,7 @@
 
 > **Buildathon:** Bolna × Symphony Voice AI Buildathon (October 2026)  
 > **Repository:** [https://github.com/P1Manav/BolSamajh](https://github.com/P1Manav/BolSamajh)  
-> **Tag:** `v1.0.0-submission`  
+> **Tag:** `v1.0.1`  
 > **Host Machine:** Windows 10/11 x64, NVIDIA GeForce RTX 3060 Ti (8 GB VRAM), Python 3.11 & 3.12  
 > **Execution Date:** 2026-10-26 (Completed ahead of 31 Oct 2026, 11:59 PM IST deadline)  
 > **Mode:** 100% Autonomous, zero user questions, empirical evidence only.
@@ -64,7 +64,7 @@ All checks passed!
 [Step 3] Installing dependencies from requirements.lock.txt (or requirements.txt)...
 [+] Pip install finished in 85.4s (Return Code: 0)
 [Step 4] Running smoke test 1: Package import & version check...
-Output: BolSamajh Version: 1.0.0
+Output: BolSamajh Version: 1.0.1
 [Step 5] Running smoke test 2: Launch BolSamajh server & query /api/status...
 [+] /api/status returned HTTP 200 OK: "status": "ready"
 [+] Health status 'ready' verified!

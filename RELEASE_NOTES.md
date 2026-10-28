@@ -1,13 +1,71 @@
 # BolSamajh — Release Notes
 
-## BolSamajh v1.0.0-submission (Final Buildathon Submission)
+## BolSamajh v1.0.1 (Comprehensive Hardening, Empirical Audit & Ecosystem Reconciliation)
 
-> **Release Tag:** `v1.0.0-submission`  
-> **Release Date:** 2026-10-26  
+> **Release Tag:** `v1.0.1`  
+> **Release Date:** 2026-10-28  
 > **Buildathon:** Bolna × Symphony Voice AI Buildathon  
-> **Status:** All 81 unit & integration tests passing locally in clean venvs across Python 3.11 and 3.12, and in multi-OS CI.
+> **Status:** All 129 unit & integration tests passing locally in clean venvs across Python 3.11 and 3.12, and in multi-OS CI.
 
 ---
+
+### 🚀 Overview
+BolSamajh `v1.0.1` represents a comprehensive reliability, correctness, and architectural audit pass across all tiers of the application. It resolves all edge cases identified in clipboard handling, document parsing, thread safety, streaming audio playback, model fallbacks, web security, and empirical benchmark scripts, while bringing all documentation into strict 1:1 synchronization with verifiable codebase facts.
+
+### 🌟 Key Changes & Hardening in v1.0.1
+
+#### 1. Configuration & Wiring (Phase 1)
+- **Automatic `.env` Loading:** Centralized `.env` loading in `bolsamajh/config.py`, `bolsamajh/main.py`, and `bolsamajh/web/server.py` via `python-dotenv`.
+- **Pluggable TTS Adapter Factory:** Replaced hardcoded `EdgeTTSAdapter` instantiation with `create_tts_adapter()` in both the desktop app and the web server. Added strict literal validation for `BOLSAMAJH_TTS_ENGINE` (`edge` | `piper`) and `BOLSAMAJH_LLM_AUTO_FALLBACK` (`true` | `false`).
+- **Strict LLM Factory Validation:** `bolsamajh/llm/factory.py` now raises an explicit `ValueError` when given an unsupported engine string instead of silently defaulting.
+- **Comprehensive `.env.example`:** Fully documented all supported environment variables with comments.
+- **Dynamic Versioning & Degraded State Notification:** The desktop entry point now logs `__version__ = "1.0.1"` dynamically and displays a detailed degraded status banner if any preload step fails.
+- **Lightweight Decoupling:** Isolated prompts into `bolsamajh/prompts.py`, allowing the web server and headless API to operate without loading desktop GUI libraries (`tkinter`, `sounddevice`, `torch`). Pruned dead code (`stt/ai4bharat.py`, `auto_punctuate`, `_SENTENCE_END_RE`).
+
+#### 2. Correctness & Fault Tolerance (Phase 2)
+- **Clipboard Sentinel Restoration:** Overhauled `bolsamajh/utils/clipboard.py` with unique UUID sentinels, configurable restore delay (`BOLSAMAJH_CLIPBOARD_RESTORE_DELAY`), retry loops, and empty clipboard clearing. Refactored `ModifierGuard` to detect physically pressed modifiers via `_is_key_pressed` and restore only keys that were physically pressed by the user.
+- **Atomic Audio Rendering:** Implemented `render_audio_atomically` in `bolsamajh/web/server.py` to write audio to temporary files and atomically rename them upon completion, preventing partial audio delivery.
+- **Thread-Safe Document Retrieval:** Protected `DocumentRetriever` with a `threading.Lock`, building indexes completely before atomically swapping both the FAISS index and chunk list. Added scaled refusal thresholds (0.785 for `multilingual-e5-base`, 0.760 for `multilingual-e5-small`) and loud fallback warnings.
+- **Script-Aware Token Multipliers:** Replaced naive word-length heuristics in `bolsamajh/documents/chunker.py` with tokenizer token counts and script-aware multipliers (>= 3 tokens/word for Devanagari and Gujarati). Added boundary splitting for oversized unpunctuated sentences and document-type citations.
+- **Robust Document Loader:** Added rejection of legacy `.doc` files, extraction of DOCX tables into readable text, empty DOCX detection, CRLF normalization, encrypted PDF detection, OCR bounds (30 pages / 50MB), and HTML `<title>` extraction.
+- **Prompt Injection Defense & Deterministic Refusal:** Escaped `</document_data>` tags in document text. When retrieval scores fall below the refusal threshold, `DocQAPipeline` returns an immediate deterministic refusal in the question's language without invoking the LLM. Added multi-turn query rewriting using conversation history.
+- **Thread-Safe Silero VAD Barge-In:** Initialized a single shared `SileroVAD` instance per application and measured the echo-mute window from the moment the first audio sample plays (`mark_playback_started`).
+- **Sentence Splitter Precision:** Protected decimals (`10.5`), times (`10:30`), abbreviations, newlines, and bullet list items from premature sentence splitting.
+- **LLM Adapter Resilience:** Added exponential backoff cooldown with auto-recovery for Google Gemini, deterministic Flash candidate selection, fixed streaming context manager leaks, mid-stream fallback abort (`MidStreamFallbackError`), and exact model tag validation with `keep_alive` parameter for Ollama.
+- **STT & TTS Hardening:** Restricted candidate languages to (`hi`, `en`, `gu`) on short clips when language is `auto`; added small CPU fallback on CUDA failure; added input rate resampling; migrated Piper model storage to the OS user data directory; added configurable Roman Hinglish voice (`BOLSAMAJH_ROMAN_VOICE`); ensured Edge TTS stop events are preserved across sentence boundaries.
+- **Text Normalization:** Made `aksharamukha` a lazy optional import, mapped anusvara to 'n' in Roman Hinglish mode, and added formatting for percentages, 10-digit phone numbers, and rupee denominations.
+
+#### 3. Web Gateway & UI (Phases 3 & 4)
+- **OpenAI-Compliant Speech & Transcriptions:** Updated `/v1/audio/transcriptions` to honor `language`, `prompt`, and `response_format` (`json`, `text`, `verbose_json`).
+- **Realtime WebSocket Protocol:** Fully implemented `/v1/realtime?intent=transcription` using public STT methods, supporting standard OpenAI Realtime events (`session.created`, `session.updated`, `input_audio_buffer.committed`), a 10MB buffer cap, and origin validation.
+- **Per-Session Document Isolation:** Keyed retriever instances by session ID and added `DELETE /api/document` for session cleanup.
+- **Security Middleware:** Added Host header allowlist, Origin/CSRF verification, upload size limits, and proper HTTP error codes on `/api/command`.
+- **Web UI Overhaul:** Self-hosted system typography (100% offline-ready), inline toast notifications (`#toastContainer`), dynamic hotkey badges, live SSE streaming, and chat history management.
+
+#### 4. Dependency Isolation & Packaging (Phase 5)
+- **Tri-Split Requirements:** Separated dependencies into `requirements.txt` (runtime), `requirements-dev.txt` (development/testing), and `requirements-gpu.txt` (CUDA 12 libraries).
+- **Pruned Unneeded Dependencies:** Removed non-existent packages (`httpx2`, `httpcore2`), removed dev packages from runtime lockfile, and configured `ruff` linting and formatting via `pyproject.toml`.
+- **Import Smoke Testing:** Added `scripts/smoke_test_imports.py` testing all 45 modules under standard and headless-masked environments.
+
+#### 5. Empirical Benchmark Calibration (Phase 6)
+- **Honest Latency Metrics:** `scripts/measure_hardware.py` now measures first-sentence streaming latency through `SentenceSplitter` (labeling un-run hardware as "estimated"), computes true-path TTFA, and uses median RTF statistics.
+- **Dynamic Assertions:** Removed monkeypatching and double window messages from `scripts/e2e_dictation_test.py`; dynamically computed verdicts across all empirical benchmark scripts.
+- **Multi-Chunk Grounding Test:** Expanded `scripts/e2e_doc_qa_test.py` to multi-chunk documents (>= 10 chunks each) with citation and keyword assertions.
+- **Empirical Calibration Artifacts:** Calibrated retrieval refusal thresholds on multilingual benchmarks and recorded corpus limitations honestly.
+
+#### 6. Documentation Reconciliation (Phase 7)
+- **Standardized Feature Status:** Enforced three honest status labels: `Verified (automated evidence)`, `Implemented, pending manual hardware verification`, and `Not implemented`.
+- **Accurate Realtime WebSocket Status:** Clarified that the minimal Realtime WebSocket is implemented for transcription.
+- **Repository-Relative Links:** Eliminated all local machine absolute URLs.
+- **Submission Answers:** Generated clean, paste-ready `submission/application_answers_RENDERED.md` without template markers.
+- **Manual Verification Runbook:** Rewrote `docs/MANUAL_VERIFICATION.md` as the definitive manual verification runbook with a one-page results template.
+
+#### 7. Comprehensive Automated Tests (Phase 8)
+- Added 13 comprehensive unit tests in `tests/test_phase8_comprehensive.py`, expanding the test suite to 129 passing tests across Python 3.11 and 3.12 with zero regressions.
+
+---
+
+## BolSamajh v1.0.0-submission (Final Buildathon Submission)
 
 ### 🚀 Overview
 BolSamajh `v1.0.0-submission` represents the final, autonomous, end-to-end verified release for the Bolna × Symphony Voice AI Buildathon. Under strict empirical evidence and honesty guidelines, every benchmark number and hardware claim is derived from committed raw execution logs under `docs/evidence/` and verifiable JSON artifacts.
