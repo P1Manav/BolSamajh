@@ -74,6 +74,7 @@ def test_ollama_num_ctx():
 
 @pytest.mark.anyio
 async def test_google_ai_default_model_and_error_handling(monkeypatch):
+    monkeypatch.delenv("GOOGLE_AI_API_KEY", raising=False)
     # Verify default model is gemini-3.5-flash
     adapter = GoogleAIAdapter()
     assert adapter.model == "gemini-3.5-flash"

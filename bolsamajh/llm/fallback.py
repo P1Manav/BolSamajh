@@ -1,5 +1,6 @@
 """Automatic fallback LLM adapter — gracefully switches between Ollama and Google AI."""
 
+import os
 import logging
 from typing import AsyncIterator
 
@@ -28,6 +29,9 @@ class FallbackLLMAdapter(LLMAdapter):
     def fallback_status(self) -> str:
         """Return human-readable status of the fallback engine."""
         if getattr(self.secondary, "disabled", False):
+            return "LLM fallback unavailable"
+        from bolsamajh.llm.google_ai import GoogleAIAdapter
+        if isinstance(self.secondary, GoogleAIAdapter) and not os.getenv("GOOGLE_AI_API_KEY"):
             return "LLM fallback unavailable"
         if hasattr(self.secondary, "_api_key") and not getattr(self.secondary, "_api_key", ""):
             return "LLM fallback unavailable"

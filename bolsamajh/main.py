@@ -13,8 +13,13 @@ except Exception:
     tk = None
     filedialog = None
 
+from dotenv import load_dotenv
+load_dotenv()
+
+from bolsamajh import __version__
 from bolsamajh.config import load_config, AppConfig
 from bolsamajh.overlay.hud import OverlayHUD
+from bolsamajh.tts.factory import create_tts_adapter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,14 +51,7 @@ def _create_llm(config: AppConfig):
 
 def _create_tts(config: AppConfig):
     """Create the TTS adapter based on config."""
-    if config.tts.engine == "edge_tts":
-        from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
-        return EdgeTTSAdapter()
-    elif config.tts.engine == "piper":
-        from bolsamajh.tts.piper_adapter import PiperTTSAdapter
-        return PiperTTSAdapter(model_path=config.tts.piper_model_path)
-    else:
-        raise ValueError(f"Unknown TTS engine: {config.tts.engine}")
+    return create_tts_adapter(config)
 
 
 def _setup_hotkeys(config: AppConfig, dictation_pipeline, doc_qa_pipeline, commands_pipeline, hud) -> None:
@@ -156,7 +154,7 @@ def main() -> None:
         logging.getLogger().setLevel(logging.DEBUG)
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    log.info("  BolSamajh v0.1.0 — Bolo. Samjho.")
+    log.info("  BolSamajh v%s — Bolo. Samjho.", __version__)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("Config: STT=%s  LLM=%s  TTS=%s  Script=%s",
              config.stt.engine, config.llm.engine,
@@ -188,13 +186,19 @@ def main() -> None:
     hud.set_state("processing", "Loading models…")
 
     def _preload_models():
+        failed = []
         try:
             log.info("Preloading STT model (%s)...", stt.name)
             stt.load_model()
             log.info("STT model preloaded successfully.")
         except Exception as e:
-            log.warning("STT preload: %s", e)
-        hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
+            log.warning("STT preload failed: %s", e)
+            failed.append("STT")
+
+        if failed:
+            hud.show_text(f"Degraded: {', '.join(failed)} failed", duration_ms=4000)
+        else:
+            hud.show_text("BolSamajh Ready ✓", duration_ms=2500)
 
     threading.Thread(target=_preload_models, daemon=True).start()
 

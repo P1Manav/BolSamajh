@@ -127,3 +127,9 @@
 **Alternatives considered:** Throwing unhandled exceptions during API calls or silently omitting fallback status.  
 **Reason:** Prevents demo or server crashes when users run locally without an external Google AI key or encounter cloud rate limits, ensuring uninterrupted offline/local operation.
 
+## D022: Dynamic Configuration & Lightweight Prompt Isolation
+**Date:** 2026-10-28  
+**Choice:** Added centralized `.env` auto-loading in `bolsamajh/config.py`, desktop entry `main.py`, and FastAPI web server. Added validation for all literal configuration values (`BOLSAMAJH_TTS_ENGINE`, `BOLSAMAJH_LLM_AUTO_FALLBACK`, `BOLSAMAJH_LLM_ENGINE`, `BOLSAMAJH_SCRIPT`, `BOLSAMAJH_STT_DEVICE`). Replaced hardcoded `EdgeTTSAdapter` in `server.py` and `main.py` with `bolsamajh/tts/factory.py:create_tts_adapter`. Raised explicit `ValueError` on unknown LLM engines in `llm/factory.py`. Isolated Q&A system prompts to `bolsamajh/prompts.py` so the web server avoids importing desktop GUI/DSP dependencies (`tkinter`, `sounddevice`, `torch`). Pruned dead code (`stt/ai4bharat.py`, dead `_SENTENCE_END_RE`, unused `auto_punctuate`).  
+**Alternatives considered:** Keeping prompt templates in `doc_qa.py` and letting `server.py` trigger audio/GUI imports on headless servers; silent fallback on unknown LLM engine strings.  
+**Reason:** Ensures robust startup across headless servers, container environments, and desktop installs without silent degradation or leaking invalid configurations.
+

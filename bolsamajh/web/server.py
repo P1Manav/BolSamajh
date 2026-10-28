@@ -40,6 +40,9 @@ from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Streamin
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from bolsamajh import __version__
 from bolsamajh.config import load_config, AppConfig
 from bolsamajh.documents.loader import load_document, load_webpage
@@ -47,8 +50,8 @@ from bolsamajh.documents.retriever import DocumentRetriever
 from bolsamajh.stt.faster_whisper_stt import FasterWhisperSTT
 from bolsamajh.llm.factory import create_llm_adapter
 from bolsamajh.llm.fallback import FallbackLLMAdapter
-from bolsamajh.tts.edge_tts_adapter import EdgeTTSAdapter
-from bolsamajh.pipeline.doc_qa import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
+from bolsamajh.tts.factory import create_tts_adapter
+from bolsamajh.prompts import _SYSTEM_PROMPT, _LANG_INSTRUCTIONS
 
 log = logging.getLogger("bolsamajh.web")
 
@@ -195,7 +198,7 @@ retriever = DocumentRetriever(
     chunk_overlap=config.doc_qa.chunk_overlap,
     refusal_threshold=config.doc_qa.refusal_threshold,
 )
-tts = EdgeTTSAdapter()
+tts = create_tts_adapter(config)
 llm = create_llm_adapter(config)
 
 

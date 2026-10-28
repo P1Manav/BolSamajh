@@ -12,6 +12,12 @@ log = logging.getLogger(__name__)
 
 def create_llm_adapter(config: AppConfig) -> LLMAdapter:
     """Create configured LLM adapter with optional auto-fallback."""
+    engine = str(config.llm.engine).lower().strip()
+    if engine not in ("ollama", "google_ai"):
+        raise ValueError(
+            f"Unknown LLM engine: '{config.llm.engine}'. Must be 'ollama' or 'google_ai'."
+        )
+
     ollama = OllamaAdapter(
         model=config.llm.ollama_model,
         base_url=config.llm.ollama_base_url,
@@ -26,11 +32,11 @@ def create_llm_adapter(config: AppConfig) -> LLMAdapter:
     )
 
     if config.llm.auto_fallback:
-        if config.llm.engine == "ollama":
+        if engine == "ollama":
             return FallbackLLMAdapter(primary=ollama, secondary=google_ai)
         else:
             return FallbackLLMAdapter(primary=google_ai, secondary=ollama)
 
-    if config.llm.engine == "google_ai":
+    if engine == "google_ai":
         return google_ai
     return ollama

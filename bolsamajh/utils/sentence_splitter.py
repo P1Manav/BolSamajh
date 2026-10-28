@@ -20,13 +20,6 @@ COMMON_ABBREVIATIONS = {
     "डॉ", "पं", "रु", "प्रो", "क्र",
 }
 
-# Regex to detect sentence boundaries
-_SENTENCE_END_RE = re.compile(
-    r'(?<![A-Za-z0-9\u0900-\u097F]\.[A-Za-z0-9\u0900-\u097F])'  # not inside e.g. / i.e.
-    r'(?<!\b\d)'                                                 # not immediately preceded by digit
-    r'([.?!।॥]+|\n\n+)'
-    r'(?:\s+|$)'
-)
 
 
 def _is_abbreviation_or_decimal(text: str, match_start: int) -> bool:
