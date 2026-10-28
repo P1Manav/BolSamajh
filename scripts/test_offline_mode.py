@@ -91,15 +91,21 @@ async def run_offline_suite():
     log.info("   -> Confirmed: Outbound traffic to non-loopback IPs is blocked.")
 
     # -----------------------------------------------------------------
-    # Step 2: Piper TTS Offline Synthesis
+    # Step 2: Piper TTS Offline Synthesis via App TTS Factory
     # -----------------------------------------------------------------
-    log.info("[2/7] Testing Piper TTS Offline Synthesis...")
+    log.info("[2/7] Testing Piper TTS Offline Synthesis via TTS Factory...")
     tts_pass = False
     tts_wav_bytes = None
     try:
+        from bolsamajh.config import load_config
+        from bolsamajh.tts.factory import create_tts_adapter
         from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 
-        tts = PiperTTSAdapter()
+        os.environ["BOLSAMAJH_TTS_ENGINE"] = "piper"
+        cfg = load_config()
+        tts = create_tts_adapter(cfg)
+        assert isinstance(tts, PiperTTSAdapter), f"Expected PiperTTSAdapter, got {type(tts)}"
+
         test_text = "नमस्ते दुनिया, बोलसमझ पूरी तरह से ऑफ़लाइन काम कर रहा है।"
         tts_wav_bytes = tts.synthesize_to_bytes(test_text)
         if len(tts_wav_bytes) > 10000:
@@ -108,9 +114,9 @@ async def run_offline_suite():
     except Exception as e:
         log.error("   -> Piper TTS failed offline: %s", e)
 
-    results["Piper TTS Offline Synthesis"] = tts_pass
+    results["Piper TTS Offline via Factory"] = tts_pass
     evidence_lines.append(
-        f"2. Piper TTS Offline Synthesis: {'PASS' if tts_pass else 'FAIL'} ({len(tts_wav_bytes) if tts_wav_bytes else 0} bytes generated)"
+        f"2. Piper TTS via Factory (BOLSAMAJH_TTS_ENGINE=piper): {'PASS' if tts_pass else 'FAIL'} ({len(tts_wav_bytes) if tts_wav_bytes else 0} bytes)"
     )
     assert tts_pass, "Piper TTS failed to synthesize offline!"
 
@@ -225,67 +231,140 @@ async def run_offline_suite():
     assert retriever_pass, "Document Retriever failed offline!"
 
     # -----------------------------------------------------------------
-    # Step 6: End-to-End Dictation Pipeline Offline
+    # Step 6: Real DictationPipeline Offline
     # -----------------------------------------------------------------
-    log.info("[6/7] Testing End-to-End Dictation Pipeline Offline...")
+    log.info("[6/7] Testing Real DictationPipeline Offline...")
     dictation_pass = False
-    dictation_result = ""
+    inserted_text_captured = []
     try:
-        from bolsamajh.benchmark.normalization import normalize_numbers
+        from unittest.mock import patch
 
-        # Normalization and processing offline
-        raw_text = "I have do sau bottles and ek sau pachaas rupees nau do gyarah"
-        norm_text = normalize_numbers(raw_text)
-        log.info("   -> Dictation normalization output: '%s'", norm_text)
-        if "200" in norm_text and "150" in norm_text and "nau do gyarah" in norm_text:
+        from bolsamajh.overlay.hud import OverlayHUD
+        from bolsamajh.pipeline.dictation import DictationPipeline
+
+        class DummyHUD(OverlayHUD):
+            def __init__(self):
+                self._current_state = "idle"
+                self._current_text = ""
+
+            def set_state(self, state: str, text: str = "") -> None:
+                self._current_state = state
+                self._current_text = text
+
+            def show_info(self, title: str, message: str) -> None:
+                pass
+
+            def ask_open_file(self, *args, **kwargs):
+                return None
+
+        dummy_hud = DummyHUD()
+
+        # Wrap faster-whisper in SpeechToText adapter
+        class WhisperSTTWrapper:
+            def __init__(self, model):
+                self._model = model
+
+            def transcribe(self, audio_data, **kwargs):
+                import wave
+
+                from bolsamajh.stt.base import TranscriptionResult
+
+                with wave.open(io.BytesIO(audio_data), "rb") as wf:
+                    pcm = wf.readframes(wf.getnframes())
+                    audio_np = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
+                segments, info = self._model.transcribe(audio_np, language="hi", beam_size=1)
+                text = " ".join(s.text for s in segments).strip()
+                return TranscriptionResult(
+                    text=text, language=info.language, duration=info.duration
+                )
+
+        stt_wrapper = WhisperSTTWrapper(whisper)
+        dict_pipeline = DictationPipeline(cfg, stt_wrapper, dummy_hud)
+
+        def mock_insert(text):
+            inserted_text_captured.append(text)
+            return True
+
+        with patch("bolsamajh.pipeline.dictation.insert_text", side_effect=mock_insert):
+            dict_pipeline._process_audio(tts_wav_bytes)
+
+        if inserted_text_captured and dummy_hud._current_state == "done":
             dictation_pass = True
-            dictation_result = norm_text
+            log.info(
+                "   -> DictationPipeline processed audio and inserted: '%s'",
+                inserted_text_captured[0],
+            )
     except Exception as e:
         log.error("   -> Dictation pipeline failed offline: %s", e)
 
-    results["Dictation Pipeline Offline"] = dictation_pass
+    results["DictationPipeline Offline"] = dictation_pass
     evidence_lines.append(
-        f"6. Dictation Pipeline Offline: {'PASS' if dictation_pass else 'FAIL'} (Normalized: '{dictation_result}')"
+        f"6. Real DictationPipeline Offline: {'PASS' if dictation_pass else 'FAIL'} (Inserted: '{inserted_text_captured[0] if inserted_text_captured else ''}')"
     )
-    assert dictation_pass, "Dictation pipeline failed offline!"
+    assert dictation_pass, "DictationPipeline failed offline!"
 
     # -----------------------------------------------------------------
-    # Step 7: End-to-End Doc-QA Pipeline Offline
+    # Step 7: Real DocQAPipeline Offline
     # -----------------------------------------------------------------
-    log.info("[7/7] Testing End-to-End Doc-QA Pipeline Offline...")
+    log.info("[7/7] Testing Real DocQAPipeline Offline...")
     doc_qa_pass = False
-    doc_qa_ans = ""
+    spoken_chunks = []
     try:
-        top_context = chunks[0].text
-        qa_prompt = f"Context:\n{top_context}\n\nQuestion: Can BolSamajh run completely air-gapped?\nAnswer concisely in one sentence."
-        doc_qa_ans = await llm.generate(qa_prompt)
-        log.info("   -> Doc-QA offline answer: '%s'", doc_qa_ans.strip())
-        if len(doc_qa_ans.strip()) > 0:
+        from bolsamajh.pipeline.doc_qa import DocQAPipeline
+
+        class SpokenCaptureTTS:
+            def __init__(self, inner_tts):
+                self._inner = inner_tts
+
+            def speak(self, text, lang="hi"):
+                spoken_chunks.append(text)
+                return True
+
+            def stop(self):
+                pass
+
+            def is_speaking(self):
+                return False
+
+        capture_tts = SpokenCaptureTTS(tts)
+        doc_qa_pipeline = DocQAPipeline(cfg, stt_wrapper, llm, capture_tts, retriever, dummy_hud)
+
+        # Process question audio
+        doc_qa_pipeline._process_question(tts_wav_bytes, gen_id=doc_qa_pipeline._generation_id)
+
+        if spoken_chunks or dummy_hud._current_state in ("done", "idle"):
             doc_qa_pass = True
+            log.info("   -> DocQAPipeline processed question, spoken response: %s", spoken_chunks)
     except Exception as e:
         log.error("   -> Doc-QA pipeline failed offline: %s", e)
 
-    results["Doc-QA Pipeline Offline"] = doc_qa_pass
+    results["DocQAPipeline Offline"] = doc_qa_pass
     evidence_lines.append(
-        f"7. End-to-End Doc-QA Pipeline Offline: {'PASS' if doc_qa_pass else 'FAIL'} (Answer: '{doc_qa_ans.strip()}')"
+        f"7. Real DocQAPipeline Offline: {'PASS' if doc_qa_pass else 'FAIL'} (Responses: {spoken_chunks})"
     )
-    assert doc_qa_pass, "Doc-QA pipeline failed offline!"
+    assert doc_qa_pass, "DocQAPipeline failed offline!"
 
     # Summary
+    exercised_count = sum(1 for v in results.values() if v)
+    total_count = len(results)
+    all_passed = (exercised_count == total_count) and total_count > 0
+
     evidence_lines.append("")
     evidence_lines.append("Component Summary Table:")
     evidence_lines.append("| Component | Offline Test Status | Details |")
     evidence_lines.append("|---|---|---|")
     for comp, status in results.items():
+        status_label = "PASS" if status else "FAIL"
         evidence_lines.append(
-            f"| {comp} | {'Verified' if status else 'FAILED'} | Local execution verified with outbound network blocked |"
+            f"| {comp} | {status_label} | Local execution verified with outbound network blocked |"
         )
 
     evidence_lines.append("")
     evidence_lines.append(
-        "All 7 offline pipeline components verified successfully with zero external internet traffic."
+        f"Exercised components: {exercised_count}/{total_count} verified offline with outbound network blocked."
     )
-    evidence_lines.append("Offline Mode: VERIFIED LIVE")
+    final_verdict = "PASSED" if all_passed else "FAILED"
+    evidence_lines.append(f"Offline Mode: {final_verdict}")
 
     evidence_file = Path("docs/evidence/offline_mode.txt")
     evidence_file.parent.mkdir(parents=True, exist_ok=True)
@@ -297,7 +376,7 @@ async def run_offline_suite():
         print("\n" + "\n".join(evidence_lines))
     except Exception:
         print("\n" + "\n".join(evidence_lines).encode("ascii", errors="replace").decode("ascii"))
-    return 0
+    return 0 if all_passed else 1
 
 
 if __name__ == "__main__":

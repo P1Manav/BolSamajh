@@ -217,10 +217,13 @@ async def run_bolna_tests():
 
         # -------------------------------------------------------------
         # TEST 3: Realtime-Compatible Transcription WebSocket
+        # (protocol compatibility check against our own client)
         # -------------------------------------------------------------
-        log.info("\n--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---")
+        log.info(
+            "\n--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) [protocol compatibility check against our own client] ---"
+        )
         evidence_lines.append(
-            "--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) ---"
+            "--- TEST 3: Realtime-Compatible WebSocket Transcription (/v1/realtime) [protocol compatibility check against our own client] ---"
         )
 
         ws_url = f"ws://127.0.0.1:{TEST_PORT}/v1/realtime?intent=transcription"
@@ -300,18 +303,27 @@ async def run_bolna_tests():
             evidence_lines.append("    WebSocket Status:    PASS")
             evidence_lines.append("")
 
-        evidence_lines.append("Integration Summary:")
-        evidence_lines.append("- Bolna OPENAISynthesizer HTTP integration: VERIFIED LIVE")
-        evidence_lines.append("- Bolna OpenAI-compatible Batch STT endpoint: VERIFIED LIVE")
-        evidence_lines.append("- Bolna OpenAI-compatible Realtime WebSocket: VERIFIED LIVE")
-        evidence_lines.append(
-            "- Tested on host machine with Bolna package source code against local BolSamajh server."
+        all_tests_passed = (
+            h_dur > 0.5 and e_dur > 0.5 and len(stt_transcript) > 0 and len(ws_transcript) > 0
         )
+
+        evidence_lines.append("Integration Summary:")
+        evidence_lines.append(
+            f"- Bolna OPENAISynthesizer HTTP integration: {'PASSED' if (h_dur > 0.5 and e_dur > 0.5) else 'FAILED'}"
+        )
+        evidence_lines.append(
+            f"- OpenAI-compatible Batch STT endpoint: {'PASSED' if len(stt_transcript) > 0 else 'FAILED'}"
+        )
+        evidence_lines.append(
+            f"- OpenAI-compatible Realtime WebSocket: {'PASSED' if len(ws_transcript) > 0 else 'FAILED'} (protocol compatibility check against our own client; Bolna does not ship a standalone Realtime WebSocket transcriber)"
+        )
+        evidence_lines.append("- Tested locally against BolSamajh server.")
         evidence_lines.append(
             "- Note: Not tested on Bolna cloud (no cloud account / credentials required)."
         )
         evidence_lines.append("")
-        evidence_lines.append("Bolna Local Integration: VERIFIED LIVE")
+        final_status = "PASSED" if all_tests_passed else "FAILED"
+        evidence_lines.append(f"Bolna Local Integration: {final_status}")
 
         evidence_file = ROOT_DIR / "docs" / "evidence" / "bolna_client_check.txt"
         evidence_file.parent.mkdir(parents=True, exist_ok=True)
@@ -334,7 +346,7 @@ async def run_bolna_tests():
         except Exception:
             pass
 
-    return 0
+    return 0 if all_tests_passed else 1
 
 
 if __name__ == "__main__":

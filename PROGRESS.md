@@ -213,7 +213,7 @@
 
 | Metric | Measured Value | Target | Status |
 | :--- | :--- | :--- | :--- |
-| **STT Latency (single sentence, warm)** | **<!-- NUM:hw.stt_synth_latency_ms -->461.7<!-- /NUM --> ms (large-v3-turbo)** | < 1000 ms | 🟢 Verified (GPU) |
+| **STT Latency (single sentence, warm)** | **<!-- NUM:hw.stt_synth_latency_ms -->475.9<!-- /NUM --> ms (large-v3-turbo)** | < 1000 ms | 🟢 Verified (GPU) |
 | **STT Latency (Real Speech)** | **<!-- NUM:hw.stt_real_mean_latency_ms -->575.5<!-- /NUM --> ms (mean over <!-- NUM:hw.stt_real_count -->300<!-- /NUM --> clips, RTF <!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x, p95: <!-- NUM:hw.stt_real_p95_latency_ms -->1301.6<!-- /NUM --> ms)** | < 2000 ms | 🟢 Verified (GPU) |
 | **Real-Time Factor (RTF)** | **<!-- NUM:hw.stt_real_rtf -->0.061<!-- /NUM -->x (real speech)** | < 0.25x | 🟢 Verified |
 | **GPU VRAM Model Allocation** | **<!-- NUM:hw.vram_allocated_delta_mb -->1192.0<!-- /NUM --> MB (faster-whisper large-v3-turbo)** | < 2,048 MB | 🟢 Verified |

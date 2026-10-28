@@ -484,11 +484,7 @@ def get_metrics_dict(
         "hw.device_name": str(hw_data.get("gpu_specs", {}).get("device_name", "NVIDIA GPU")),
         "hw.vram_total_mb": str(hw_data.get("gpu_specs", {}).get("total_vram_mb", 8192.0)),
         "hw.stt_model": str(stt_hw.get("model", "faster-whisper-large-v3-turbo")),
-        "hw.stt_synth_latency_ms": str(
-            stt_hw.get("latency_ms", {}).get(
-                "median", stt_hw.get("latency_ms", {}).get("mean", "N/A")
-            )
-        ),
+        "hw.stt_synth_latency_ms": str(stt_hw.get("latency_ms", {}).get("mean", "N/A")),
         "hw.stt_synth_median_latency_ms": str(stt_hw.get("latency_ms", {}).get("median", "N/A")),
         "hw.stt_synth_p95_latency_ms": str(stt_hw.get("latency_ms", {}).get("p95", "N/A")),
         "hw.stt_synth_rtf": str(stt_hw.get("real_time_factor_rtf", "N/A")),

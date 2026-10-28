@@ -18,7 +18,7 @@ import sys
 import time
 import wave
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
@@ -260,16 +260,18 @@ def measure_stt_performance(
             real_lats = [r["latency_ms"] for r in real_clips]
             real_durs = [r["audio_duration"] for r in real_clips]
             mean_dur = round(float(np.mean(real_durs)), 2)
+            median_dur = round(float(np.median(real_durs)), 2)
             mean_lat = round(float(np.mean(real_lats)), 1)
             median_lat = round(float(np.median(real_lats)), 1)
             p95_lat = round(float(np.percentile(real_lats, 95)), 1)
             min_lat = round(float(np.min(real_lats)), 1)
-            real_rtf = round(median_lat / (mean_dur * 1000.0), 3) if mean_dur > 0 else 0.0
+            real_rtf = round(median_lat / (median_dur * 1000.0), 3) if median_dur > 0 else 0.0
             real_speech_metrics = {
                 "clip_count": len(real_clips),
                 "device": actual_device,
                 "compute_type": compute_type if actual_device == "cuda" else "int8",
                 "mean_duration_sec": mean_dur,
+                "median_duration_sec": median_dur,
                 "mean_latency_ms": mean_lat,
                 "median_latency_ms": median_lat,
                 "min_latency_ms": min_lat,
@@ -395,27 +397,92 @@ async def measure_edge_tts_first_packet() -> Dict[str, Any]:
     }
 
 
+def measure_llm_first_sentence() -> Dict[str, Any]:
+    """Measure real time to first completed sentence through the actual LLM adapter and sentence splitter.
+
+    If LLM adapter cannot be run live in this environment, clearly label it 'estimated' until re-run on hardware.
+    """
+    from bolsamajh.config import load_config
+    from bolsamajh.llm.factory import create_llm_adapter
+    from bolsamajh.utils.sentence_splitter import SentenceSplitter
+
+    config = load_config()
+    first_sentence_ms = None
+    is_estimated = False
+    sample_sentence = ""
+
+    test_prompt = "What is BolSamajh? Answer in one short sentence."
+    try:
+        llm = create_llm_adapter(config)
+        t0 = time.perf_counter()
+
+        def on_sentence(s: str):
+            nonlocal first_sentence_ms, sample_sentence
+            if first_sentence_ms is None:
+                first_sentence_ms = (time.perf_counter() - t0) * 1000.0
+                sample_sentence = s
+
+        splitter = SentenceSplitter(on_sentence=on_sentence)
+        for token in llm.stream(test_prompt):
+            splitter.feed(token)
+            if first_sentence_ms is not None:
+                break
+        splitter.flush()
+
+        if first_sentence_ms is None:
+            raise RuntimeError("LLM stream yielded no punctuated sentence")
+
+    except Exception as e:
+        print(
+            f"[*] Live LLM measurement failed ({e}); falling back to hardware-calibrated estimate (350.0 ms)"
+        )
+        first_sentence_ms = 350.0
+        is_estimated = True
+        sample_sentence = "(Estimated: local Gemma 4B ~45 tok/s, ~15 tok first sentence)"
+
+    return {
+        "first_sentence_latency_ms": round(first_sentence_ms, 1),
+        "is_estimated": is_estimated,
+        "status": "estimated (re-run pending on target hardware)" if is_estimated else "measured",
+        "sample_sentence": sample_sentence[:80],
+    }
+
+
 def measure_doc_qa_pipeline_ttfa(
-    stt_latency_ms: float, retrieval_latency_ms: float, edge_tts_first_packet_ms: float
+    stt_latency_ms: float,
+    retrieval_latency_ms: float,
+    edge_tts_first_packet_ms: float,
+    llm_perf: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Measure true end-to-end Time-to-First-Audio (TTFA) for Doc-QA.
 
-    Question Audio End -> STT -> Vector Retrieval -> LLM First Sentence -> TTS Audio Begins.
-    Empirical local LLM first-sentence time on RTX 3060 Ti (Gemma 4B ~45 tok/s, ~15 tok first sentence): ~340 ms.
+    Real pipeline path:
+    Question Audio End -> STT -> Vector Retrieval -> LLM First Sentence -> First TTS Audio Chunk Played.
     """
-    llm_first_sentence_ms = 350.0  # Empirical local Gemma 4B time to emit first punctuated sentence
+    if llm_perf is None:
+        llm_perf = measure_llm_first_sentence()
+
+    llm_first_sentence_ms = llm_perf["first_sentence_latency_ms"]
+    is_estimated = llm_perf.get("is_estimated", False)
+
     total_pipeline_ttfa_ms = round(
         stt_latency_ms + retrieval_latency_ms + llm_first_sentence_ms + edge_tts_first_packet_ms, 1
     )
 
     return {
-        "pipeline_description": "End-to-end question audio release -> first audio sample played",
+        "pipeline_description": (
+            "Question audio end -> STT -> Vector retrieval -> LLM first sentence -> "
+            "First TTS audio chunk played"
+        ),
         "stt_latency_ms": round(stt_latency_ms, 1),
         "retrieval_latency_ms": round(retrieval_latency_ms, 1),
         "llm_first_sentence_ms": round(llm_first_sentence_ms, 1),
+        "llm_status": llm_perf.get("status", "measured"),
         "edge_tts_first_packet_ms": round(edge_tts_first_packet_ms, 1),
         "total_pipeline_ttfa_ms": total_pipeline_ttfa_ms,
         "target_ms": 2000.0,
+        "is_estimated": is_estimated,
+        "status": ("estimated (re-run pending on target hardware)" if is_estimated else "measured"),
     }
 
 
@@ -445,13 +512,19 @@ def main():
     tts_perf = asyncio.run(measure_edge_tts_first_packet())
     print(f"TTS: Edge-TTS First-Packet Latency: {tts_perf['first_packet_latency_ms']} ms")
 
+    llm_perf = measure_llm_first_sentence()
+    print(
+        f"LLM: First-Sentence Latency: {llm_perf['first_sentence_latency_ms']} ms (Status: {llm_perf['status']})"
+    )
+
     pipeline_ttfa = measure_doc_qa_pipeline_ttfa(
         stt_latency_ms=stt_perf["latency_ms"]["median"],
         retrieval_latency_ms=retrieval_perf["query_latency_ms"]["median"],
         edge_tts_first_packet_ms=tts_perf["first_packet_latency_ms"],
+        llm_perf=llm_perf,
     )
     print(
-        f"Pipeline: True End-to-End Doc-QA TTFA: {pipeline_ttfa['total_pipeline_ttfa_ms']} ms (Target: < 2,000 ms)"
+        f"Pipeline: True End-to-End Doc-QA TTFA: {pipeline_ttfa['total_pipeline_ttfa_ms']} ms (Target: < 2,000 ms, Status: {pipeline_ttfa['status']})"
     )
 
     summary = {
@@ -461,12 +534,13 @@ def main():
         "stt_performance": stt_perf,
         "retrieval_performance": retrieval_perf,
         "edge_tts_first_packet_performance": tts_perf,
+        "llm_first_sentence_performance": llm_perf,
         "pipeline_end_to_end_ttfa": pipeline_ttfa,
     }
 
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(summary, f, indent=2, ensure_ascii=False)
 
     print(f"\n[OK] Saved empirical hardware measurements to {OUT_FILE}")
 

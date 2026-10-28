@@ -233,6 +233,9 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
     print(" XQuAD Hindi Multilingual Retrieval Benchmark Results")
     print("=======================================================")
     print(f" Embedding Model:     {summary['embedding_model']}")
+    print(
+        f" Corpus Passages:     {summary['num_passages']} (Corpus size limitation: 60 unique passages)"
+    )
     print(f" Relevant Queries:    {summary['num_relevant_queries']}")
     print(f" Irrelevant Queries:  {summary['num_irrelevant_queries']}")
     print(f" Hit@1:               {summary['hit_at_1_pct']}%")
@@ -249,7 +252,95 @@ def evaluate_and_calibrate(num_relevant: int = 200, num_irrelevant: int = 200) -
         json.dump(summary, f, indent=2, ensure_ascii=False)
     print(f"[OK] Saved retrieval benchmark results to {RESULTS_FILE}")
 
+    # Save to calibrated_thresholds.json for runtime config/retriever consumption
+    cal_thresholds_file = ROOT_DIR / "benchmark_data" / "calibrated_thresholds.json"
+    current_thresholds = {
+        "intfloat/multilingual-e5-base": 0.785,
+        "intfloat/multilingual-e5-small": 0.760,
+    }
+    if cal_thresholds_file.exists():
+        try:
+            with open(cal_thresholds_file, "r", encoding="utf-8") as f:
+                current_thresholds.update(json.load(f))
+        except Exception:
+            pass
+    current_thresholds[summary["embedding_model"]] = summary["calibrated_refusal_threshold"]
+    with open(cal_thresholds_file, "w", encoding="utf-8") as f:
+        json.dump(current_thresholds, f, indent=2, ensure_ascii=False)
+    print(f"[OK] Saved calibrated thresholds to {cal_thresholds_file}")
+
+    # Run English & Gujarati Sanity Checks
+    run_english_gujarati_sanity_check(retriever)
+
     return summary
+
+
+def run_english_gujarati_sanity_check(retriever: DocumentRetriever):
+    """Sanity checks on English and Gujarati corpora.
+
+    Note: Google XQuAD does not offer a Gujarati split; we evaluate on a curated
+    Gujarati sanity corpus with FLEURS-style sentences.
+    """
+    print("\n--- Running English & Gujarati Retrieval Sanity Checks ---")
+
+    # 1. English Sanity Check
+    en_passages = [
+        "The Apollo 11 mission was the first spaceflight that landed humans on the Moon.",
+        "Python is a high-level, general-purpose programming language known for readability.",
+        "The Pacific Ocean is the largest and deepest of Earth's oceanic divisions.",
+        "Photosynthesis is a biological process used by plants to synthesize nutrients from light.",
+        "The Reserve Bank of India is the central bank of India responsible for the currency.",
+    ]
+    en_queries = [
+        ("Which mission landed the first humans on the Moon?", 0),
+        ("What programming language is known for its high readability?", 1),
+        ("What is the largest ocean on Earth?", 2),
+    ]
+    en_doc = Document(
+        title="English Sanity Corpus",
+        source="sanity://en",
+        pages=[
+            DocumentPage(text=p, page_number=i + 1, source="sanity://en")
+            for i, p in enumerate(en_passages)
+        ],
+    )
+    retriever.index_document(en_doc)
+    en_hits = 0
+    for q, exp_idx in en_queries:
+        res = retriever.retrieve(q, top_k=1, apply_threshold=False)
+        if res and en_passages[exp_idx][:30] in res[0].text:
+            en_hits += 1
+    print(f"[+] English Sanity Hits: {en_hits}/{len(en_queries)}")
+
+    # 2. Gujarati Sanity Check
+    print("Note: Google XQuAD has no Gujarati split. Evaluating curated Gujarati sanity corpus.")
+    gu_passages = [
+        "ગાંધીનગર ગુજરાત રાજ્યનું પાટનગર છે જે સાબરમતી નદીના કિનારે આવેલું છે.",
+        "ગુજરાતનું ક્ષેત્રફળ લગભગ ૧,૯૬,૦૨૪ ચોરસ કિલોમીટર છે અને લાંબો દરિયાકિનારો છે.",
+        "ગીર રાષ્ટ્રીય ઉદ્યાન એશિયાઈ સિંહોનું એકમાત્ર કુદરતી રહેઠાણ છે.",
+        "ગુજરાતી સાહિત્યમાં નરસિંહ મહેતાને આદિકવિ માનવામાં આવે છે.",
+        "અમદાવાદ ભારતનું સૌપ્રથમ વર્લ્ડ હેરિટેજ સિટી તરીકે જાહેર કરવામાં આવ્યું હતું.",
+    ]
+    gu_queries = [
+        ("ગુજરાત રાજ્યનું પાટનગર કયું છે?", 0),
+        ("એશિયાઈ સિંહો કયા રાષ્ટ્રીય ઉદ્યાનમાં જોવા મળે છે?", 2),
+        ("ભારતનું પ્રથમ વર્લ્ડ હેરિટેજ સિટી કયું છે?", 4),
+    ]
+    gu_doc = Document(
+        title="Gujarati Sanity Corpus",
+        source="sanity://gu",
+        pages=[
+            DocumentPage(text=p, page_number=i + 1, source="sanity://gu")
+            for i, p in enumerate(gu_passages)
+        ],
+    )
+    retriever.index_document(gu_doc)
+    gu_hits = 0
+    for q, exp_idx in gu_queries:
+        res = retriever.retrieve(q, top_k=1, apply_threshold=False)
+        if res and gu_passages[exp_idx][:20] in res[0].text:
+            gu_hits += 1
+    print(f"[+] Gujarati Sanity Hits: {gu_hits}/{len(gu_queries)}")
 
 
 if __name__ == "__main__":

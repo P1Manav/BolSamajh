@@ -27,6 +27,22 @@ MODEL_THRESHOLDS = {
     "sentence-transformers/paraphrase-multilingual-minilm-l12-v2": 0.720,
 }
 
+# Dynamically load calibrated thresholds from JSON if available
+try:
+    import json
+    from pathlib import Path
+
+    _cal_path = (
+        Path(__file__).resolve().parent.parent.parent
+        / "benchmark_data"
+        / "calibrated_thresholds.json"
+    )
+    if _cal_path.exists():
+        with open(_cal_path, "r", encoding="utf-8") as _f:
+            MODEL_THRESHOLDS.update(json.load(_f))
+except Exception:
+    pass
+
 
 class DocumentRetriever:
     """Embeds document chunks and retrieves relevant ones via FAISS.
@@ -40,12 +56,15 @@ class DocumentRetriever:
         embedding_model: str = "intfloat/multilingual-e5-base",
         chunk_size: int = 380,
         chunk_overlap: int = 40,
-        refusal_threshold: float = 0.785,
+        refusal_threshold: Optional[float] = None,
     ):
         self.embedding_model_name = embedding_model
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.refusal_threshold = refusal_threshold
+        if refusal_threshold is None:
+            self.refusal_threshold = MODEL_THRESHOLDS.get(embedding_model, 0.785)
+        else:
+            self.refusal_threshold = refusal_threshold
         self._lock = threading.Lock()
         self._model = None
         self._tokenizer = None

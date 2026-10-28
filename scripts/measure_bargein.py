@@ -34,7 +34,6 @@ try:
 except Exception:
     sd = None
 
-from bolsamajh.tts.piper_adapter import PiperTTSAdapter
 from bolsamajh.utils.vad import BargeInMonitor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -158,6 +157,7 @@ def measure_interruption_latency(
         return {"median": 0.0, "p95": 0.0, "min": 0.0, "max": 0.0, "trials": 0}
 
     return {
+        "method": "simulated replay (benchmark_data/audio/sentence_001.wav fed directly into VAD)",
         "median": round(float(np.median(latencies)), 1),
         "p95": round(float(np.percentile(latencies, 95)), 1),
         "min": round(float(np.min(latencies)), 1),
@@ -189,7 +189,23 @@ async def run_bargein_session(
         dev_name,
     )
 
-    tts = PiperTTSAdapter()
+    from bolsamajh.config import load_config
+    from bolsamajh.tts.factory import create_tts_adapter
+
+    cfg = load_config()
+    tts = create_tts_adapter(cfg)
+
+    # Route sounddevice default output device if specified
+    if sd is not None and device_id is not None:
+        try:
+            current_in = (
+                sd.default.device[0] if isinstance(sd.default.device, (list, tuple)) else None
+            )
+            sd.default.device = (current_in, device_id)
+            log.info("Set sounddevice output device to: %s (ID %d)", dev_name, device_id)
+        except Exception as e:
+            log.warning("Could not route playback to device %d: %s", device_id, e)
+
     false_triggers = 0
     last_trigger_time = 0.0
     interrupted_event = asyncio.Event()
@@ -359,8 +375,9 @@ async def run_full_suite(duration_sec: float = 600.0, output_path: Path | None =
     evidence_lines.append(
         f"- Headphone Detection Latency: {headphone_res['detection_latency_ms']['median']} ms"
     )
+    suite_passed = speaker_res.get("passed", False) and headphone_res.get("passed", False)
     evidence_lines.append("")
-    evidence_lines.append("Voice Barge-In: VERIFIED LIVE ON HARDWARE")
+    evidence_lines.append(f"Voice Barge-In Evaluation: {'PASSED' if suite_passed else 'FAILED'}")
 
     # Save JSON measurements
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,54 +1,90 @@
 """Live verification script for Google AI Studio Gemini API models.
 
-Checks live available models via list_available_models and executes one
-sample generateContent call using the provided API key.
+Loads .env, paginates model list via pageSize/nextPageToken, verifies that
+the configured model is in the returned list (exiting non-zero if absent),
+and executes one sample generateContent call.
 
 Usage:
-    export GEMINI_API_KEY="your-key"
     python scripts/check_gemini.py
-
 Or:
-    python scripts/check_gemini.py --api-key "your-key"
+    python scripts/check_gemini.py --api-key "your-key" --model "gemini-3.5-flash"
 """
 
 import argparse
 import asyncio
 import os
 import sys
+from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
+
+# Load .env from project root
+_root = Path(__file__).resolve().parent.parent
+_env_path = _root / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
+else:
+    load_dotenv()
 
 
-async def check_gemini(api_key: str, model: str = "gemini-3.5-flash") -> bool:
+async def check_gemini(api_key: str, model: str) -> bool:
     headers = {
         "x-goog-api-key": api_key,
         "Content-Type": "application/json",
     }
 
-    print("[*] Querying Google AI Studio models endpoint...")
+    print("[*] Querying Google AI Studio models endpoint (with pagination)...")
     async with httpx.AsyncClient(timeout=15.0) as client:
-        # 1. List available models
+        # 1. List available models with pagination
+        models = []
+        page_token = None
         try:
-            resp = await client.get(
-                "https://generativelanguage.googleapis.com/v1beta/models",
-                headers=headers,
-            )
-            if resp.status_code == 200:
+            while True:
+                params = {"pageSize": 1000}
+                if page_token:
+                    params["pageToken"] = page_token
+
+                resp = await client.get(
+                    "https://generativelanguage.googleapis.com/v1beta/models",
+                    headers=headers,
+                    params=params,
+                )
+                if resp.status_code != 200:
+                    print(f"[-] Models list failed (HTTP {resp.status_code}): {resp.text}")
+                    return False
+
                 data = resp.json()
-                models = [m.get("name", "").replace("models/", "") for m in data.get("models", [])]
-                print(f"[+] Successfully fetched {len(models)} live models from Google AI:")
-                flash_models = [m for m in models if "flash" in m.lower()]
-                for m in flash_models:
-                    print(f"    - {m}")
-            else:
-                print(f"[-] Models list failed (HTTP {resp.status_code}): {resp.text}")
-                return False
+                for m in data.get("models", []):
+                    name = m.get("name", "").replace("models/", "")
+                    if name:
+                        models.append(name)
+
+                page_token = data.get("nextPageToken")
+                if not page_token:
+                    break
+
+            print(f"[+] Successfully fetched {len(models)} live models from Google AI:")
+            flash_models = [m for m in models if "flash" in m.lower()]
+            for m in flash_models:
+                print(f"    - {m}")
+
         except Exception as e:
             print(f"[-] Failed to fetch models list: {e}")
             return False
 
-        # 2. Test generateContent call
-        print(f"\n[*] Testing generateContent call to model '{model}'...")
+        # 2. Check if configured model name is in the list
+        if model not in models:
+            print(
+                f"\n[-] ERROR: Configured model '{model}' was NOT found in the available Google AI models list!"
+            )
+            print(f"    Available Flash models: {flash_models}")
+            return False
+        else:
+            print(f"\n[+] Verified: Configured model '{model}' is present in the live models list.")
+
+        # 3. Test generateContent call
+        print(f"[*] Testing generateContent call to model '{model}'...")
         payload = {
             "contents": [
                 {
@@ -86,20 +122,24 @@ async def check_gemini(api_key: str, model: str = "gemini-3.5-flash") -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Verify live Google AI Studio Gemini API access.")
+    default_model = os.getenv(
+        "BOLSAMAJH_GOOGLE_AI_MODEL", os.getenv("GOOGLE_AI_MODEL", "gemini-3.5-flash")
+    )
     api_key_env = os.getenv("GOOGLE_AI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+
+    parser = argparse.ArgumentParser(description="Verify live Google AI Studio Gemini API access.")
     parser.add_argument("--api-key", default=api_key_env, help="Google AI Studio Gemini API Key")
     parser.add_argument(
         "--model",
-        default="gemini-3.5-flash",
-        help="Gemini model to test (default: gemini-3.5-flash)",
+        default=default_model,
+        help=f"Gemini model to test (default from env: {default_model})",
     )
     args = parser.parse_args()
 
     api_key = args.api_key.strip()
     if not api_key:
         print("[!] No GOOGLE_AI_API_KEY or GEMINI_API_KEY found.")
-        print("    Please set GOOGLE_AI_API_KEY in your environment or pass --api-key <KEY>.")
+        print("    Please set GOOGLE_AI_API_KEY in your .env or pass --api-key <KEY>.")
         print("    Example:")
         print("        python scripts/check_gemini.py --api-key AIzaSy...")
         return 1
