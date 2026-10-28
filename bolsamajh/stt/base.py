@@ -23,11 +23,20 @@ class SpeechToText(ABC):
         ...
 
     @abstractmethod
-    def transcribe(self, audio_bytes: bytes) -> TranscriptResult:
+    def transcribe(
+        self,
+        audio_bytes: bytes,
+        language: str | None = None,
+        prompt: str | None = None,
+        **kwargs,
+    ) -> TranscriptResult:
         """Transcribe WAV audio bytes to text.
 
         Args:
-            audio_bytes: 16-bit PCM WAV data at 16 kHz mono.
+            audio_bytes: 16-bit PCM WAV data at 16 kHz mono, or raw PCM / numpy array.
+            language: Optional language code override (e.g. 'hi', 'en', 'gu').
+            prompt: Optional transcription prompt or vocabulary hint.
+            **kwargs: Extra model-specific transcription arguments.
 
         Returns:
             TranscriptResult with transcribed text and metadata.

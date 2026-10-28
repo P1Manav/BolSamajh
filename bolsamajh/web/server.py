@@ -36,7 +36,7 @@ import base64
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -104,10 +104,14 @@ def check_bind_security(host: Optional[str] = None) -> None:
     if api_key:
         return
 
+    # If -h or --help was passed, let argparse display help without raising security error
+    if "-h" in sys.argv or "--help" in sys.argv:
+        return
+
     target_host = host or os.getenv("BOLSAMAJH_HOST") or os.getenv("UVICORN_HOST") or os.getenv("HOST")
     if not target_host:
         for i, arg in enumerate(sys.argv):
-            if arg in ("--host", "-h") and i + 1 < len(sys.argv):
+            if arg == "--host" and i + 1 < len(sys.argv):
                 target_host = sys.argv[i + 1]
                 break
             elif arg.startswith("--host="):
@@ -142,12 +146,39 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware: Bearer token authentication when BOLSAMAJH_API_KEY is configured
+ALLOWED_HOSTS: set[str] = {
+    "localhost", "127.0.0.1", "::1", "[::1]", "testserver",
+}
+if os.getenv("BOLSAMAJH_HOST"):
+    ALLOWED_HOSTS.add(os.getenv("BOLSAMAJH_HOST").strip().lower())
+if os.getenv("BOLSAMAJH_ALLOWED_HOSTS"):
+    for h in os.getenv("BOLSAMAJH_ALLOWED_HOSTS").split(","):
+        if h.strip():
+            ALLOWED_HOSTS.add(h.strip().lower())
+
+
+# Security Middleware: Host header allowlist, Bearer auth, and Origin/CSRF validation
 @app.middleware("http")
-async def gateway_auth_middleware(request: Request, call_next):
+async def security_middleware(request: Request, call_next):
+    # 1. Host header validation
+    raw_host = request.headers.get("host", "").strip()
+    if raw_host:
+        host_name = raw_host.split(":")[0].strip().lower()
+        if raw_host.startswith("["):
+            bracket_end = raw_host.find("]")
+            if bracket_end != -1:
+                host_name = raw_host[:bracket_end + 1].lower()
+        if host_name not in ALLOWED_HOSTS:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Invalid Host header: '{raw_host}'"},
+            )
+
+    # 2. Bearer token authentication when BOLSAMAJH_API_KEY is configured
     expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
+    path = request.url.path
+
     if expected_key:
-        path = request.url.path
         is_exempt = (
             path == "/"
             or path.startswith("/static")
@@ -163,7 +194,28 @@ async def gateway_auth_middleware(request: Request, call_next):
                     content={"detail": "Unauthorized: invalid or missing Bearer token"},
                     headers={"WWW-Authenticate": "Bearer"},
                 )
-    return await call_next(request)
+    else:
+        # When no API key is configured, enforce Origin / CSRF check on state-changing requests
+        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            origin = request.headers.get("origin")
+            if origin:
+                parsed_origin = urlparse(origin)
+                orig_host = (parsed_origin.hostname or "").lower()
+                if orig_host and orig_host not in ALLOWED_HOSTS:
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": f"Forbidden: untrusted origin '{origin}'"},
+                    )
+
+    response = await call_next(request)
+
+    # Ensure session cookie is attached if not present
+    if "bolsamajh_session_id" not in request.cookies:
+        sid = request.headers.get("x-session-id") or uuid.uuid4().hex
+        response.set_cookie("bolsamajh_session_id", sid, httponly=True, samesite="lax")
+
+    return response
+
 
 # Restrict CORS to localhost with no credentials (SSRF / CSRF hardening)
 app.add_middleware(
@@ -174,7 +226,7 @@ app.add_middleware(
         "http://localhost:3000",
     ],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -198,6 +250,46 @@ retriever = DocumentRetriever(
     chunk_overlap=config.doc_qa.chunk_overlap,
     refusal_threshold=config.doc_qa.refusal_threshold,
 )
+
+# Per-session document retriever registry
+_SESSION_RETRIEVERS: dict[str, tuple[float, DocumentRetriever]] = {
+    "default": (time.time(), retriever)
+}
+_SESSION_LOCK = threading.Lock()
+
+
+def get_session_id(request: Request) -> str:
+    """Extract session ID from request headers or cookies."""
+    sid = request.headers.get("x-session-id") or request.cookies.get("bolsamajh_session_id")
+    if sid and sid.strip():
+        return sid.strip()
+    return "default"
+
+
+def get_retriever_for_session(session_id: str) -> DocumentRetriever:
+    """Retrieve or instantiate a DocumentRetriever for a specific session."""
+    now = time.time()
+    with _SESSION_LOCK:
+        if len(_SESSION_RETRIEVERS) > 100:
+            stale = [s for s, (t, _) in _SESSION_RETRIEVERS.items() if s != "default" and (now - t) > 7200]
+            for s in stale:
+                _SESSION_RETRIEVERS.pop(s, None)
+
+        if session_id in _SESSION_RETRIEVERS:
+            _, r = _SESSION_RETRIEVERS[session_id]
+            _SESSION_RETRIEVERS[session_id] = (now, r)
+            return r
+
+        new_retriever = DocumentRetriever(
+            embedding_model=config.doc_qa.embedding_model,
+            chunk_size=config.doc_qa.chunk_size,
+            chunk_overlap=config.doc_qa.chunk_overlap,
+            refusal_threshold=config.doc_qa.refusal_threshold,
+        )
+        _SESSION_RETRIEVERS[session_id] = (now, new_retriever)
+        return new_retriever
+
+
 tts = create_tts_adapter(config)
 llm = create_llm_adapter(config)
 
@@ -614,9 +706,11 @@ VOICE_MAP = {
 # --- API Endpoints ---
 
 @app.get("/api/status")
-async def get_status():
-    """Return system health and hardware. The live LLM readiness check is cached (60s TTL) to prevent repeated network calls."""
+async def get_status(request: Request):
+    """Return system health and hardware without leaking loaded document title."""
     clean_old_audio_cache()
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
 
     # Detect hardware name
     gpu_name = "CPU (int8)"
@@ -653,15 +747,37 @@ async def get_status():
         "llm_configured": llm_configured,
         "llm_fallback": llm_fallback_msg,
         "tts": tts.name,
-        "document_loaded": retriever.is_loaded,
-        "document_title": retriever.document_title,
-        "refusal_threshold": retriever.refusal_threshold,
+        "document_loaded": session_retriever.is_loaded,
+        "refusal_threshold": session_retriever.refusal_threshold,
+        "hotkeys": {
+            "dictation": getattr(config.hotkeys, "dictation", "alt+shift+d"),
+            "voice_command": getattr(config.hotkeys, "voice_command", "alt+shift+c"),
+            "doc_qa": getattr(config.hotkeys, "doc_qa", "alt+shift+q"),
+        },
     }
 
 
+@app.delete("/api/document")
+async def delete_document_endpoint(request: Request):
+    """Clear active loaded document from memory for the caller's session."""
+    session_id = get_session_id(request)
+    with _SESSION_LOCK:
+        if session_id in _SESSION_RETRIEVERS:
+            _, r = _SESSION_RETRIEVERS[session_id]
+            r.clear()
+            if session_id != "default":
+                _SESSION_RETRIEVERS.pop(session_id, None)
+        else:
+            retriever.clear()
+    return {"success": True, "message": "Document cleared for session"}
+
+
 @app.post("/api/documents/upload")
-async def upload_document_endpoint(file: UploadFile = File(...)):
-    """Upload and index a document with streaming size enforcement and real filename preservation."""
+async def upload_document_endpoint(request: Request, file: UploadFile = File(...)):
+    """Upload and index a document with streaming size enforcement, session isolation, and real filename preservation."""
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
+
     suffix = Path(file.filename or "doc.tmp").suffix.lower()
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp_path = Path(tmp.name)
@@ -680,8 +796,8 @@ async def upload_document_endpoint(file: UploadFile = File(...)):
         for p in doc.pages:
             p.source = file.filename or "Uploaded Document"
 
-        # Index document on thread pool
-        chunks = await asyncio.to_thread(retriever.index_document, doc)
+        # Index document on thread pool for this specific session
+        chunks = await asyncio.to_thread(session_retriever.index_document, doc)
 
         return {
             "success": True,
@@ -704,8 +820,11 @@ async def upload_document_endpoint(file: UploadFile = File(...)):
 
 
 @app.post("/api/documents/url")
-async def load_url_endpoint(req: URLDocRequest):
+async def load_url_endpoint(request: Request, req: URLDocRequest):
     """Fetch and index a webpage URL with strict SSRF validation and redirect protection."""
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
+
     try:
         html_content = await asyncio.to_thread(safe_fetch_url, req.url)
     except HTTPFetchError as e:
@@ -724,7 +843,7 @@ async def load_url_endpoint(req: URLDocRequest):
 
     try:
         doc = await asyncio.to_thread(load_webpage, req.url, html_content)
-        chunks = await asyncio.to_thread(retriever.index_document, doc)
+        chunks = await asyncio.to_thread(session_retriever.index_document, doc)
         return {
             "success": True,
             "title": doc.title,
@@ -737,15 +856,18 @@ async def load_url_endpoint(req: URLDocRequest):
 
 
 @app.post("/api/qa", response_model=QAResponse)
-async def ask_question_endpoint(req: QuestionRequest):
+async def ask_question_endpoint(request: Request, req: QuestionRequest):
     """Ask a question: uses shared prompt-hardened QA engine, returns text immediately, generates audio asynchronously."""
-    if not retriever.is_loaded:
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
+
+    if not session_retriever.is_loaded:
         raise HTTPException(status_code=400, detail="No document loaded. Please upload a document or URL first.")
 
     t0 = time.time()
 
     # 1. Retrieve chunks with calibrated refusal threshold
-    chunks = await asyncio.to_thread(retriever.retrieve, req.question, config.doc_qa.top_k, True)
+    chunks = await asyncio.to_thread(session_retriever.retrieve, req.question, config.doc_qa.top_k, True)
 
     # 2. Build hardened prompt using shared template
     context_str = "\n\n".join(f"[Source {i+1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks))
@@ -755,7 +877,7 @@ async def ask_question_endpoint(req: QuestionRequest):
     lang_key = req.language.lower()
     system_prompt = _SYSTEM_PROMPT.format(
         lang_instruction=_LANG_INSTRUCTIONS.get(lang_key, _LANG_INSTRUCTIONS["hinglish"]),
-        doc_title=retriever.document_title,
+        doc_title=session_retriever.document_title,
         history_context="",
         context=context_str,
     )
@@ -792,8 +914,6 @@ async def ask_question_endpoint(req: QuestionRequest):
             has_devanagari = any('\u0900' <= c <= '\u097F' for c in clean_text)
             has_gujarati = any('\u0A80' <= c <= '\u0AFF' for c in clean_text)
 
-            # Do not run ISO transliteration on Roman Hinglish. Only transliterate
-            # if the text is already in a different Indic script.
             if lang_key in ("gujarati", "gu"):
                 if has_devanagari and not has_gujarati:
                     try:
@@ -839,12 +959,15 @@ async def ask_question_endpoint(req: QuestionRequest):
 
 
 @app.get("/api/qa/stream")
-async def stream_qa_endpoint(question: str = Query(...), language: str = Query("hinglish")):
+async def stream_qa_endpoint(request: Request, question: str = Query(...), language: str = Query("hinglish")):
     """Server-Sent Events (SSE) endpoint for token-by-token streaming."""
-    if not retriever.is_loaded:
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
+
+    if not session_retriever.is_loaded:
         raise HTTPException(status_code=400, detail="No document loaded.")
 
-    chunks = await asyncio.to_thread(retriever.retrieve, question, config.doc_qa.top_k, True)
+    chunks = await asyncio.to_thread(session_retriever.retrieve, question, config.doc_qa.top_k, True)
     context_str = "\n\n".join(f"[Source {i+1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks))
     if not chunks:
         context_str = "(No relevant content found exceeding the relevance threshold)"
@@ -852,7 +975,7 @@ async def stream_qa_endpoint(question: str = Query(...), language: str = Query("
     lang_key = language.lower()
     system_prompt = _SYSTEM_PROMPT.format(
         lang_instruction=_LANG_INSTRUCTIONS.get(lang_key, _LANG_INSTRUCTIONS["hinglish"]),
-        doc_title=retriever.document_title,
+        doc_title=session_retriever.document_title,
         history_context="",
         context=context_str,
     )
@@ -875,7 +998,7 @@ async def stream_qa_endpoint(question: str = Query(...), language: str = Query("
 
 
 @app.post("/api/qa/voice", response_model=QAResponse)
-async def ask_voice_question_endpoint(audio: UploadFile = File(...), language: str = Form("hinglish")):
+async def ask_voice_question_endpoint(request: Request, audio: UploadFile = File(...), language: str = Form("hinglish")):
     """Voice QA endpoint: streams audio enforcing size limit, resamples to 16kHz via PyAV, and transcribes with Whisper."""
     audio_bytes = await stream_upload_bytes(audio, MAX_UPLOAD_SIZE)
 
@@ -897,12 +1020,17 @@ async def ask_voice_question_endpoint(audio: UploadFile = File(...), language: s
 
     # 3. Query Document
     req = QuestionRequest(question=question_text, language=language)
-    return await ask_question_endpoint(req)
+    return await ask_question_endpoint(request, req)
 
 
 @app.post("/api/command")
 async def voice_command_endpoint(req: CommandRequest):
-    """Execute text transformations or translation commands."""
+    """Execute text transformations or translation commands, returning clean HTTP status codes."""
+    if not req.command or not req.command.strip():
+        raise HTTPException(status_code=400, detail="Command cannot be empty")
+    if not req.text or not req.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+
     system_prompt = (
         "You are BolSamajh text editor. "
         "Apply the requested command to the text. "
@@ -912,7 +1040,9 @@ async def voice_command_endpoint(req: CommandRequest):
     try:
         modified = await llm.generate(prompt=prompt, system=system_prompt)
     except Exception as e:
-        modified = f"(Error processing command: {e})"
+        log.error("Command processing failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Command processing failed: {e}")
+
     return {"command": req.command, "result": modified.strip()}
 
 
@@ -958,21 +1088,55 @@ async def openai_compatible_transcription(
 ):
     """OpenAI-compatible STT endpoint for Bolna agent integration.
 
-    Allows any Bolna voice agent or external tool to use BolSamajh Hinglish STT
-    by configuring base_url='http://localhost:8000/v1'.
+    Honors language, prompt, and response_format (json, text, verbose_json, srt, vtt).
+    Returns 400 immediately on corrupt audio rather than passing raw bytes to STT.
     """
     audio_bytes = await stream_upload_bytes(file, MAX_UPLOAD_SIZE)
     try:
         clean_wav = await asyncio.to_thread(resample_audio_to_16k_mono, audio_bytes)
-    except Exception:
-        clean_wav = audio_bytes
+    except Exception as e:
+        log.warning("Audio decoding or resampling failed: %s", e)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported audio: could not decode or resample audio ({e})"
+        )
 
-    res = await asyncio.to_thread(stt.transcribe, clean_wav)
+    transcribe_kwargs = {}
+    if language and language.strip():
+        transcribe_kwargs["language"] = language.strip()
+    if prompt and prompt.strip():
+        transcribe_kwargs["prompt"] = prompt.strip()
+
+    res = await asyncio.to_thread(stt.transcribe, clean_wav, **transcribe_kwargs)
     text = res.text.strip()
 
-    if response_format == "text":
-        return text
-    return {"text": text}
+    fmt = (response_format or "json").lower().strip()
+    if fmt == "text":
+        return PlainTextResponse(text)
+    elif fmt == "verbose_json":
+        return {
+            "task": "transcribe",
+            "language": res.language or (language or "hi"),
+            "duration": round(res.duration_seconds, 2),
+            "text": text,
+            "segments": [
+                {
+                    "id": 0,
+                    "seek": 0,
+                    "start": 0.0,
+                    "end": round(res.duration_seconds, 2),
+                    "text": text,
+                }
+            ] if text else [],
+        }
+    elif fmt == "srt":
+        srt_text = f"1\n00:00:00,000 --> 00:00:{int(res.duration_seconds):02d},000\n{text}\n" if text else ""
+        return PlainTextResponse(srt_text, media_type="text/plain")
+    elif fmt == "vtt":
+        vtt_text = f"WEBVTT\n\n1\n00:00:00.000 --> 00:00:{int(res.duration_seconds):02d}.000\n{text}\n" if text else "WEBVTT\n"
+        return PlainTextResponse(vtt_text, media_type="text/plain")
+    else:
+        return {"text": text}
 
 
 @app.post("/v1/audio/speech")
@@ -1075,24 +1239,57 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
     """OpenAI Realtime-compatible WebSocket transcription endpoint for Bolna agent integration.
     
     Supports:
-    - session.update (model, language configuration)
-    - input_audio_buffer.append (streaming base64 24kHz linear16 PCM)
-    - input_audio_buffer.commit (triggers Faster-Whisper inference on committed audio)
-    - conversation.item.input_audio_transcription.completed (returns final transcript)
+    - Origin verification against allowed hosts
+    - API key authentication when configured
+    - session.created emitted upon connection
+    - session.update -> session.updated
+    - input_audio_buffer.append with 10MB memory cap
+    - input_audio_buffer.commit -> input_audio_buffer.committed
+    - Public STT transcribe method (no private _model access)
+    - conversation.item.input_audio_transcription.completed
+    - Clean error handling and error events
     """
-    await websocket.accept()
+    # 1. Validate Origin header
+    origin = websocket.headers.get("origin")
+    if origin:
+        parsed_origin = urlparse(origin)
+        orig_host = (parsed_origin.hostname or "").lower()
+        if orig_host and orig_host not in ALLOWED_HOSTS:
+            await websocket.close(code=1008, reason="Forbidden: untrusted origin")
+            return
 
+    # 2. Require API key when configured
     expected_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
     if expected_key:
         auth_header = websocket.headers.get("authorization", "")
         scheme, _, token = auth_header.partition(" ")
-        if scheme.lower() != "bearer" or not token or not hmac.compare_digest(token.strip(), expected_key):
+        query_token = websocket.query_params.get("api_key") or websocket.query_params.get("token")
+        effective_token = (token or query_token or "").strip()
+        if not effective_token or not hmac.compare_digest(effective_token, expected_key):
             await websocket.close(code=1008, reason="Unauthorized: invalid or missing Bearer token")
             return
+
+    await websocket.accept()
 
     import json
     import scipy.signal
 
+    # 3. Emit session.created event
+    session_id = f"sess_{uuid.uuid4().hex[:12]}"
+    await websocket.send_text(json.dumps({
+        "type": "session.created",
+        "session": {
+            "id": session_id,
+            "model": "whisper-1",
+            "modalities": ["audio", "text"],
+            "instructions": "",
+            "voice": "alloy",
+            "input_audio_format": "pcm16",
+            "output_audio_format": "pcm16",
+        }
+    }))
+
+    MAX_WS_BUFFER = 10 * 1024 * 1024  # 10 MB cap
     audio_buffer = bytearray()
     language = "auto"
     item_counter = 0
@@ -1117,6 +1314,16 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
                 b64_audio = data.get("audio", "")
                 if b64_audio:
                     pcm_chunk = base64.b64decode(b64_audio)
+                    if len(audio_buffer) + len(pcm_chunk) > MAX_WS_BUFFER:
+                        await websocket.send_text(json.dumps({
+                            "type": "error",
+                            "error": {
+                                "type": "invalid_request_error",
+                                "message": f"Buffer size exceeded {MAX_WS_BUFFER} bytes limit",
+                            }
+                        }))
+                        await websocket.close(code=1009, reason="Buffer size exceeded")
+                        return
                     audio_buffer.extend(pcm_chunk)
 
             elif event_type == "input_audio_buffer.commit":
@@ -1125,21 +1332,26 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
                 committed_bytes = bytes(audio_buffer)
                 audio_buffer.clear()
 
+                # Emit input_audio_buffer.committed event
+                await websocket.send_text(json.dumps({
+                    "type": "input_audio_buffer.committed",
+                    "item_id": item_id,
+                }))
+
                 transcript = ""
                 if len(committed_bytes) > 0:
                     audio_np = np.frombuffer(committed_bytes, dtype=np.int16).astype(np.float32) / 32768.0
                     gcd = int(np.gcd(24000, 16000))
                     audio_16k = scipy.signal.resample_poly(audio_np, 16000 // gcd, 24000 // gcd).astype(np.float32)
                     lang_param = None if language in ("auto", "", None) else language
-                    if stt._model is None:
-                        stt.load_model()
-                    segments, info = await asyncio.to_thread(
-                        stt._model.transcribe,
+
+                    # Use public STT transcribe method
+                    res = await asyncio.to_thread(
+                        stt.transcribe,
                         audio_16k,
                         language=lang_param,
-                        beam_size=1,
                     )
-                    transcript = " ".join(s.text for s in segments).strip()
+                    transcript = res.text.strip()
 
                 await websocket.send_text(json.dumps({
                     "type": "conversation.item.input_audio_transcription.completed",
@@ -1151,6 +1363,17 @@ async def openai_realtime_transcription_websocket(websocket: WebSocket, intent: 
         pass
     except Exception as e:
         log.error("Realtime WebSocket error: %s", e)
+        try:
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "error": {
+                    "type": "server_error",
+                    "message": str(e),
+                }
+            }))
+            await websocket.close(code=1011, reason=str(e)[:100])
+        except Exception:
+            pass
 
 
 # --- Static Web Frontend ---

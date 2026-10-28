@@ -63,6 +63,13 @@ class DocumentRetriever:
         with self._lock:
             return self._document.title if self._document else ""
 
+    def clear(self) -> None:
+        """Clear currently indexed document and FAISS index under lock."""
+        with self._lock:
+            self._index = None
+            self._chunks = []
+            self._document = None
+
     def _load_embedding_model(self):
         """Lazy-load the sentence-transformer model with fallback and threshold scaling."""
         if self._model is not None:

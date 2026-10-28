@@ -5,6 +5,7 @@ import re
 import time
 import wave
 import logging
+from typing import Optional, Union, Dict, Any
 import numpy as np
 from bolsamajh.stt.base import SpeechToText, TranscriptResult
 
@@ -104,13 +105,29 @@ class FasterWhisperSTT(SpeechToText):
                 raise
         log.info("Model loaded in %.1fs", time.time() - t0)
 
-    def transcribe(self, audio_bytes: bytes) -> TranscriptResult:
-        """Transcribe WAV audio bytes with silence and duration gates."""
+    def transcribe(
+        self,
+        audio_bytes: bytes | bytearray | np.ndarray,
+        language: Optional[str] = None,
+        prompt: Optional[str] = None,
+        **kwargs,
+    ) -> TranscriptResult:
+        """Transcribe WAV audio bytes or numpy array with silence and duration gates."""
         if self._model is None:
             self.load_model()
 
-        # Convert WAV bytes to numpy float32 array, normalized and resampled to 16 kHz mono
-        audio_np = self._wav_bytes_to_np(audio_bytes)
+        # Convert input to float32 numpy array, normalized and resampled to 16 kHz mono
+        if isinstance(audio_bytes, np.ndarray):
+            audio_np = audio_bytes.astype(np.float32)
+        elif isinstance(audio_bytes, (bytes, bytearray)):
+            if audio_bytes.startswith(b"RIFF"):
+                audio_np = self._wav_bytes_to_np(bytes(audio_bytes))
+            else:
+                # Raw linear16 PCM at 16 kHz
+                audio_np = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+        else:
+            raise ValueError(f"Unsupported audio input type: {type(audio_bytes)}")
+
         duration = len(audio_np) / 16000.0
 
         # Minimum duration gate: clips < 0.4s are discarded as transient noise
@@ -151,10 +168,16 @@ class FasterWhisperSTT(SpeechToText):
             ),
         }
 
-        # Do not force Hindi on short clips when language is auto
-        target_lang = self.language
-        if target_lang and target_lang.lower() != "auto":
-            transcribe_kwargs["language"] = target_lang
+        # Honor explicitly provided language, falling back to configured language
+        eff_lang = language or self.language
+        if eff_lang and eff_lang.lower() != "auto":
+            transcribe_kwargs["language"] = eff_lang
+
+        if prompt:
+            transcribe_kwargs["initial_prompt"] = prompt
+
+        for k, v in kwargs.items():
+            transcribe_kwargs[k] = v
 
         try:
             segments, info = self._model.transcribe(audio_np, **transcribe_kwargs)

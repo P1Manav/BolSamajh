@@ -146,3 +146,15 @@
 **Alternatives considered:** Ad-hoc error handling in individual modules; letting partial TTS audio or failed clipboard state fail silently.  
 **Reason:** Eliminates race conditions, audio corruption, prompt injection vulnerabilities, and UI freezes while guaranteeing offline and multi-script stability.
 
+## D024: Web Server API Gateway Security & Web UI Modernization
+**Date:** 2026-10-28  
+**Choice:** Hardened FastAPI web server, security middleware, and browser frontend:
+- **Transcription Endpoint (`/v1/audio/transcriptions`):** Honors `language`, `prompt`, and `response_format` (`json`, `text`, `verbose_json`, `srt`, `vtt`). Returns clean plain text for `text` format (not a JSON-quoted string). Returns HTTP 400 immediately on corrupt audio rather than passing raw un-decoded bytes to STT.
+- **Realtime WebSocket (`/v1/realtime`):** Origin header verification against allowed hostnames, API key authentication, 10 MB audio buffer cap, standard events (`session.created`, `session.updated`, `input_audio_buffer.committed`, `conversation.item.input_audio_transcription.completed`), and clean error events. Uses public `stt.transcribe` method instead of private `stt._model`.
+- **Per-Session Retriever & DELETE Endpoint:** Keyed document retriever instances by session ID (`X-Session-ID` header or cookie) with auto-cleanup of idle sessions. Added `DELETE /api/document` to clear session memory, wired to the Web UI "clear" button.
+- **Security Middleware:** Enforces Host header allowlist (blocking spoofed host headers), Origin/CSRF validation on state-changing requests when no API key is set, and removes document title from `/api/status` to prevent metadata leakage. Fixed `check_bind_security` so `-h` and `--help` flags are recognized as CLI help.
+- **Web UI:** Connected question answering to `/api/qa/stream` for live SSE token-by-token streaming with grounded citations. Added dynamic hotkey badges synced from `/api/status`, replaced browser `alert()` with an inline toast notification system, added chat history clearing, offline-ready system typography (eliminating Google Fonts CDN dependencies), and click-to-toggle/hold-to-talk mic interaction with strict `innerText` XSS prevention.  
+**Alternatives considered:** Keeping global document state across all web sessions; polling `/api/qa` instead of streaming SSE; retaining external Google Fonts CDN.  
+**Reason:** Prevents cross-session document leakage, guarantees offline UI execution without external CDN requests, delivers instant streaming feedback, and closes Web / WebSocket security vectors.
+
+

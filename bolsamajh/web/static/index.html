@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BolSamajh — Bolo. Samjho. | Voice AI & Document Intelligence</title>
   <meta name="description" content="Talk to any document in your language and dictate anywhere. Multilingual voice assistant for Indian languages.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -93,7 +90,7 @@
         <div class="commands-box">
           <div class="panel-header">
             <h3>⚡ In-App Voice Commands</h3>
-            <span class="badge-shortcut">Ctrl+Shift+C</span>
+            <span class="badge-shortcut" id="commandShortcutBadge">Alt+Shift+C</span>
           </div>
           <textarea id="commandInputText" rows="3" placeholder="Type or paste sample text to test command transformations..."></textarea>
           <div class="command-chips">
@@ -111,7 +108,10 @@
       <section class="panel chat-panel">
         <div class="panel-header">
           <h2>🎙️ Voice Conversation & Grounded Q&A</h2>
-          <div class="latency-pill" id="latencyPill">Ready</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm" id="clearHistoryBtn" style="display: none; font-size: 0.72rem; padding: 2px 8px;">Clear Chat</button>
+            <div class="latency-pill" id="latencyPill">Ready</div>
+          </div>
         </div>
 
         <!-- Conversation History -->
@@ -119,7 +119,7 @@
           <div class="welcome-card">
             <div class="welcome-icon">✨</div>
             <h3>Welcome to BolSamajh Web-Call Mode</h3>
-            <p>Upload a document on the left, then hold the glowing mic button or type to ask questions. Every answer is grounded directly in the document with page citations and spoken back in natural voice.</p>
+            <p>Upload a document on the left, then click or hold the glowing mic button or type to ask questions. Every answer is grounded directly in the document with page citations and streamed live.</p>
             <div class="sample-questions">
               <span class="sample-chip" data-q="Is document ka main summary kya hai?">Is document ka main summary kya hai?</span>
               <span class="sample-chip" data-q="What are the key technical requirements?">What are the key technical requirements?</span>
@@ -135,7 +135,7 @@
 
           <div class="input-bar">
             <!-- Push-to-Talk Mic Button -->
-            <button class="mic-button" id="micBtn" title="Hold or click to speak">
+            <button class="mic-button" id="micBtn" title="Click to speak (toggle) or hold">
               <div class="mic-pulse"></div>
               <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -153,11 +153,14 @@
               </svg>
             </button>
           </div>
-          <div class="input-hint">Tip: Hold mic to speak in Hinglish, Hindi, or English • Answers include audio speech & citations</div>
+          <div class="input-hint">Tip: Click mic to speak in Hinglish, Hindi, or English • Live streaming answers & citations</div>
         </div>
       </section>
     </main>
   </div>
+
+  <!-- Inline Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <script src="/static/app.js"></script>
 </body>

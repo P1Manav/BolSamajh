@@ -17,16 +17,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const commandInputText = document.getElementById('commandInputText');
   const runCommandBtn = document.getElementById('runCommandBtn');
   const commandOutput = document.getElementById('commandOutput');
+  const commandShortcutBadge = document.getElementById('commandShortcutBadge');
 
   const chatFeed = document.getElementById('chatFeed');
   const textQueryInput = document.getElementById('textQueryInput');
   const sendBtn = document.getElementById('sendBtn');
   const micBtn = document.getElementById('micBtn');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
   const visualizerCanvas = document.getElementById('audioVisualizer');
   const latencyPill = document.getElementById('latencyPill');
 
-  // In-memory API key storage (strictly not in localStorage / sessionStorage)
+  // In-memory state
   let currentApiKey = '';
+  let chatHistory = [];
 
   const apiKeyContainer = document.getElementById('apiKeyContainer');
   const apiKeyInput = document.getElementById('apiKeyInput');
@@ -36,12 +39,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const authAlertText = document.getElementById('authAlertText');
   const dismissAuthAlertBtn = document.getElementById('dismissAuthAlertBtn');
 
+  // Inline Toast Notification helper
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      setTimeout(() => toast.remove(), 250);
+    }, 4000);
+  }
+
   function setApiKey(key) {
     currentApiKey = (key || '').trim();
     if (currentApiKey) {
       if (apiKeyBadge) apiKeyBadge.style.display = 'inline-block';
       if (apiKeyContainer) apiKeyContainer.classList.remove('auth-error');
       hideAuthError();
+      showToast('API Key configured in memory.', 'success');
     } else {
       if (apiKeyBadge) apiKeyBadge.style.display = 'none';
     }
@@ -107,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let analyser = null;
   let animFrameId = null;
 
-  // 1. Check Initial Server Status
+  // 1. Check Initial Server Status & Sync Configured Hotkeys
   fetchWithAuth('/api/status')
     .then(r => r.json())
     .then(data => {
@@ -115,8 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusEl && data.device) {
         statusEl.textContent = `${data.device} • ${data.stt} • ${data.tts}`;
       }
+      if (data.hotkeys && data.hotkeys.voice_command && commandShortcutBadge) {
+        commandShortcutBadge.innerText = data.hotkeys.voice_command.toUpperCase();
+      }
       if (data.document_loaded) {
-        setDocLoaded(data.document_title, 'Indexed in memory');
+        setDocLoaded('Active Document', 'Indexed in memory for current session');
       }
     })
     .catch(() => {
@@ -157,8 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       setDocLoaded(data.title, `${data.pages} pages • ${data.chunks} indexed chunks`);
       addSystemMessage(`📄 Loaded "${data.title}" successfully (${data.chunks} chunks indexed). You can now ask questions!`);
+      showToast(`Loaded ${data.title} (${data.chunks} chunks)`, 'success');
     } catch (err) {
-      alert(`Error loading document: ${err.message}`);
+      showToast(`Error loading document: ${err.message}`, 'error');
       resetDoc();
     }
   }
@@ -179,14 +202,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
       setDocLoaded(data.title, `${data.chunks} indexed chunks from web page`);
       addSystemMessage(`🌐 Loaded web page "${data.title}" (${data.chunks} chunks). Ask anything!`);
+      showToast(`Loaded web page: ${data.title}`, 'success');
       urlInput.value = '';
     } catch (err) {
-      alert(`Error loading URL: ${err.message}`);
+      showToast(`Error loading URL: ${err.message}`, 'error');
       resetDoc();
     }
   });
 
-  clearDocBtn.addEventListener('click', resetDoc);
+  // Clear Document Handler with session DELETE API call
+  clearDocBtn.addEventListener('click', async () => {
+    try {
+      await fetchWithAuth('/api/document', { method: 'DELETE' });
+      resetDoc();
+      showToast('Document cleared from session memory.', 'info');
+      addSystemMessage('Document has been cleared.');
+    } catch (err) {
+      resetDoc();
+    }
+  });
+
+  // Clear Chat History Handler
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => {
+      chatHistory = [];
+      const rows = chatFeed.querySelectorAll('.message-row');
+      rows.forEach(r => r.remove());
+      const wc = document.querySelector('.welcome-card');
+      if (wc) wc.style.display = 'block';
+      clearHistoryBtn.style.display = 'none';
+      showToast('Chat history cleared.', 'info');
+    });
+  }
 
   function setDocLoaded(title, meta) {
     dropzone.style.display = 'none';
@@ -210,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     latencyPill.innerText = text;
   }
 
-  // 3. Question & Answer Workflow
+  // 3. Question & Answer Workflow with SSE Token-by-Token Streaming
   sendBtn.addEventListener('click', () => {
     const q = textQueryInput.value.trim();
     if (q) handleTextQuery(q);
@@ -234,33 +281,95 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleTextQuery(question) {
     addUserMessage(question);
     textQueryInput.value = '';
-    setLoadingStatus('Thinking & searching citations…');
+    setLoadingStatus('Streaming answer…');
+    if (clearHistoryBtn) clearHistoryBtn.style.display = 'inline-block';
 
     const assistantRow = addAssistantLoadingMessage();
+    const bubble = assistantRow.querySelector('.message-bubble');
+
+    let fullText = '';
+    const encodedQ = encodeURIComponent(question);
+    const encodedLang = encodeURIComponent(langSelect.value);
 
     try {
-      const res = await fetchWithAuth('/api/qa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          language: langSelect.value,
-        }),
-      });
+      const res = await fetchWithAuth(`/api/qa/stream?question=${encodedQ}&language=${encodedLang}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server returned HTTP ${res.status}`);
+      }
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to get answer');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
 
-      updateAssistantMessage(assistantRow, data);
-      setLoadingStatus(`Answered in ${data.elapsed_sec}s`);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop(); // Keep incomplete trailing fragment
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === '[DONE]') continue;
+
+          try {
+            const dataObj = JSON.parse(dataStr);
+            if (dataObj.token) {
+              fullText += dataObj.token;
+              bubble.innerText = fullText;
+              chatFeed.scrollTop = chatFeed.scrollHeight;
+            }
+            if (dataObj.citations && Array.isArray(dataObj.citations)) {
+              renderCitations(assistantRow, dataObj.citations);
+            }
+            if (dataObj.error) {
+              showToast(`Streaming error: ${dataObj.error}`, 'error');
+            }
+          } catch (e) {
+            // Ignore non-json SSE frames
+          }
+        }
+      }
+
+      setLoadingStatus('Answer complete');
+      chatHistory.push({ role: 'user', content: question });
+      chatHistory.push({ role: 'assistant', content: fullText });
+
     } catch (err) {
-      assistantRow.querySelector('.message-bubble').innerText = `⚠️ Error: ${err.message}`;
+      bubble.innerText = `⚠️ Error: ${err.message}`;
+      showToast(`Q&A Error: ${err.message}`, 'error');
       setLoadingStatus('Error');
     }
   }
 
-  // 4. Voice Recording via Browser Mic
-  micBtn.addEventListener('click', toggleRecording);
+  // 4. Voice Recording via Browser Mic (Click-to-Toggle and Hold-to-Talk)
+  let micPressStartTime = 0;
+  let isHoldRecording = false;
+
+  micBtn.addEventListener('click', () => {
+    // If not a hold-to-talk release, toggle normally
+    if (!isHoldRecording) {
+      toggleRecording();
+    }
+    isHoldRecording = false;
+  });
+
+  micBtn.addEventListener('mousedown', () => {
+    micPressStartTime = Date.now();
+  });
+
+  micBtn.addEventListener('mouseup', () => {
+    const pressDuration = Date.now() - micPressStartTime;
+    // If user held for > 400ms while recording was active, treat as hold-to-talk release
+    if (isRecording && pressDuration > 400) {
+      isHoldRecording = true;
+      stopRecording();
+    }
+  });
 
   async function toggleRecording() {
     if (!isRecording) {
@@ -289,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupVisualizer(stream);
       setLoadingStatus('Listening to your voice…');
     } catch (err) {
-      alert(`Mic access denied: ${err.message}`);
+      showToast(`Mic access denied: ${err.message}`, 'error');
     }
   }
 
@@ -312,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formData.append('language', langSelect.value);
 
     addUserMessage('🎤 Voice question submitted...');
+    if (clearHistoryBtn) clearHistoryBtn.style.display = 'inline-block';
     const assistantRow = addAssistantLoadingMessage();
 
     try {
@@ -323,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Voice processing failed');
 
-      // Update user message to show transcribed question text
+      // Update user message with transcribed question text
       const userRows = document.querySelectorAll('.message-row.user');
       if (userRows.length) {
         userRows[userRows.length - 1].querySelector('.message-bubble').innerText = `🎤 "${data.question}"`;
@@ -331,8 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateAssistantMessage(assistantRow, data);
       setLoadingStatus(`Voice response in ${data.elapsed_sec}s`);
+      chatHistory.push({ role: 'user', content: data.question });
+      chatHistory.push({ role: 'assistant', content: data.answer });
     } catch (err) {
       assistantRow.querySelector('.message-bubble').innerText = `⚠️ ${err.message}`;
+      showToast(`Voice QA Error: ${err.message}`, 'error');
       setLoadingStatus('Error');
     }
   }
@@ -399,21 +512,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Command failed');
       commandOutput.innerText = data.result;
     } catch (err) {
       commandOutput.innerText = `Error: ${err.message}`;
+      showToast(`Command error: ${err.message}`, 'error');
     }
   }
 
   // Helper UI functions
   function addUserMessage(text) {
-    // Hide welcome card if present
     const wc = document.querySelector('.welcome-card');
     if (wc) wc.style.display = 'none';
 
     const row = document.createElement('div');
     row.className = 'message-row user';
-    row.innerHTML = `<div class="message-bubble">${escapeHtml(text)}</div>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.innerText = text;
+    row.appendChild(bubble);
     chatFeed.appendChild(row);
     chatFeed.scrollTop = chatFeed.scrollHeight;
   }
@@ -421,31 +538,45 @@ document.addEventListener('DOMContentLoaded', () => {
   function addAssistantLoadingMessage() {
     const row = document.createElement('div');
     row.className = 'message-row assistant';
-    row.innerHTML = `<div class="message-bubble">⏳ Generating answer...</div>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.innerText = '⏳ Generating answer...';
+    row.appendChild(bubble);
     chatFeed.appendChild(row);
     chatFeed.scrollTop = chatFeed.scrollHeight;
     return row;
+  }
+
+  function renderCitations(row, citations) {
+    if (!citations || !citations.length) return;
+    let citContainer = row.querySelector('.citations-container');
+    if (!citContainer) {
+      citContainer = document.createElement('div');
+      citContainer.className = 'citations-container';
+      row.appendChild(citContainer);
+    } else {
+      citContainer.innerHTML = '';
+    }
+
+    citations.forEach(c => {
+      const pill = document.createElement('span');
+      pill.className = 'citation-pill';
+      const pct = c.score ? ` (${Math.round(c.score * 100)}%)` : '';
+      pill.innerText = `📌 ${c.citation}${pct}`;
+      if (c.text) pill.title = c.text;
+      citContainer.appendChild(pill);
+    });
   }
 
   function updateAssistantMessage(row, data) {
     const bubble = row.querySelector('.message-bubble');
     bubble.innerText = data.answer;
 
-    // Citations
     if (data.citations && data.citations.length) {
-      const citContainer = document.createElement('div');
-      citContainer.className = 'citations-container';
-      data.citations.forEach(c => {
-        const pill = document.createElement('span');
-        pill.className = 'citation-pill';
-        pill.innerText = `📌 ${c.citation} (${Math.round(c.score * 100)}%)`;
-        pill.title = c.text;
-        citContainer.appendChild(pill);
-      });
-      row.appendChild(citContainer);
+      renderCitations(row, data.citations);
     }
 
-    // Audio Playback via fetch -> Blob URL (supports Bearer auth header)
+    // Audio Playback
     if (data.audio_url) {
       const audioRow = document.createElement('div');
       audioRow.className = 'audio-player-row';
@@ -456,9 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       fetchWithAuth(data.audio_url)
         .then(async (r) => {
-          if (!r.ok) {
-            throw new Error(`HTTP ${r.status}`);
-          }
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const blob = await r.blob();
           const blobUrl = URL.createObjectURL(blob);
           audio.src = blobUrl;
@@ -482,12 +611,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const row = document.createElement('div');
     row.className = 'message-row assistant';
-    row.innerHTML = `<div class="message-bubble" style="border-left: 3px solid var(--accent-cyan);">${escapeHtml(text)}</div>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.style.borderLeft = '3px solid var(--accent-cyan)';
+    bubble.innerText = text;
+    row.appendChild(bubble);
     chatFeed.appendChild(row);
     chatFeed.scrollTop = chatFeed.scrollHeight;
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 });
