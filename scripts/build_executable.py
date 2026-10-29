@@ -18,7 +18,7 @@ def build_app(enable_console: bool = False):
     os.chdir(root)
 
     print("=================================================================")
-    print("  BolSamajh — Standalone Release Executable Builder")
+    print("  BolSamajh - Standalone Release Executable Builder")
     print("=================================================================")
 
     # 1. Ensure icon is generated
@@ -164,7 +164,7 @@ def build_app(enable_console: bool = False):
     if not exe_file.exists():
         raise RuntimeError(f"Build failed: {exe_file} not found.")
 
-    print(f"[✓] Executable built successfully: {exe_file}")
+    print(f"[OK] Executable built successfully: {exe_file}")
 
     # Copy launcher scripts and documentation into the distribution folder
     shutil.copy2(root / "README.md", app_output_dir / "README.md")
@@ -183,7 +183,7 @@ def build_app(enable_console: bool = False):
             zipf.write(file, arcname)
 
     size_mb = zip_path.stat().st_size / (1024 * 1024)
-    print("[✓] Distribution package created successfully!")
+    print("[OK] Distribution package created successfully!")
     print(f"    Package: {zip_path} ({size_mb:.1f} MB)")
     print("=================================================================")
     print("  To use the app directly:")
