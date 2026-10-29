@@ -2,11 +2,20 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 v1.1.0 Released — Standalone Direct App, Green CI & Enhanced Tray (Phases 1–10 Complete)
+## Current Status: 🎯 v1.1.0 Released & Verified — Standalone Direct Windows App & Wispr Flow Studio (Phases 1–11 Complete)
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 11 — Standalone Executable Runtime Robustness & Live Verification
+- [x] **PyInstaller Frozen Path Resolution:** Updated `bolsamajh/web/server.py` (`_resolve_static_dir`), `bolsamajh/documents/retriever.py`, and `bolsamajh/tts/piper_adapter.py` to resolve static web assets, thresholds, and ONNX models from `sys._MEIPASS` and `_internal/` when running as a compiled binary.
+- [x] **Active Socket Polling for Edge App Mode:** Eliminated `ERR_CONNECTION_REFUSED` race condition in `bolsamajh/main.py` by polling the server port via socket connection up to 6.0s before launching Microsoft Edge borderless application window.
+- [x] **Persistent Glass Overlay HUD:** Hardened `bolsamajh/overlay/hud.py` so pinned state (`/api/overlay/toggle`) keeps a persistent pill (` 🎙️ BolSamajh  Ready`) on top of all windows instead of auto-withdrawing.
+- [x] **Standalone Executable Compilation:** Recompiled `dist/BolSamajh/BolSamajh.exe` and packaged `dist/BolSamajh-v1.1.0-windows-x64.zip` (451.5 MB) containing PyTorch runtime, CT2 CUDA DLLs, PyAV, SentenceTransformers, and all web assets.
+- [x] **Live Binary Empirical Verification:** Automated tests verified that running `dist/BolSamajh/BolSamajh.exe` starts Uvicorn, serves the Wispr Flow-style Studio UI (`GET /`, HTTP 200, 24,983 bytes), serves PWA manifest, and handles HUD overlay controls (`/api/overlay`, `/api/overlay/toggle`).
+- [x] **Direct Desktop Shortcut:** Updated `scripts/create_desktop_shortcut.py` and regenerated `C:\Users\Maxpr\Desktop\BolSamajh.lnk` pointing directly to `dist\BolSamajh\BolSamajh.exe`.
+- [x] **GitHub Release Asset Clobber:** Uploaded updated 451.5 MB standalone archive to GitHub Release v1.1.0 (`https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0`).
 
 #### Phase 10 — Standalone Application Release & CI Matrix Resolution (v1.1.0)
 - [x] **CI Dependency Conflict Resolved:** Pinned pytest-asyncio==1.4.1 for clean pip resolution with pytest==9.1.1 across Ubuntu and Windows runners.
