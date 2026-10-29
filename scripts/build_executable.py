@@ -45,7 +45,9 @@ def build_app(enable_console: bool = False):
     if init_file.exists():
         import re
 
-        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', init_file.read_text(encoding="utf-8"))
+        match = re.search(
+            r'__version__\s*=\s*["\']([^"\']+)["\']', init_file.read_text(encoding="utf-8")
+        )
         if match:
             version = match.group(1)
 
