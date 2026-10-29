@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const authAlertText = document.getElementById('authAlertText');
   const dismissAuthAlertBtn = document.getElementById('dismissAuthAlertBtn');
 
+  // Overlay Controls
+  const toggleOverlayBtn = document.getElementById('toggleOverlayBtn');
+  const overlayBtnText = document.getElementById('overlayBtnText');
+  const overlayDot = document.getElementById('overlayDot');
+  const overlayHeroToggleBtn = document.getElementById('overlayHeroToggleBtn');
+  const overlayHeroBtnText = document.getElementById('overlayHeroBtnText');
+  const overlayCalloutBadge = document.getElementById('overlayCalloutBadge');
+
   // Tab 1: Dictation Studio
   const dictateMicBtn = document.getElementById('dictateMicBtn');
   const dictateWaveform = document.getElementById('dictateWaveform');
@@ -1128,7 +1136,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // 11. OVERLAY HUD INTEGRATION
+  // ==========================================
+  async function checkOverlayStatus() {
+    try {
+      const res = await fetch('/api/overlay');
+      if (!res.ok) return;
+      const data = await res.json();
+      updateOverlayUI(data.pinned);
+    } catch (e) {}
+  }
+
+  function updateOverlayUI(isPinned) {
+    if (toggleOverlayBtn) {
+      toggleOverlayBtn.classList.toggle('active', isPinned);
+    }
+    if (overlayBtnText) {
+      overlayBtnText.innerText = isPinned ? 'Overlay Active' : 'Start Overlay';
+    }
+    if (overlayHeroBtnText) {
+      overlayHeroBtnText.innerText = isPinned ? 'Overlay Active (Hide)' : 'Start Overlay';
+    }
+    if (overlayCalloutBadge) {
+      overlayCalloutBadge.innerText = isPinned ? 'Floating Pill: Active' : 'Floating Pill: Idle';
+      overlayCalloutBadge.classList.toggle('active', isPinned);
+    }
+  }
+
+  async function toggleOverlay() {
+    try {
+      const res = await fetchWithAuth('/api/overlay/toggle', { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        updateOverlayUI(data.pinned);
+        showToast(data.message, data.pinned ? 'success' : 'info');
+      } else {
+        showToast(`Overlay error: ${data.message}`, 'error');
+      }
+    } catch (err) {
+      showToast(`Overlay network error: ${err.message}`, 'error');
+    }
+  }
+
+  if (toggleOverlayBtn) toggleOverlayBtn.addEventListener('click', toggleOverlay);
+  if (overlayHeroToggleBtn) overlayHeroToggleBtn.addEventListener('click', toggleOverlay);
+
   loadSystemStatus();
+  checkOverlayStatus();
 
   function escapeHtml(str) {
     if (!str) return '';

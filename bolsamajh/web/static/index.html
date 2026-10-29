@@ -46,6 +46,10 @@
 
       <!-- Right Nav Controls -->
       <div class="nav-controls">
+        <button type="button" id="toggleOverlayBtn" class="btn btn-overlay btn-sm" title="Toggle desktop floating overlay pill">
+          <span class="status-indicator" id="overlayDot"></span>
+          <span id="overlayBtnText">Start Overlay</span>
+        </button>
         <button type="button" id="pwaInstallBtn" class="btn btn-pwa btn-sm" style="display: none;">
           📲 Install App
         </button>
@@ -83,6 +87,20 @@
             </div>
             <h2>Speak naturally. Insert anywhere.</h2>
             <p class="subtitle">Automatic filler removal (umm, uhh, matlab), smart number & rupee formatting, and instant injection into any active desktop window.</p>
+          </div>
+
+          <!-- Floating Overlay Launch Banner -->
+          <div class="overlay-callout-card" id="overlayCalloutCard">
+            <div class="overlay-callout-left">
+              <span class="callout-badge" id="overlayCalloutBadge">Floating Pill: Idle</span>
+              <div class="callout-info">
+                <h4>🖥️ Desktop Floating Overlay</h4>
+                <p>Dictate directly into any open app (Notepad, VS Code, Browser, Word) using global hotkey <kbd>Alt+Shift+Space</kbd>.</p>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="overlayHeroToggleBtn">
+              <span>🚀</span> <span id="overlayHeroBtnText">Start Overlay</span>
+            </button>
           </div>
 
           <!-- Hero Mic Pulsing Area -->

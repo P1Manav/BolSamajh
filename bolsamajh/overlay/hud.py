@@ -44,6 +44,42 @@ class OverlayHUD:
         self._auto_hide_id: str | None = None
         self._cmd_queue: queue.Queue = queue.Queue()
         self._on_click_callback = on_click_callback
+        self._pinned: bool = False
+
+    @property
+    def state(self) -> HUDState:
+        """Return current HUD state."""
+        return self._state
+
+    @property
+    def is_pinned(self) -> bool:
+        """Return whether HUD is pinned to screen."""
+        return getattr(self, "_pinned", False)
+
+    def show_pill(self, text: str = "Overlay Active", duration_ms: int = 2500) -> None:
+        """Flash or display the overlay pill with a brief message."""
+        self.show_text(text, duration_ms=duration_ms)
+
+    def toggle_pin(self) -> bool:
+        """Toggle persistent pinned visible state of HUD pill."""
+        self._pinned = not getattr(self, "_pinned", False)
+        if self._pinned:
+            if not self._thread or not self._thread.is_alive():
+                self.start()
+            self.set_state("done", "Overlay Pinned")
+
+            def _cancel():
+                if self._auto_hide_id is not None and self._root:
+                    try:
+                        self._root.after_cancel(self._auto_hide_id)
+                    except Exception:
+                        pass
+                    self._auto_hide_id = None
+
+            self._cmd_queue.put(_cancel)
+        else:
+            self.set_state("idle")
+        return self._pinned
 
     def start(self) -> None:
         """Start the overlay in a background thread."""

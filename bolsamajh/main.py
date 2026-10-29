@@ -248,6 +248,9 @@ def main() -> None:
     hud = OverlayHUD(
         on_click_callback=lambda: open_studio_dashboard(port=getattr(config.web, "port", 8000))
     )
+    from bolsamajh.web.server import set_overlay_hud
+
+    set_overlay_hud(hud)
     hud.start()
 
     # 3. Automatically launch Studio Desktop Window

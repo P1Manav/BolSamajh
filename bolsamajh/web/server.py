@@ -1264,6 +1264,73 @@ async def api_inject(req: InjectRequest):
         return {"status": "error", "message": str(e)}
 
 
+_OVERLAY_HUD = None
+
+
+def set_overlay_hud(hud) -> None:
+    """Set global reference to OverlayHUD instance."""
+    global _OVERLAY_HUD
+    _OVERLAY_HUD = hud
+
+
+def get_overlay_hud():
+    """Retrieve global reference to OverlayHUD instance."""
+    return _OVERLAY_HUD
+
+
+@app.get("/api/overlay")
+async def get_overlay():
+    """Return overlay HUD live status and whether it is active/pinned."""
+    hud = get_overlay_hud()
+    if hud is None:
+        return {"status": "idle", "running": False, "pinned": False}
+    running = bool(hud._thread and hud._thread.is_alive())
+    return {
+        "status": getattr(hud, "state", "idle"),
+        "running": running,
+        "pinned": getattr(hud, "is_pinned", False),
+    }
+
+
+@app.post("/api/overlay/toggle")
+async def toggle_overlay():
+    """Toggle persistent pinned visible state of the desktop floating overlay."""
+    hud = get_overlay_hud()
+    if hud is None:
+        return {"status": "error", "message": "Overlay HUD not attached to server"}
+    pinned = hud.toggle_pin()
+    return {
+        "status": "ok",
+        "pinned": pinned,
+        "message": (
+            "Desktop overlay pinned on top of all windows"
+            if pinned
+            else "Desktop overlay hidden (idle)"
+        ),
+    }
+
+
+@app.post("/api/overlay/start")
+async def start_overlay():
+    """Start and show the desktop overlay HUD."""
+    hud = get_overlay_hud()
+    if hud is None:
+        return {"status": "error", "message": "Overlay HUD not attached to server"}
+    hud.start()
+    hud.show_pill("BolSamajh Overlay Active")
+    return {"status": "ok", "message": "Desktop overlay started"}
+
+
+@app.post("/api/overlay/stop")
+async def stop_overlay():
+    """Hide desktop overlay HUD."""
+    hud = get_overlay_hud()
+    if hud is None:
+        return {"status": "error", "message": "Overlay HUD not attached to server"}
+    hud.set_state("idle")
+    return {"status": "ok", "message": "Desktop overlay hidden"}
+
+
 @app.get("/api/audio/{audio_file}")
 async def get_audio_file(audio_file: str):
     """Serve synthesized audio file with streaming support and strict path traversal protection."""

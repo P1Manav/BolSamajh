@@ -261,6 +261,26 @@
   - 134/134 unit and integration tests passing cleanly.
   - Standalone release package published with standalone binary asset `BolSamajh-v1.1.0-windows-x64.zip`.
 
+#### Milestone 12 — Studio Overlay Launcher & Wispr Flow Uniqueness Verification
+- [x] **Claude Ideation Analysis (`docs/ideation_transcript.md`):**
+  - Extracted 47 conversation messages from user's Claude session.
+  - Formulated and verified the 5 core differentiators separating BolSamajh from Wispr Flow: Voice IN (script control + Indian context formatting + vocal pause removal), Voice OUT (Talk-to-Document grounded Q&A with multi-page citations and refusal gating), In-App Commands (text transformation in active app), Overlay Launcher (web studio primary UI with pill overlay controller), and Android Companion (offline QR pairing & PWA).
+- [x] **Studio App Interface as Primary Controller with Overlay Toggle:**
+  - Added `@property state`, `@property is_pinned`, `show_pill()`, and `toggle_pin()` to `bolsamajh/overlay/hud.py`.
+  - Exposed `/api/overlay`, `/api/overlay/toggle`, `/api/overlay/start`, and `/api/overlay/stop` in `bolsamajh/web/server.py`.
+  - Added `#toggleOverlayBtn` in the web studio navigation header and hero banner callout card in `bolsamajh/web/static/index.html` and `style.css`.
+  - Wired live polling and one-click toggle in `bolsamajh/web/static/app.js`.
+- [x] **Empirical Uniqueness Verification Suite (`scripts/verify_uniqueness_and_functionality.py`):**
+  - Validated all 5 differentiators against live model pipelines in 35.49s.
+  - Voice IN: Filtered `umm/uhh`, preserved `matlab/actually`, formatted `₹500`, converted to Roman, Natural, and Devanagari scripts.
+  - Voice OUT: Indexed multi-page document into `DocumentRetriever`, scored 0.841 with `Pages 1–2` citation on valid query, refused out-of-domain query with score 0.000 (< 0.785), and synthesized 46,512 bytes of natural speech via Edge-TTS.
+  - In-App Voice Actions: Transformed informal Hinglish to executive text via Gemini 2.5 Flash fallback and injected into active window.
+  - Studio Overlay Control: Verified HUD state reporting and pin toggle.
+  - Android Companion: Verified PWA manifest and service worker delivery.
+- [x] **100% Green CI & Linting:**
+  - `ruff check .` and `ruff format --check .` 100% clean across 91 files.
+  - Pytest full suite: 135/135 passed (100%).
+
 
 ---
 

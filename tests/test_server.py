@@ -633,3 +633,57 @@ def test_api_dictate_endpoint(monkeypatch):
     assert "meeting" in data["clean_text"].lower()
     assert data["fillers_removed"] >= 1
     assert data["latency_ms"] >= 0
+
+
+def test_overlay_endpoints():
+    """Verify /api/overlay status and toggle endpoints."""
+    from fastapi.testclient import TestClient
+
+    from bolsamajh.web.server import app, set_overlay_hud
+
+    client = TestClient(app)
+
+    # When no HUD attached
+    set_overlay_hud(None)
+    res = client.get("/api/overlay")
+    assert res.status_code == 200
+    assert res.json()["running"] is False
+
+    # Mock HUD object
+    class DummyHUD:
+        def __init__(self):
+            self._pinned = False
+            self.state = "idle"
+            self._thread = None
+
+        @property
+        def is_pinned(self):
+            return self._pinned
+
+        def toggle_pin(self):
+            self._pinned = not self._pinned
+            return self._pinned
+
+        def start(self):
+            pass
+
+        def show_pill(self, text):
+            pass
+
+        def set_state(self, s):
+            self.state = s
+
+    mock_hud = DummyHUD()
+    set_overlay_hud(mock_hud)
+
+    res_toggle = client.post("/api/overlay/toggle")
+    assert res_toggle.status_code == 200
+    assert res_toggle.json()["pinned"] is True
+
+    res_status = client.get("/api/overlay")
+    assert res_status.status_code == 200
+    assert res_status.json()["pinned"] is True
+
+    res_stop = client.post("/api/overlay/stop")
+    assert res_stop.status_code == 200
+    assert mock_hud.state == "idle"

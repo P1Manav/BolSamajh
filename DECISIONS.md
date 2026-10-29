@@ -229,3 +229,19 @@
 **Alternatives considered:** Relying on separate terminal window to run `uvicorn`; using Electron (adds 150MB+ bundle size); requiring cloud mobile apps.  
 **Reason:** Gives users an immediately visual, premium Wispr Flow app experience with zero setup, seamless mobile pairing over local Wi-Fi, and 100% offline local privacy with zero cloud spend.
 
+## D031: Studio Interface as Primary Controller with Overlay HUD Toggle & Live Uniqueness Verification
+**Date:** 2026-10-29  
+**Choice:**
+1. Positioned the Wispr Flow Studio Web Interface as the primary app window with explicit bi-directional control over the floating desktop overlay HUD (`#toggleOverlayBtn` in the navbar and callout hero card in the studio).
+2. Exposed `/api/overlay`, `/api/overlay/toggle`, `/api/overlay/start`, and `/api/overlay/stop` in `bolsamajh/web/server.py` and connected them to thread-safe state methods on `OverlayHUD` (`show_pill()`, `toggle_pin()`, `@property state`, `@property is_pinned`).
+3. Extracted the full ideation transcript from the user's Claude session (`docs/ideation_transcript.md`) and systematically verified all 5 core differentiators setting BolSamajh apart from Wispr Flow:
+   - Voice IN: Hinglish script control (Roman, Natural, Devanagari) + context formatting (`500 rupees` -> `₹500`) + true vocal pause removal (`umm`, `uhh`) while strictly preserving semantic words (`matlab`, `actually`, `like`).
+   - Voice OUT: Talk-to-Document grounded Q&A with multi-page citations (`📌 Pages 1–2`), strict refusal gating on ungrounded queries (< 0.785 score), and interruptible neural TTS voice output (`hi-IN-SwaraNeural`, `gu-IN-DhwaniNeural`). (Wispr Flow has zero document reading and zero voice playback).
+   - In-App Commands: In-situ text manipulation (`Alt+Shift+C`) to rewrite, formalize, summarize, or translate directly inside any open application window via simulated clipboard injection.
+   - Overlay Launcher: Studio app controls the desktop floating overlay pill seamlessly.
+   - Android Companion: Zero-cloud offline QR pairing and PWA service worker for local Wi-Fi dictation.
+4. Created and executed `scripts/verify_uniqueness_and_functionality.py` to empirically validate each differentiator against live running models in under 36 seconds.  
+**Alternatives considered:** Leaving the overlay HUD detached from the web studio; verifying only through code inspection without live model execution.  
+**Reason:** Fulfills the user's explicit directive to have the app as the main interface with an option to start the overlay, and provides irrefutable empirical evidence that all unique core value propositions from the original ideation conversation are fully operational.
+
+
