@@ -11,9 +11,16 @@ def create_shortcut():
         return
 
     root = Path(__file__).resolve().parent.parent
+    exe_path = root / "dist" / "BolSamajh" / "BolSamajh.exe"
     vbs_path = root / "BolSamajh.vbs"
     bat_path = root / "BolSamajh.bat"
-    target_path = vbs_path if vbs_path.exists() else bat_path
+
+    if exe_path.exists():
+        target_path = exe_path
+    elif vbs_path.exists():
+        target_path = vbs_path
+    else:
+        target_path = bat_path
     icon_path = root / "assets" / "bolsamajh.ico"
 
     desktop = Path(os.environ.get("USERPROFILE", "")) / "Desktop"

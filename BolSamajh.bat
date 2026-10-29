@@ -5,7 +5,9 @@ rem Double-click this file to launch BolSamajh directly without typing any comma
 rem ==============================================================================
 cd /d "%~dp0"
 
-if exist "venv\Scripts\pythonw.exe" (
+if exist "dist\BolSamajh\BolSamajh.exe" (
+    start "" "dist\BolSamajh\BolSamajh.exe" %*
+) else if exist "venv\Scripts\pythonw.exe" (
     start "" "venv\Scripts\pythonw.exe" -m bolsamajh.main %*
 ) else if exist "venv\Scripts\python.exe" (
     start "" "venv\Scripts\python.exe" -m bolsamajh.main %*

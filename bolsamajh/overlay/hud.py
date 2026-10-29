@@ -58,6 +58,9 @@ class OverlayHUD:
 
     def show_pill(self, text: str = "Overlay Active", duration_ms: int = 2500) -> None:
         """Flash or display the overlay pill with a brief message."""
+        self._pinned = True
+        if not self._thread or not self._thread.is_alive():
+            self.start()
         self.show_text(text, duration_ms=duration_ms)
 
     def toggle_pin(self) -> bool:
@@ -67,16 +70,6 @@ class OverlayHUD:
             if not self._thread or not self._thread.is_alive():
                 self.start()
             self.set_state("done", "Overlay Pinned")
-
-            def _cancel():
-                if self._auto_hide_id is not None and self._root:
-                    try:
-                        self._root.after_cancel(self._auto_hide_id)
-                    except Exception:
-                        pass
-                    self._auto_hide_id = None
-
-            self._cmd_queue.put(_cancel)
         else:
             self.set_state("idle")
         return self._pinned
@@ -231,7 +224,15 @@ class OverlayHUD:
                 self._label.configure(text=display_text, bg=bg, fg=fg)
                 self._root.configure(bg=bg)
                 if state == "idle":
-                    self._root.withdraw()
+                    if getattr(self, "_pinned", False):
+                        self._label.configure(
+                            text=" 🎙️ BolSamajh  Ready", bg="#1a1a2e", fg="#8b8ba7"
+                        )
+                        self._root.configure(bg="#1a1a2e")
+                        self._root.deiconify()
+                        self._root.lift()
+                    else:
+                        self._root.withdraw()
                 else:
                     self._root.deiconify()
                     self._root.lift()

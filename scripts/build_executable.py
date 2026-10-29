@@ -13,12 +13,12 @@ import zipfile
 from pathlib import Path
 
 
-def build_app(enable_console: bool = False):
+def build_app(enable_console: bool = False, package_only: bool = False):
     root = Path(__file__).resolve().parent.parent
     os.chdir(root)
 
     print("=================================================================")
-    print("  BolSamajh — Standalone Release Executable Builder")
+    print("  BolSamajh -- Standalone Release Executable Builder")
     print("=================================================================")
 
     # 1. Ensure icon is generated
@@ -40,7 +40,7 @@ def build_app(enable_console: bool = False):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # 3. Read version
-    version = "1.0.1"
+    version = "1.1.0"
     try:
         import bolsamajh
 
@@ -51,12 +51,13 @@ def build_app(enable_console: bool = False):
     dist_dir = root / "dist"
     app_output_dir = dist_dir / "BolSamajh"
 
-    # Clean previous build artifacts
-    if app_output_dir.exists():
-        print(f"[*] Cleaning previous build at {app_output_dir}...")
-        shutil.rmtree(app_output_dir, ignore_errors=True)
+    if not package_only:
+        # Clean previous build artifacts
+        if app_output_dir.exists():
+            print(f"[*] Cleaning previous build at {app_output_dir}...")
+            shutil.rmtree(app_output_dir, ignore_errors=True)
 
-    # 4. Construct PyInstaller command line
+        # 4. Construct PyInstaller command line
     cmd = [
         sys.executable,
         "-m",
@@ -142,13 +143,28 @@ def build_app(enable_console: bool = False):
         "edge_tts",
         "ctranslate2",
         "faster_whisper",
+        "av",
+        "av.audio",
+        "av.audio.resampler",
+        "sentence_transformers",
+        "transformers",
+        "torch",
+        "faiss",
     ]
 
     for hi in hidden_imports:
         cmd.extend(["--hidden-import", hi])
 
     # Collect all modules and packages from packages that dynamic import
-    collect_packages = ["ctranslate2", "faster_whisper", "sounddevice", "soundfile", "pystray"]
+    collect_packages = [
+        "ctranslate2",
+        "faster_whisper",
+        "sounddevice",
+        "soundfile",
+        "pystray",
+        "av",
+        "faiss",
+    ]
     for pkg in collect_packages:
         cmd.extend(["--collect-all", pkg])
 
@@ -156,15 +172,16 @@ def build_app(enable_console: bool = False):
     entry_point = root / "bolsamajh" / "__main__.py"
     cmd.append(str(entry_point))
 
-    print("[*] Compiling standalone application executable with PyInstaller...")
-    print(f"    Command: {' '.join(cmd[:10])} ...")
-    subprocess.check_call(cmd)
+    if not package_only:
+        print("[*] Compiling standalone application executable with PyInstaller...")
+        print(f"    Command: {' '.join(cmd[:10])} ...")
+        subprocess.check_call(cmd)
 
     exe_file = app_output_dir / "BolSamajh.exe"
     if not exe_file.exists():
         raise RuntimeError(f"Build failed: {exe_file} not found.")
 
-    print(f"[✓] Executable built successfully: {exe_file}")
+    print(f"[OK] Executable built successfully: {exe_file}")
 
     # Copy launcher scripts and documentation into the distribution folder
     shutil.copy2(root / "README.md", app_output_dir / "README.md")
@@ -183,7 +200,7 @@ def build_app(enable_console: bool = False):
             zipf.write(file, arcname)
 
     size_mb = zip_path.stat().st_size / (1024 * 1024)
-    print("[✓] Distribution package created successfully!")
+    print("[OK] Distribution package created successfully!")
     print(f"    Package: {zip_path} ({size_mb:.1f} MB)")
     print("=================================================================")
     print("  To use the app directly:")
@@ -202,6 +219,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Build with visible console window (useful for debugging)",
     )
+    parser.add_argument(
+        "--package-only",
+        action="store_true",
+        help="Skip PyInstaller compilation and package existing dist/BolSamajh into zip",
+    )
     args = parser.parse_args()
 
-    build_app(enable_console=args.console)
+    build_app(enable_console=args.console, package_only=args.package_only)

@@ -253,12 +253,24 @@ def main() -> None:
     set_overlay_hud(hud)
     hud.start()
 
-    # 3. Automatically launch Studio Desktop Window
+    # 3. Automatically launch Studio Desktop Window once server is listening
     if getattr(config.web, "auto_open", True):
 
         def _deferred_open():
-            time.sleep(0.8)
-            open_studio_dashboard(port=getattr(config.web, "port", 8000))
+            host = getattr(config.web, "host", "127.0.0.1")
+            port = getattr(config.web, "port", 8000)
+            import socket
+
+            for _ in range(60):  # poll up to 6.0 seconds for server socket ready
+                if shutdown_event.is_set():
+                    return
+                try:
+                    with socket.create_connection((host, port), timeout=0.1):
+                        break
+                except OSError:
+                    time.sleep(0.1)
+            time.sleep(0.2)
+            open_studio_dashboard(port=port)
 
         threading.Thread(target=_deferred_open, daemon=True).start()
 

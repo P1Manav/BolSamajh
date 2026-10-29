@@ -30,6 +30,7 @@ MODEL_THRESHOLDS = {
 # Dynamically load calibrated thresholds from JSON if available
 try:
     import json
+    import sys
     from pathlib import Path
 
     _cal_path = (
@@ -37,6 +38,19 @@ try:
         / "benchmark_data"
         / "calibrated_thresholds.json"
     )
+    if not _cal_path.exists() and getattr(sys, "frozen", False):
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass and (Path(meipass) / "benchmark_data" / "calibrated_thresholds.json").exists():
+            _cal_path = Path(meipass) / "benchmark_data" / "calibrated_thresholds.json"
+        else:
+            exe_cand = (
+                Path(sys.executable).parent
+                / "_internal"
+                / "benchmark_data"
+                / "calibrated_thresholds.json"
+            )
+            if exe_cand.exists():
+                _cal_path = exe_cand
     if _cal_path.exists():
         with open(_cal_path, "r", encoding="utf-8") as _f:
             MODEL_THRESHOLDS.update(json.load(_f))

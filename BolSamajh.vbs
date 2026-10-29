@@ -10,13 +10,14 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 strPath = fso.GetParentFolderName(WScript.ScriptFullName)
 WshShell.CurrentDirectory = strPath
 
-If fso.FileExists(strPath & "\venv\Scripts\pythonw.exe") Then
-    strPython = """" & strPath & "\venv\Scripts\pythonw.exe"""
+If fso.FileExists(strPath & "\dist\BolSamajh\BolSamajh.exe") Then
+    strCmd = """" & strPath & "\dist\BolSamajh\BolSamajh.exe"""
+ElseIf fso.FileExists(strPath & "\venv\Scripts\pythonw.exe") Then
+    strCmd = """" & strPath & "\venv\Scripts\pythonw.exe"" -m bolsamajh.main"
 ElseIf fso.FileExists(strPath & "\venv\Scripts\python.exe") Then
-    strPython = """" & strPath & "\venv\Scripts\python.exe"""
+    strCmd = """" & strPath & "\venv\Scripts\python.exe"" -m bolsamajh.main"
 Else
-    strPython = "python"
+    strCmd = "python -m bolsamajh.main"
 End If
 
-strCmd = strPython & " -m bolsamajh.main"
 WshShell.Run strCmd, 0, False

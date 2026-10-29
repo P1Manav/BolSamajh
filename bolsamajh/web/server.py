@@ -296,7 +296,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-STATIC_DIR = Path(__file__).parent / "static"
+
+def _resolve_static_dir() -> Path:
+    """Resolve static directory safely in both standard Python and PyInstaller frozen builds."""
+    if getattr(sys, "frozen", False):
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            cand = Path(meipass) / "bolsamajh" / "web" / "static"
+            if cand.exists():
+                return cand
+        exe_dir = Path(sys.executable).parent
+        cand = exe_dir / "_internal" / "bolsamajh" / "web" / "static"
+        if cand.exists():
+            return cand
+        cand = exe_dir / "bolsamajh" / "web" / "static"
+        if cand.exists():
+            return cand
+    cand = Path(__file__).parent / "static"
+    if cand.exists():
+        return cand
+    # Fallback to repo root if run from elsewhere
+    repo_cand = Path(__file__).resolve().parent.parent.parent / "bolsamajh" / "web" / "static"
+    if repo_cand.exists():
+        return repo_cand
+    return cand
+
+
+STATIC_DIR = _resolve_static_dir()
 AUDIO_CACHE_DIR = Path(tempfile.gettempdir()) / "bolsamajh_web_audio"
 AUDIO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 MAX_UPLOAD_SIZE = 25 * 1024 * 1024  # 25 MB
@@ -1273,15 +1299,24 @@ def set_overlay_hud(hud) -> None:
     _OVERLAY_HUD = hud
 
 
-def get_overlay_hud():
-    """Retrieve global reference to OverlayHUD instance."""
+def get_overlay_hud(create_if_missing: bool = False):
+    """Retrieve global reference to OverlayHUD instance, optionally creating if requested."""
+    global _OVERLAY_HUD
+    if _OVERLAY_HUD is None and create_if_missing:
+        try:
+            from bolsamajh.overlay.hud import OverlayHUD
+
+            _OVERLAY_HUD = OverlayHUD()
+            _OVERLAY_HUD.start()
+        except Exception as e:
+            log.debug("Could not lazily initialize OverlayHUD: %s", e)
     return _OVERLAY_HUD
 
 
 @app.get("/api/overlay")
 async def get_overlay():
     """Return overlay HUD live status and whether it is active/pinned."""
-    hud = get_overlay_hud()
+    hud = get_overlay_hud(create_if_missing=False)
     if hud is None:
         return {"status": "idle", "running": False, "pinned": False}
     running = bool(hud._thread and hud._thread.is_alive())
@@ -1295,7 +1330,7 @@ async def get_overlay():
 @app.post("/api/overlay/toggle")
 async def toggle_overlay():
     """Toggle persistent pinned visible state of the desktop floating overlay."""
-    hud = get_overlay_hud()
+    hud = get_overlay_hud(create_if_missing=True)
     if hud is None:
         return {"status": "error", "message": "Overlay HUD not attached to server"}
     pinned = hud.toggle_pin()
@@ -1313,7 +1348,7 @@ async def toggle_overlay():
 @app.post("/api/overlay/start")
 async def start_overlay():
     """Start and show the desktop overlay HUD."""
-    hud = get_overlay_hud()
+    hud = get_overlay_hud(create_if_missing=True)
     if hud is None:
         return {"status": "error", "message": "Overlay HUD not attached to server"}
     hud.start()
@@ -1324,7 +1359,7 @@ async def start_overlay():
 @app.post("/api/overlay/stop")
 async def stop_overlay():
     """Hide desktop overlay HUD."""
-    hud = get_overlay_hud()
+    hud = get_overlay_hud(create_if_missing=False)
     if hud is None:
         return {"status": "error", "message": "Overlay HUD not attached to server"}
     hud.set_state("idle")

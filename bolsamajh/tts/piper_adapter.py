@@ -5,6 +5,7 @@ import hashlib
 import io
 import logging
 import os
+import sys
 import threading
 import wave
 from pathlib import Path
@@ -85,6 +86,14 @@ class PiperTTSAdapter(TextToSpeech):
         )
         # Fall back to repo models/piper if user already downloaded weights there
         repo_models = Path(__file__).parent.parent.parent / "models" / "piper"
+        if getattr(sys, "frozen", False):
+            meipass = getattr(sys, "_MEIPASS", None)
+            if meipass and (Path(meipass) / "models" / "piper" / _MODEL_FILENAME).exists():
+                repo_models = Path(meipass) / "models" / "piper"
+            else:
+                exe_cand = Path(sys.executable).parent / "_internal" / "models" / "piper"
+                if (exe_cand / _MODEL_FILENAME).exists():
+                    repo_models = exe_cand
         if repo_models.exists() and (repo_models / _MODEL_FILENAME).exists():
             self._models_dir = repo_models
         else:
