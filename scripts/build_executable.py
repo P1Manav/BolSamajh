@@ -186,6 +186,8 @@ def build_app(enable_console: bool = False, package_only: bool = False):
     # Copy launcher scripts and documentation into the distribution folder
     shutil.copy2(root / "README.md", app_output_dir / "README.md")
     shutil.copy2(root / "LICENSE", app_output_dir / "LICENSE")
+    if (root / "Install-BolSamajh.bat").exists():
+        shutil.copy2(root / "Install-BolSamajh.bat", app_output_dir / "Install-BolSamajh.bat")
     if (root / ".env.example").exists():
         shutil.copy2(root / ".env.example", app_output_dir / ".env.example")
 

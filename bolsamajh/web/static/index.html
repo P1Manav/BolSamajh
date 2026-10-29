@@ -27,7 +27,10 @@
 
       <!-- Center Studio Navigation Tabs -->
       <nav class="nav-tabs" id="mainTabs" role="tablist">
-        <button class="nav-tab active" data-tab="dictate" role="tab" aria-selected="true">
+        <button class="nav-tab active" data-tab="dashboard" role="tab" aria-selected="true">
+          <span class="tab-icon">🏠</span> Welcome & Setup
+        </button>
+        <button class="nav-tab" data-tab="dictate" role="tab" aria-selected="false">
           <span class="tab-icon">🎙️</span> Dictation Studio
         </button>
         <button class="nav-tab" data-tab="doc" role="tab" aria-selected="false">
@@ -75,9 +78,222 @@
     <main class="main-content-area">
 
       <!-- ========================================== -->
+      <!-- TAB 0: WELCOME & SETUP DASHBOARD (HOME)   -->
+      <!-- ========================================== -->
+      <section class="tab-pane active" id="view-dashboard" role="tabpanel">
+        <div class="dashboard-container">
+
+          <!-- 1. Hero Welcome & Overlay Activation Card -->
+          <div class="welcome-hero-card">
+            <div class="welcome-hero-content">
+              <div class="welcome-badge-row">
+                <span class="pill-badge pill-glow">✨ BolSamajh Voice AI</span>
+                <span class="pill-badge">Bolo. Samjho.</span>
+                <span class="pill-badge">100% Free &amp; Offline Ready</span>
+              </div>
+              <h2 class="welcome-title">Your Hinglish-First AI Voice Companion</h2>
+              <p class="welcome-subtitle">
+                Speak to write in any application with smart filler removal, talk to any PDF or document to understand it in your own language, and transform selected text with voice commands.
+              </p>
+            </div>
+
+            <!-- Big Overlay Activation Hero Box -->
+            <div class="overlay-activation-box">
+              <div class="activation-header">
+                <div class="activation-status-indicator">
+                  <span class="status-indicator" id="dashboardOverlayDot"></span>
+                  <span class="activation-status-label" id="dashboardOverlayStatusText">Overlay Inactive</span>
+                </div>
+                <span class="activation-hint">Global Shortcut: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></span>
+              </div>
+
+              <div class="activation-action-row">
+                <button type="button" class="btn btn-hero-activate" id="dashboardOverlayActivateBtn">
+                  <span class="btn-icon">🎙️</span>
+                  <span id="dashboardOverlayActivateBtnText">Activate Desktop Overlay</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="dashboardInstallShortcutsBtn" title="Create Windows Desktop & Start Menu Shortcuts">
+                  <span>📌</span> Add Desktop Shortcut
+                </button>
+              </div>
+
+              <div class="activation-footer-note">
+                <span class="note-icon">💡</span>
+                <span>When active, a floating glass pill sits on your desktop. Hold <kbd>Alt+Shift+Space</kbd> in Word, Notepad, VS Code, Browser, or Slack to dictate directly!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Three Core Capabilities Explainer & Quick-Try -->
+          <div class="dashboard-pillars-grid">
+
+            <!-- Pillar 1: Voice IN -->
+            <div class="pillar-card">
+              <div class="pillar-header">
+                <div class="pillar-icon">🎙️</div>
+                <div class="pillar-titles">
+                  <h3>Voice IN — Speak Anywhere</h3>
+                  <span class="pillar-shortcut"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></span>
+                </div>
+              </div>
+              <p class="pillar-description">
+                Hold to talk in natural Hinglish, Hindi, or English. Fillers (umm, uhh, matlab) are automatically cleaned, and numbers, dates, and rupees (₹) are formatted intelligently.
+              </p>
+              
+              <!-- Quick Try Sandbox -->
+              <div class="pillar-sandbox">
+                <div class="sandbox-label">Quick Mic Test:</div>
+                <div class="sandbox-mic-row">
+                  <button type="button" class="btn btn-sm btn-primary" id="dashboardQuickMicBtn">
+                    <span>🎙️</span> <span id="dashboardQuickMicBtnText">Test Speaking Here</span>
+                  </button>
+                  <span class="sandbox-status" id="dashboardQuickMicStatus">Ready</span>
+                </div>
+                <div class="sandbox-result-box" id="dashboardQuickMicResult">Click above, speak a sentence in Hinglish, and release to test!</div>
+              </div>
+
+              <button type="button" class="btn-link pillar-switch-link" data-switch-tab="dictate">
+                Open Full Dictation Studio →
+              </button>
+            </div>
+
+            <!-- Pillar 2: Voice OUT -->
+            <div class="pillar-card">
+              <div class="pillar-header">
+                <div class="pillar-icon">📄</div>
+                <div class="pillar-titles">
+                  <h3>Voice OUT — Talk to Docs</h3>
+                  <span class="pillar-shortcut"><kbd>Alt+Shift+D</kbd> / <kbd>Alt+Shift+A</kbd></span>
+                </div>
+              </div>
+              <p class="pillar-description">
+                Ask anything about any PDF, Word document, or webpage. Answers are spoken back in Hinglish, grounded strictly in the source text with page citations and barge-in interruption.
+              </p>
+
+              <!-- Quick Document Upload Box -->
+              <div class="pillar-sandbox">
+                <div class="sandbox-label">Quick Load Document:</div>
+                <div class="dashboard-dropzone" id="dashboardDropzone">
+                  <input type="file" id="dashboardFileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none;">
+                  <span class="drop-mini-icon">📁</span>
+                  <span id="dashboardDropText">Drop PDF/DOCX or click to browse</span>
+                </div>
+                <div class="sandbox-status" id="dashboardDocLoadedStatus">No document loaded</div>
+              </div>
+
+              <button type="button" class="btn-link pillar-switch-link" data-switch-tab="doc">
+                Open Document Q&amp;A Studio →
+              </button>
+            </div>
+
+            <!-- Pillar 3: Voice Actions -->
+            <div class="pillar-card">
+              <div class="pillar-header">
+                <div class="pillar-icon">⚡</div>
+                <div class="pillar-titles">
+                  <h3>Voice Actions — Act on Selection</h3>
+                  <span class="pillar-shortcut"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd></span>
+                </div>
+              </div>
+              <p class="pillar-description">
+                Highlight text in any desktop app, hold <kbd>Alt+Shift+C</kbd>, and speak a command: <em>"Rewrite politely in Hinglish"</em>, <em>"Summarize in bullets"</em>, or <em>"Translate to English"</em>.
+              </p>
+
+              <!-- Quick Actions Sandbox -->
+              <div class="pillar-sandbox">
+                <div class="sandbox-label">Try Voice Transformation:</div>
+                <input type="text" class="sandbox-input" id="dashboardActionSampleInput" value="Meeting was ok but client ko timeline me changes chahiye." />
+                <div class="sandbox-chip-row">
+                  <button type="button" class="chip chip-action" data-sample-cmd="Rewrite politely in formal Hinglish">Formalize</button>
+                  <button type="button" class="chip chip-action" data-sample-cmd="Summarize into 3 bullet points">Bullets</button>
+                  <button type="button" class="chip chip-action" data-sample-cmd="Translate to clean English">English</button>
+                </div>
+                <div class="sandbox-result-box" id="dashboardActionResult">Result will appear here...</div>
+              </div>
+
+              <button type="button" class="btn-link pillar-switch-link" data-switch-tab="actions">
+                Open Full Voice Actions →
+              </button>
+            </div>
+
+          </div>
+
+          <!-- 3. Hardware & Offline Privacy Status Overview -->
+          <div class="dashboard-system-overview">
+            <div class="system-overview-header">
+              <h3>⚙️ System Engines &amp; Privacy Architecture</h3>
+              <span class="pill-badge pill-glow" id="dashboardHardwareBadge">CUDA GPU Ready</span>
+            </div>
+            <div class="system-cards-grid">
+              <div class="sys-summary-card">
+                <div class="sys-card-icon">🎙️</div>
+                <div class="sys-card-info">
+                  <span class="sys-card-title">Speech-to-Text</span>
+                  <span class="sys-card-val" id="dashboardSttVal">Faster-Whisper Large-v3-Turbo</span>
+                  <span class="sys-card-sub" id="dashboardSttSub">CUDA int8_float16 • Local</span>
+                </div>
+              </div>
+              <div class="sys-summary-card">
+                <div class="sys-card-icon">🧠</div>
+                <div class="sys-card-info">
+                  <span class="sys-card-title">Intelligence LLM</span>
+                  <span class="sys-card-val" id="dashboardLlmVal">Ollama Gemma 3 / Gemini Flash</span>
+                  <span class="sys-card-sub" id="dashboardLlmSub">Fail-soft local fallback</span>
+                </div>
+              </div>
+              <div class="sys-summary-card">
+                <div class="sys-card-icon">🔊</div>
+                <div class="sys-card-info">
+                  <span class="sys-card-title">Voice Synthesis</span>
+                  <span class="sys-card-val" id="dashboardTtsVal">Edge-TTS Swara / Piper Indic</span>
+                  <span class="sys-card-sub">Streaming low-latency audio</span>
+                </div>
+              </div>
+              <div class="sys-summary-card">
+                <div class="sys-card-icon">🛡️</div>
+                <div class="sys-card-info">
+                  <span class="sys-card-title">Cost &amp; Privacy</span>
+                  <span class="sys-card-val">Zero Cloud Spend ($0.00)</span>
+                  <span class="sys-card-sub">100% Free / Open Source</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Global Hotkey Quick Reference -->
+          <div class="dashboard-hotkeys-card">
+            <h3>⌨️ Global Desktop Hotkeys</h3>
+            <div class="hotkeys-table">
+              <div class="hotkey-row">
+                <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></div>
+                <div class="hotkey-desc"><strong>Push-to-Talk Dictation:</strong> Hold anywhere to speak. Release to insert formatted text.</div>
+              </div>
+              <div class="hotkey-row">
+                <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd></div>
+                <div class="hotkey-desc"><strong>Load Document:</strong> Opens file picker to select PDF or Word document for voice Q&amp;A.</div>
+              </div>
+              <div class="hotkey-row">
+                <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd></div>
+                <div class="hotkey-desc"><strong>Talk to Document:</strong> Hold to ask any question about the currently loaded document.</div>
+              </div>
+              <div class="hotkey-row">
+                <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd></div>
+                <div class="hotkey-desc"><strong>Voice Command:</strong> Select text anywhere on your screen and speak a transformation instruction.</div>
+              </div>
+              <div class="hotkey-row">
+                <div class="hotkey-keys"><kbd>Escape</kbd></div>
+                <div class="hotkey-desc"><strong>Stop / Barge-in:</strong> Immediately stop any active speech or synthesis.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
       <!-- TAB 1: WISPR FLOW DICTATION STUDIO        -->
       <!-- ========================================== -->
-      <section class="tab-pane active" id="view-dictate" role="tabpanel">
+      <section class="tab-pane" id="view-dictate" role="tabpanel">
         <div class="dictation-hero-card">
           <div class="dictation-header">
             <div class="header-badges">

@@ -3,10 +3,32 @@
 Run with:  python -m bolsamajh
 """
 
+import io
 import logging
 import signal
+import sys
 import threading
 import time
+
+
+# Windows GUI (--noconsole / pythonw) sets sys.stdout and sys.stderr to None.
+# Provide safe stream wrappers with .isatty() returning False to prevent
+# AttributeError crashes in logging, uvicorn, and third-party libraries.
+class _SafeNullStream(io.StringIO):
+    def isatty(self) -> bool:
+        return False
+
+    def flush(self) -> None:
+        pass
+
+    def write(self, s: str) -> int:
+        return len(s)
+
+
+if sys.stdout is None:
+    sys.stdout = _SafeNullStream()
+if sys.stderr is None:
+    sys.stderr = _SafeNullStream()
 
 try:
     import tkinter as tk
@@ -203,6 +225,7 @@ def _start_web_server(config: AppConfig, shutdown_event: threading.Event) -> Non
         port=port,
         log_level="warning",
         access_log=False,
+        log_config=None,  # Prevent uvicorn from crashing on sys.stdout.isatty() in GUI mode
     )
     server = uvicorn.Server(server_config)
 

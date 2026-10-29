@@ -2,11 +2,23 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 v1.1.0 Released & Verified — Standalone Direct Windows App & Wispr Flow Studio (Phases 1–11 Complete)
+## Current Status: 🎯 v1.1.0 Released & Verified — Standalone Direct Windows App & Welcoming Dashboard (Phases 1–12 Complete)
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 12 — Windows GUI Double-Click Crash Resolution & Welcoming Explainer Dashboard
+- [x] **Windows GUI `NoneType.isatty` Crash Resolved:** Identified root cause of unhandled exception dialog on double-click: Windows `--noconsole` launches with `sys.stdout = None` and `sys.stderr = None`, causing `uvicorn.logging.DefaultFormatter` to crash on `sys.stdout.isatty()`. Implemented `_SafeNullStream` wrappers in `bolsamajh/__main__.py`, `bolsamajh/main.py`, and `bolsamajh/web/server.py`, and configured `uvicorn.Config` with `log_config=None`.
+- [x] **Welcoming Explainer & Setup Dashboard Redesign:** Transformed main interface into an intuitive onboarding and explainer dashboard (`#view-dashboard`):
+  - Welcome hero banner with clear product pitch and zero-cloud-spend privacy guarantee.
+  - Prominent **"🚀 Activate Floating Overlay"** central call-to-action button with real-time status indicators.
+  - 3 Core Pillar Interactive Cards (Voice IN push-to-talk with live mic tester, Voice OUT talk-to-docs with quick dropzone, Voice Actions with sample transformation sandbox).
+  - Hardware & system diagnostics summary grid (STT, LLM, TTS, Privacy).
+  - Visual keyboard shortcuts cheatsheet.
+- [x] **Windows Installer Wizard (`Install-BolSamajh.bat`):** Created a 1-click Windows installer script that installs the application to `%LOCALAPPDATA%\Programs\BolSamajh`, configures Start Menu and Desktop shortcuts with custom multi-size icons, and starts the app.
+- [x] **In-App Shortcut Creation Endpoint:** Added `POST /api/install-shortcuts` to create/refresh Windows shortcuts directly from the Web UI with one click.
+- [x] **Recompiled Standalone Executable & Package:** Rebuilt `dist/BolSamajh/BolSamajh.exe` and `dist/BolSamajh-v1.1.0-windows-x64.zip` (451.5 MB), verified double-click execution with 0 errors, and uploaded to GitHub Release v1.1.0.
 
 #### Phase 11 — Standalone Executable Runtime Robustness & Live Verification
 - [x] **PyInstaller Frozen Path Resolution:** Updated `bolsamajh/web/server.py` (`_resolve_static_dir`), `bolsamajh/documents/retriever.py`, and `bolsamajh/tts/piper_adapter.py` to resolve static web assets, thresholds, and ONNX models from `sys._MEIPASS` and `_internal/` when running as a compiled binary.

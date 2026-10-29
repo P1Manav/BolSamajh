@@ -211,8 +211,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle URL hash on load
   const hash = window.location.hash.replace('#', '');
-  if (['dictate', 'doc', 'actions', 'mobile', 'system'].includes(hash)) {
+  if (['dashboard', 'dictate', 'doc', 'actions', 'mobile', 'system'].includes(hash)) {
     switchTab(hash);
+  } else {
+    switchTab('dashboard');
   }
 
   // ==========================================
@@ -1125,6 +1127,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (sysTtsName) sysTtsName.innerText = data.tts || 'Edge-TTS';
 
+      // Tab 0: Welcome Dashboard System Cards
+      const dashboardSttVal = document.getElementById('dashboardSttVal');
+      const dashboardSttSub = document.getElementById('dashboardSttSub');
+      const dashboardLlmVal = document.getElementById('dashboardLlmVal');
+      const dashboardTtsVal = document.getElementById('dashboardTtsVal');
+      const dashboardHardwareBadge = document.getElementById('dashboardHardwareBadge');
+      const dashboardDocLoadedStatus = document.getElementById('dashboardDocLoadedStatus');
+
+      if (dashboardSttVal) dashboardSttVal.innerText = data.stt || 'Faster-Whisper Large-v3-Turbo';
+      if (dashboardSttSub) dashboardSttSub.innerText = `${data.device || 'CUDA GPU'} • Local Offline`;
+      if (dashboardLlmVal) dashboardLlmVal.innerText = data.llm || 'Local Gemma 3 / Gemini Flash';
+      if (dashboardTtsVal) dashboardTtsVal.innerText = data.tts || 'Edge-TTS / Piper Indic';
+      if (dashboardHardwareBadge) dashboardHardwareBadge.innerText = `${data.device || 'System'} Ready`;
+      if (dashboardDocLoadedStatus) {
+        dashboardDocLoadedStatus.innerText = data.document_loaded ? '✓ Document indexed & ready for Voice Q&A' : 'No document loaded';
+        dashboardDocLoadedStatus.style.color = data.document_loaded ? '#10b981' : 'var(--text-muted)';
+      }
+
       if (data.hotkeys) {
         if (hkDictation) hkDictation.innerText = (data.hotkeys.dictation || 'Alt+Shift+Space').toUpperCase();
         if (hkVoiceCommand) hkVoiceCommand.innerText = (data.hotkeys.voice_command || 'Alt+Shift+C').toUpperCase();
@@ -1162,6 +1182,30 @@ document.addEventListener('DOMContentLoaded', () => {
       overlayCalloutBadge.innerText = isPinned ? 'Floating Pill: Active' : 'Floating Pill: Idle';
       overlayCalloutBadge.classList.toggle('active', isPinned);
     }
+
+    // Dashboard Hero Activation Elements
+    const dashboardOverlayDot = document.getElementById('dashboardOverlayDot');
+    const dashboardOverlayStatusText = document.getElementById('dashboardOverlayStatusText');
+    const dashboardOverlayActivateBtn = document.getElementById('dashboardOverlayActivateBtn');
+    const dashboardOverlayActivateBtnText = document.getElementById('dashboardOverlayActivateBtnText');
+    const overlayActivationBox = document.querySelector('.overlay-activation-box');
+
+    if (dashboardOverlayDot) {
+      dashboardOverlayDot.classList.toggle('live', isPinned);
+    }
+    if (dashboardOverlayStatusText) {
+      dashboardOverlayStatusText.innerText = isPinned ? 'Overlay Active on Desktop' : 'Overlay Inactive';
+      dashboardOverlayStatusText.style.color = isPinned ? '#10b981' : '#cbd5e1';
+    }
+    if (dashboardOverlayActivateBtn) {
+      dashboardOverlayActivateBtn.classList.toggle('active', isPinned);
+    }
+    if (dashboardOverlayActivateBtnText) {
+      dashboardOverlayActivateBtnText.innerText = isPinned ? 'Overlay Active (Click to Hide)' : 'Activate Desktop Overlay';
+    }
+    if (overlayActivationBox) {
+      overlayActivationBox.classList.toggle('active', isPinned);
+    }
   }
 
   async function toggleOverlay() {
@@ -1181,6 +1225,156 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (toggleOverlayBtn) toggleOverlayBtn.addEventListener('click', toggleOverlay);
   if (overlayHeroToggleBtn) overlayHeroToggleBtn.addEventListener('click', toggleOverlay);
+
+  // Tab 0: Welcome Dashboard Event Handlers
+  const dashboardOverlayActivateBtn = document.getElementById('dashboardOverlayActivateBtn');
+  if (dashboardOverlayActivateBtn) {
+    dashboardOverlayActivateBtn.addEventListener('click', toggleOverlay);
+  }
+
+  // Dashboard Shortcut Creator
+  const dashboardInstallShortcutsBtn = document.getElementById('dashboardInstallShortcutsBtn');
+  if (dashboardInstallShortcutsBtn) {
+    dashboardInstallShortcutsBtn.addEventListener('click', async () => {
+      try {
+        dashboardInstallShortcutsBtn.disabled = true;
+        dashboardInstallShortcutsBtn.innerText = 'Creating Shortcut...';
+        const res = await fetchWithAuth('/api/install-shortcuts', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message, data.status === 'ok' ? 'success' : 'error');
+      } catch (err) {
+        showToast(`Shortcut error: ${err.message}`, 'error');
+      } finally {
+        dashboardInstallShortcutsBtn.disabled = false;
+        dashboardInstallShortcutsBtn.innerHTML = '<span>📌</span> Add Desktop Shortcut';
+      }
+    });
+  }
+
+  // Switch tab buttons
+  document.querySelectorAll('[data-switch-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-switch-tab');
+      if (target) switchTab(target);
+    });
+  });
+
+  // Dashboard Quick Mic Test
+  const dashboardQuickMicBtn = document.getElementById('dashboardQuickMicBtn');
+  const dashboardQuickMicBtnText = document.getElementById('dashboardQuickMicBtnText');
+  const dashboardQuickMicStatus = document.getElementById('dashboardQuickMicStatus');
+  const dashboardQuickMicResult = document.getElementById('dashboardQuickMicResult');
+  let dashboardMicRecording = false;
+  let dashboardMediaRecorder = null;
+  let dashboardAudioChunks = [];
+
+  if (dashboardQuickMicBtn) {
+    dashboardQuickMicBtn.addEventListener('click', async () => {
+      if (!dashboardMicRecording) {
+        // Start recording
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          dashboardMediaRecorder = new MediaRecorder(stream);
+          dashboardAudioChunks = [];
+          dashboardMediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) dashboardAudioChunks.push(e.data);
+          };
+          dashboardMediaRecorder.onstop = async () => {
+            stream.getTracks().forEach((track) => track.stop());
+            if (dashboardAudioChunks.length === 0) return;
+            const audioBlob = new Blob(dashboardAudioChunks, { type: 'audio/webm' });
+            if (dashboardQuickMicStatus) dashboardQuickMicStatus.innerText = 'Transcribing...';
+            try {
+              const formData = new FormData();
+              formData.append('file', audioBlob, 'quick_test.webm');
+              formData.append('script', activeScript);
+              formData.append('strip_fillers', 'true');
+              const res = await fetchWithAuth('/api/dictate', { method: 'POST', body: formData });
+              const data = await res.json();
+              if (data.status === 'ok') {
+                if (dashboardQuickMicResult) dashboardQuickMicResult.innerText = `"${data.text}"`;
+                if (dashboardQuickMicStatus) dashboardQuickMicStatus.innerText = `Ready (${data.latency_ms || 0} ms)`;
+                showToast('Transcription successful!', 'success');
+              } else {
+                if (dashboardQuickMicStatus) dashboardQuickMicStatus.innerText = 'Error';
+                showToast(`Dictation error: ${data.detail || data.message}`, 'error');
+              }
+            } catch (err) {
+              if (dashboardQuickMicStatus) dashboardQuickMicStatus.innerText = 'Failed';
+              showToast(`Network error: ${err.message}`, 'error');
+            }
+          };
+          dashboardMediaRecorder.start();
+          dashboardMicRecording = true;
+          if (dashboardQuickMicBtnText) dashboardQuickMicBtnText.innerText = 'Stop & Transcribe';
+          if (dashboardQuickMicStatus) dashboardQuickMicStatus.innerText = 'Listening... Speak now';
+          dashboardQuickMicBtn.classList.add('btn-danger');
+        } catch (err) {
+          showToast(`Microphone permission error: ${err.message}`, 'error');
+        }
+      } else {
+        // Stop recording
+        if (dashboardMediaRecorder && dashboardMediaRecorder.state !== 'inactive') {
+          dashboardMediaRecorder.stop();
+        }
+        dashboardMicRecording = false;
+        if (dashboardQuickMicBtnText) dashboardQuickMicBtnText.innerText = 'Test Speaking Here';
+        dashboardQuickMicBtn.classList.remove('btn-danger');
+      }
+    });
+  }
+
+  // Dashboard Dropzone
+  const dashboardDropzone = document.getElementById('dashboardDropzone');
+  const dashboardFileInput = document.getElementById('dashboardFileInput');
+  if (dashboardDropzone && dashboardFileInput) {
+    dashboardDropzone.addEventListener('click', () => dashboardFileInput.click());
+    dashboardFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileUpload(e.target.files[0]);
+        switchTab('doc');
+      }
+    });
+    dashboardDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dashboardDropzone.classList.add('dragover');
+    });
+    dashboardDropzone.addEventListener('dragleave', () => dashboardDropzone.classList.remove('dragover'));
+    dashboardDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dashboardDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileUpload(e.dataTransfer.files[0]);
+        switchTab('doc');
+      }
+    });
+  }
+
+  // Dashboard Sample Action Chips
+  const dashboardActionSampleInput = document.getElementById('dashboardActionSampleInput');
+  const dashboardActionResult = document.getElementById('dashboardActionResult');
+  document.querySelectorAll('.chip-action').forEach((chip) => {
+    chip.addEventListener('click', async () => {
+      const text = (dashboardActionSampleInput ? dashboardActionSampleInput.value : '').trim();
+      const instruction = chip.getAttribute('data-sample-cmd') || '';
+      if (!text || !instruction) return;
+      if (dashboardActionResult) dashboardActionResult.innerText = 'Transforming with local intelligence...';
+      try {
+        const formData = new FormData();
+        formData.append('instruction', instruction);
+        formData.append('selected_text', text);
+        const res = await fetchWithAuth('/api/command', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          if (dashboardActionResult) dashboardActionResult.innerText = `"${data.result_text}"`;
+        } else {
+          if (dashboardActionResult) dashboardActionResult.innerText = `Error: ${data.detail || data.message}`;
+        }
+      } catch (err) {
+        if (dashboardActionResult) dashboardActionResult.innerText = `Network error: ${err.message}`;
+      }
+    });
+  });
 
   loadSystemStatus();
   checkOverlayStatus();

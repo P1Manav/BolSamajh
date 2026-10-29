@@ -23,6 +23,23 @@ import os
 import re
 import socket
 import sys
+
+# Windows GUI / --noconsole safety
+if sys.stdout is None or not hasattr(sys.stdout, "isatty"):
+
+    class _SafeNull(io.StringIO):
+        def isatty(self) -> bool:
+            return False
+
+        def flush(self) -> None:
+            pass
+
+        def write(self, s: str) -> int:
+            return len(s)
+
+    sys.stdout = _SafeNull()
+if sys.stderr is None or not hasattr(sys.stderr, "isatty"):
+    sys.stderr = sys.stdout
 import tempfile
 import threading
 import time
@@ -1364,6 +1381,21 @@ async def stop_overlay():
         return {"status": "error", "message": "Overlay HUD not attached to server"}
     hud.set_state("idle")
     return {"status": "ok", "message": "Desktop overlay hidden"}
+
+
+@app.post("/api/install-shortcuts")
+async def install_desktop_shortcuts():
+    """Create or refresh Windows desktop and start menu shortcuts."""
+    try:
+        from scripts.create_desktop_shortcut import create_shortcut
+
+        create_shortcut()
+        return {
+            "status": "ok",
+            "message": "Desktop shortcut created successfully at Desktop/BolSamajh.lnk",
+        }
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to create shortcut: {e}"}
 
 
 @app.get("/api/audio/{audio_file}")
