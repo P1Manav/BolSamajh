@@ -221,6 +221,25 @@
   - Browser microphone streaming via MediaRecorder API
   - Interactive source citation cards and audio response playback
 
+#### Milestone 10 — Standalone Application Release & Green CI Across All Runners
+- [x] Standalone Direct Launchers:
+  - `BolSamajh.vbs`: 100% silent windowless background desktop launcher (0 CMD flash).
+  - `BolSamajh.bat`: Interactive batch runner with automated virtual environment detection and recovery.
+  - Windows Desktop Shortcut (`BolSamajh.lnk`) created on user desktop with custom multi-resolution microphone icon (`assets/bolsamajh.ico`).
+  - Standalone executable compiler (`scripts/build_executable.py`) producing `dist/BolSamajh/BolSamajh.exe` and `dist/BolSamajh-v1.1.0-windows-x64.zip` (zero Python installation required).
+  - Automated release pipeline (`.github/workflows/release.yml`) for continuous Windows standalone packaging.
+- [x] System Tray & Startup Enhancements:
+  - "Open Web-Call Interface" one-click browser launch (`webbrowser.open("http://localhost:8000")`).
+  - Dynamic "Headphone Mode" toggle directly in tray menu.
+  - Live script mode selector (Roman / Devanagari / Natural Mix).
+  - Non-blocking background preloading of multilingual embeddings (`intfloat/multilingual-e5-base`).
+  - Graceful OS shutdown signal handlers (`signal.SIGINT`, `signal.SIGTERM`).
+- [x] CI/CD Green Across All 4 Matrix Runners:
+  - Resolved `pytest-asyncio` 1.4.1 compatibility with `pytest` 9.1.1 across all runners.
+  - Fixed headless modifier guard OS mocking and Google AI cooldown test fixtures.
+  - Verified 55/55 unit tests passing on Windows py3.11, Windows py3.12, Ubuntu py3.11, Ubuntu py3.12.
+  - Ruff lint & format checks completely clean across all 89 files.
+
 ---
 
 ### 📊 Empirically Verified Metrics (`benchmark_data/hardware_measurements.json`)
