@@ -213,5 +213,8 @@
 **Alternatives considered:** Relying solely on manual scripts or loose integration tests without atomic unit assertions.  
 **Reason:** Ensures strict automated regression protection and rigorous correctness verification without requiring hardware or paid cloud services.
 
-
-
+## D029: Standalone Executable Packaging & Zero-Terminal Direct App Execution
+**Date:** 2026-10-29  
+**Choice:** Provide both direct double-click desktop execution (BolSamajh.vbs, BolSamajh.bat, Windows Desktop Shortcut with multi-res icon) and automated standalone executable compilation (BolSamajh.exe) via PyInstaller (scripts/build_executable.py and .github/workflows/release.yml).  
+**Alternatives considered:** Relying strictly on terminal command execution (python -m bolsamajh); distributing only as a pip package.  
+**Reason:** Hackathon judges and daily non-technical users require a true desktop app experience where they can launch BolSamajh by double-clicking a desktop icon without keeping a black command prompt window open or managing virtual environments. PyInstaller onedir mode packages all C++ runtimes (ctranslate2, 	orch, onnxruntime, sounddevice, pystray), web static assets, and local models into a distributable, air-gapped zip archive (BolSamajh-windows-x64.zip).

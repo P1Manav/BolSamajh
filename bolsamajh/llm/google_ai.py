@@ -47,22 +47,23 @@ class GoogleAIAdapter(LLMAdapter):
         temperature: float = 0.3,
         max_tokens: int = 2048,
         backoff_seconds: float = 1.0,
+        api_key: Optional[str] = None,
     ):
         self.model = os.getenv("BOLSAMAJH_GOOGLE_AI_MODEL", os.getenv("GOOGLE_AI_MODEL", model))
         self.temperature = temperature
         self.max_tokens = max(max_tokens, 2048)
         self.backoff_seconds = backoff_seconds
-        self._api_key = os.getenv("GOOGLE_AI_API_KEY", "").strip()
+        self._api_key = (
+            api_key.strip() if api_key is not None else os.getenv("GOOGLE_AI_API_KEY", "").strip()
+        )
         self._disabled_until: float = 0.0
         self._consecutive_errors: int = 0
         self._explicitly_disabled: bool = False
 
         global _WARNED_MISSING_KEY
-        if not self._api_key:
-            self._explicitly_disabled = True
-            if not _WARNED_MISSING_KEY:
-                log.warning("GOOGLE_AI_API_KEY not set; Gemini cloud fallback is disabled.")
-                _WARNED_MISSING_KEY = True
+        if not self._api_key and not _WARNED_MISSING_KEY:
+            log.warning("GOOGLE_AI_API_KEY not set; Gemini cloud fallback is disabled.")
+            _WARNED_MISSING_KEY = True
 
     @property
     def disabled(self) -> bool:

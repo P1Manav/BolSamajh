@@ -1,0 +1,51 @@
+name: Release Standalone App
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Standalone Windows Application (.exe)
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock.txt -r requirements-dev.lock.txt pyinstaller
+
+      - name: Generate multi-resolution icons
+        run: |
+          python scripts/generate_icon.py
+
+      - name: Compile Standalone Executable & Package ZIP
+        run: |
+          python scripts/build_executable.py
+
+      - name: Upload Windows Standalone Package Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BolSamajh-Windows-x64
+          path: dist/BolSamajh-*.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/BolSamajh-*.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true

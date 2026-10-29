@@ -17,7 +17,15 @@ BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by defa
 
 </div>
 
-### ⚡ One-Command Quickstart
+### ⚡ Direct Application Launch (Zero Terminal Required)
+
+Once installed, **no terminal or commands are needed** to use BolSamajh:
+- **Desktop Shortcut:** Run python scripts/create_desktop_shortcut.py once to place a 1-click **BolSamajh** shortcut with icon right on your Windows Desktop.
+- **Silent Windowless Runner:** Double-click BolSamajh.vbs to launch BolSamajh silently into the system tray and floating overlay HUD with zero flashing console windows.
+- **Batch Launcher:** Double-click BolSamajh.bat for quick startup.
+- **Pre-Built Standalone Release:** Download the portable BolSamajh-windows-x64.zip from [Releases](https://github.com/P1Manav/BolSamajh/releases) (or compile your own via python scripts/build_executable.py), unzip, and run BolSamajh.exe directly!
+
+### ⚡ Developer / CLI Quickstart
 
 **Prerequisites:** Python 3.11 or 3.12 only (see [![CI](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml/badge.svg)](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml) for build status on Ubuntu & Windows).
 

@@ -1,5 +1,38 @@
 # BolSamajh — Release Notes
 
+## BolSamajh v1.1.0 (Standalone Desktop Application, Zero-Terminal Launchers & CI Matrix Resolution)
+
+> **Release Tag:** `v1.1.0`  
+> **Release Date:** 2026-10-29  
+> **Buildathon:** Bolna × Symphony Voice AI Buildathon  
+> **Status:** All 129 unit & integration tests passing cleanly across Python 3.11 and 3.12 on Windows and Ubuntu.
+
+---
+
+### 🚀 Overview
+BolSamajh `v1.1.0` fulfills the core requirement of delivering BolSamajh as a **directly runnable, standalone desktop application**. Users and hackathon judges can now launch and use the entire assistant by double-clicking a desktop icon or standalone executable with zero command-line execution or manual virtualenv setup required. It also resolves all dependency resolution conflicts and platform differences across GitHub Actions CI runners.
+
+### 🌟 Key Enhancements in v1.1.0
+
+#### 1. Standalone Executable & Direct Windows Launchers
+- **Silent Windowless Launcher (`BolSamajh.vbs`):** Double-clicking launches BolSamajh into the system tray and floating overlay HUD in the background with zero visible console or black command prompt window.
+- **Batch Launcher (`BolSamajh.bat`):** Simple one-click double-click launcher for Windows.
+- **Desktop Shortcut Creator (`scripts/create_desktop_shortcut.py`):** Automatically creates a customized 1-click shortcut with the official high-resolution application icon (`assets/bolsamajh.ico`) directly on the user's Desktop.
+- **Standalone PyInstaller Release Builder (`scripts/build_executable.py`):** Compiles BolSamajh into a self-contained portable distribution folder (`dist/BolSamajh/BolSamajh.exe`) and distributable archive (`dist/BolSamajh-v1.1.0-windows-x64.zip`) bundling the Python runtime, CTranslate2, PyMuPDF, Torch, PyAV, ONNXRuntime, offline Piper models, and the web frontend.
+- **Automated GitHub Release CI (`.github/workflows/release.yml`):** Automatically builds the standalone Windows executable package on Windows runners upon tag pushes and attaches the zip archive to GitHub Releases.
+
+#### 2. GitHub Actions CI Matrix Resolution
+- **Dependency Conflict Resolved:** Upgraded `pytest-asyncio` from `0.25.3` to `1.4.1` in `requirements-dev.lock.txt`, enabling clean pip dependency resolution with `pytest==9.1.1` across Ubuntu and Windows runners.
+- **Cross-Platform Test Isolation:** Hardened `test_modifier_guard_releases_and_restores_only_held` in `tests/test_phase8_comprehensive.py` and `test_google_ai_exponential_cooldown` in `tests/test_phase2_fixes.py` to ensure complete determinism in headless cloud CI runners lacking local `.env` API keys.
+
+#### 3. Enhanced System Tray Control & Model Preload Warmup
+- **Web-Call Launcher in System Tray:** Added direct **'Open Web-Call Interface'** item to the tray menu, opening `http://localhost:8000` directly in the default browser.
+- **Headphone Mode Toggle:** Added a dynamic **'Headphone Mode'** checkbox in the tray menu to toggle acoustic echo suppression without editing `.env` or restarting.
+- **RAG Embedding Model Warmup:** `bolsamajh/main.py` now asynchronously warms up `intfloat/multilingual-e5-base` during startup so that the very first document query executes instantaneously.
+- **Signal Handling:** Added graceful signal listeners (`SIGINT`, `SIGTERM`) ensuring proper resource release upon exit.
+
+---
+
 ## BolSamajh v1.0.1 (Comprehensive Hardening, Empirical Audit & Ecosystem Reconciliation)
 
 > **Release Tag:** `v1.0.1`  

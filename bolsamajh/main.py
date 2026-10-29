@@ -4,6 +4,7 @@ Run with:  python -m bolsamajh
 """
 
 import logging
+import signal
 import threading
 import time
 
@@ -219,6 +220,13 @@ def main() -> None:
             log.warning("STT preload failed: %s", e)
             failed.append("STT")
 
+        try:
+            log.info("Preloading Document QA embedding model...")
+            doc_qa.retriever._load_embedding_model()
+            log.info("Document QA embedding model preloaded successfully.")
+        except Exception as e:
+            log.warning("Embedding model preload failed: %s", e)
+
         if failed:
             hud.show_text(f"Degraded: {', '.join(failed)} failed", duration_ms=4000)
         else:
@@ -235,6 +243,8 @@ def main() -> None:
     log.info("  %s to stop/interrupt", config.hotkeys.stop)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
+    tray_holder = [None]
+
     def on_quit():
         log.info("Quit invoked: cleaning up...")
         shutdown_event.set()
@@ -247,11 +257,27 @@ def main() -> None:
             keyboard.unhook_all_hotkeys()
         except Exception:
             pass
+        if tray_holder[0]:
+            try:
+                tray_holder[0].stop()
+            except Exception:
+                pass
+
+    def _handle_signal(sig, frame):
+        log.info("Signal %s received; shutting down...", sig)
+        on_quit()
+
+    try:
+        signal.signal(signal.SIGINT, _handle_signal)
+        signal.signal(signal.SIGTERM, _handle_signal)
+    except Exception:
+        pass
 
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray
 
     tray = create_tray(config, on_quit_callback=on_quit)
+    tray_holder[0] = tray
     if tray:
         tray.run()
     else:

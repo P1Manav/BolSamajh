@@ -3,6 +3,7 @@ from __future__ import annotations
 """BolSamajh system-tray icon using pystray."""
 
 import logging
+import webbrowser
 from typing import Callable, Optional
 
 from PIL import Image, ImageDraw, ImageFont
@@ -50,6 +51,15 @@ def create_tray(
             on_quit_callback()
         icon.stop()
 
+    def on_open_web(icon, item):
+        log.info("Opening web interface at http://localhost:8000...")
+        webbrowser.open("http://localhost:8000")
+
+    def toggle_headphone(icon, item):
+        config.headphone_mode = not getattr(config, "headphone_mode", False)
+        mode_str = "Headphone" if config.headphone_mode else "Speaker"
+        log.info("Audio mode switched to: %s mode", mode_str)
+
     def set_script(mode: str):
         def _handler(icon, item):
             log.info("Script mode switched to: %s", mode)
@@ -63,6 +73,13 @@ def create_tray(
         title="BolSamajh — Bolo. Samjho.",
         menu=pystray.Menu(
             Item(f"BolSamajh v{__version__}", lambda *a: None, enabled=False),
+            pystray.Menu.SEPARATOR,
+            Item("Open Web-Call Interface", on_open_web),
+            Item(
+                "Headphone Mode",
+                toggle_headphone,
+                checked=lambda item: getattr(config, "headphone_mode", False),
+            ),
             pystray.Menu.SEPARATOR,
             Item(
                 "Script Control",

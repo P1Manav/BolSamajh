@@ -141,6 +141,7 @@ def test_modifier_guard_releases_and_restores_only_held(monkeypatch):
 
     import bolsamajh.utils.clipboard as clip_mod
 
+    monkeypatch.setattr(clip_mod.sys, "platform", "win32")
     monkeypatch.setattr(clip_mod, "_is_key_pressed", lambda vk: vk == clip_mod.VK_SHIFT)
 
     # Spy on release/press

@@ -148,8 +148,7 @@ def test_text_cleanup_anusvara_to_n():
 
 def test_google_ai_exponential_cooldown():
     """Verify GoogleAIAdapter enters cooldown on error and resets on success."""
-    adapter = GoogleAIAdapter(model="gemini-3.5-flash")
-    adapter._api_key = "test_key"
+    adapter = GoogleAIAdapter(model="gemini-3.5-flash", api_key="test_key")
     assert adapter.disabled is False
 
     adapter._record_error(base_cooldown=10.0)

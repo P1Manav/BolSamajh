@@ -2,7 +2,21 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 v1.0.0-submission Released & Fully Verified (Phases 1–9 Complete)
+## Current Status: 🎯 v1.1.0 Released — Standalone Direct App, Green CI & Enhanced Tray (Phases 1–10 Complete)
+
+---
+
+### ✅ Completed Milestones
+
+#### Phase 10 — Standalone Application Release & CI Matrix Resolution (v1.1.0)
+- [x] **CI Dependency Conflict Resolved:** Pinned pytest-asyncio==1.4.1 for clean pip resolution with pytest==9.1.1 across Ubuntu and Windows runners.
+- [x] **Platform Test Isolation:** Hardened 	est_modifier_guard_releases_and_restores_only_held and 	est_google_ai_exponential_cooldown for headless Linux and Windows environments where GOOGLE_AI_API_KEY is not present.
+- [x] **Direct Windows Desktop Launchers:** Created BolSamajh.vbs (silent windowless launcher) and BolSamajh.bat (batch runner) for zero-terminal startup.
+- [x] **Windows Desktop Shortcut Creator:** Built scripts/create_desktop_shortcut.py and scripts/generate_icon.py to create a 1-click desktop icon with multi-size ICO/PNG assets.
+- [x] **Standalone Executable Compiler:** Built scripts/build_executable.py using PyInstaller to package Python runtime, C++ DLLs, models, static web frontend, and assets into dist/BolSamajh/BolSamajh.exe and dist/BolSamajh-windows-x64.zip.
+- [x] **Automated GitHub Release Pipeline:** Added .github/workflows/release.yml to automatically compile and release Windows executables upon tag push.
+- [x] **System Tray Enhancements:** Added direct 'Open Web-Call Interface' browser launcher and 'Headphone Mode' toggle to the tray menu.
+- [x] **RAG Warmup:** Added background preloading of intfloat/multilingual-e5-base alongside STT so the first document query is instantaneous.
 
 ---
 
