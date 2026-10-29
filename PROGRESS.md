@@ -240,6 +240,28 @@
   - Verified 55/55 unit tests passing on Windows py3.11, Windows py3.12, Ubuntu py3.11, Ubuntu py3.12.
   - Ruff lint & format checks completely clean across all 89 files.
 
+#### Milestone 11 — Wispr Flow Studio Interface, Built-in Background Web Server, and Android PWA Companion
+- [x] **Built-in Background Web Server in `main.py`:**
+  - Integrated Uvicorn runner in a background daemon thread upon app launch, permanently eliminating connection refused / "site cant be reached" errors on `http://127.0.0.1:8000`.
+  - Added native borderless window launcher (`msedge.exe --app=http://127.0.0.1:8000`) for a true desktop application feel without Electron bloat.
+  - Connected floating HUD pill click and tray icon double-click directly to toggle the Studio interface.
+- [x] **Wispr Flow Studio Interface (`index.html`, `style.css`, `app.js`):**
+  - Designed 5-tab glassmorphic dashboard: Dictation Studio, Doc Intelligence, Voice Actions, Android Companion, System & Hotkeys.
+  - Big glowing hero mic button with concentric ripple animations and live audio waveform canvas.
+  - Instant script switcher (Natural Mixed, Roman Hinglish, Devanagari) with automatic filler cleanup count and latency badge.
+  - "Inject into Active Window" (`/api/inject`) and "Copy to Clipboard" one-click action buttons.
+  - Real-time transcription history feed with per-item copy and inject controls.
+  - Mid-answer audio interruption support for Talk-to-Document voice Q&A.
+- [x] **Android Companion & PWA App:**
+  - Added `manifest.json` and service worker `sw.js` for 1-click "Add to Home screen" Android installation.
+  - Generated multi-resolution PWA icons (`icon-192.png`, `icon-512.png`).
+  - Added dynamic LAN IP detection and offline pure-JS QR code generator for 1-second mobile camera pairing.
+  - Allowed private LAN subnet binding (`192.168.x.x`, `10.x.x.x`) so Android companion phones can stream mic audio directly to the desktop backend over local Wi-Fi.
+- [x] **Verification & Release:**
+  - 134/134 unit and integration tests passing cleanly.
+  - Standalone release package published with standalone binary asset `BolSamajh-v1.1.0-windows-x64.zip`.
+
+
 ---
 
 ### 📊 Empirically Verified Metrics (`benchmark_data/hardware_measurements.json`)

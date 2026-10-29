@@ -560,3 +560,76 @@ def test_safe_fetch_url_gzip_bomb_protection(monkeypatch):
         safe_fetch_url("http://example.com/bomb.html", max_body_size=5 * 1024 * 1024)
 
     assert "Decompressed response body exceeds maximum allowed size" in str(excinfo.value)
+
+
+def test_manifest_and_sw_routes():
+    """Verify manifest.json and sw.js routes return 200 with proper content types."""
+    from fastapi.testclient import TestClient
+
+    from bolsamajh.web.server import app
+
+    client = TestClient(app)
+    res = client.get("/manifest.json")
+    assert res.status_code == 200
+    data = res.json()
+    assert "BolSamajh" in data["name"]
+    assert len(data["icons"]) >= 2
+
+    res_sw = client.get("/sw.js")
+    assert res_sw.status_code == 200
+    assert "Service-Worker-Allowed" in res_sw.headers
+
+
+def test_api_inject_endpoint(monkeypatch):
+    """Verify /api/inject invokes clipboard insert_text."""
+    from fastapi.testclient import TestClient
+
+    from bolsamajh.web.server import app
+
+    injected = []
+    monkeypatch.setattr("bolsamajh.utils.clipboard.insert_text", lambda t: injected.append(t))
+
+    client = TestClient(app)
+    res = client.post("/api/inject", json={"text": "Hello world from test"})
+    assert res.status_code == 200
+    assert res.json()["status"] == "ok"
+    assert injected == ["Hello world from test"]
+
+
+def test_api_dictate_endpoint(monkeypatch):
+    """Verify /api/dictate cleans fillers and formats text with latency report."""
+    import io
+    import wave
+
+    from fastapi.testclient import TestClient
+
+    from bolsamajh.stt.base import TranscriptResult
+    from bolsamajh.web.server import app
+
+    monkeypatch.setattr(
+        "bolsamajh.web.server.stt.transcribe",
+        lambda wav, **kw: TranscriptResult(
+            text="umm meeting kal shaam ko like teen baje hai", language="hi", duration_seconds=2.0
+        ),
+    )
+
+    client = TestClient(app)
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(16000)
+        wf.writeframes(b"\x00" * 3200)
+    wav_bytes = buf.getvalue()
+
+    res = client.post(
+        "/api/dictate",
+        files={"file": ("test.wav", wav_bytes, "audio/wav")},
+        data={"script": "natural", "remove_fillers": "true"},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert "clean_text" in data
+    assert "meeting" in data["clean_text"].lower()
+    assert data["fillers_removed"] >= 1
+    assert data["latency_ms"] >= 0

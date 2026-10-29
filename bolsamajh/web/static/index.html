@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BolSamajh — Bolo. Samjho. | Voice AI & Document Intelligence</title>
+  <title>BolSamajh — Bolo. Samjho. | Voice AI Studio & Document Intelligence</title>
   <meta name="description" content="Talk to any document in your language and dictate anywhere. Multilingual voice assistant for Indian languages.">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0f1d">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -16,19 +20,43 @@
           <div class="orb-inner"></div>
         </div>
         <div class="brand-text">
-          <h1>BolSamajh <span class="badge-tag">Voice AI</span></h1>
-          <p class="tagline">Bolo. Samjho. — Voice Assistant for Bharat</p>
+          <h1>BolSamajh <span class="badge-tag">v1.1.0</span></h1>
+          <p class="tagline">Bolo. Samjho. — Voice AI Companion</p>
         </div>
       </div>
+
+      <!-- Center Studio Navigation Tabs -->
+      <nav class="nav-tabs" id="mainTabs" role="tablist">
+        <button class="nav-tab active" data-tab="dictate" role="tab" aria-selected="true">
+          <span class="tab-icon">🎙️</span> Dictation Studio
+        </button>
+        <button class="nav-tab" data-tab="doc" role="tab" aria-selected="false">
+          <span class="tab-icon">📄</span> Doc Intelligence
+        </button>
+        <button class="nav-tab" data-tab="actions" role="tab" aria-selected="false">
+          <span class="tab-icon">⚡</span> Voice Actions
+        </button>
+        <button class="nav-tab" data-tab="mobile" role="tab" aria-selected="false">
+          <span class="tab-icon">📱</span> Android Companion
+        </button>
+        <button class="nav-tab" data-tab="system" role="tab" aria-selected="false">
+          <span class="tab-icon">⚙️</span> System & Hotkeys
+        </button>
+      </nav>
+
+      <!-- Right Nav Controls -->
       <div class="nav-controls">
+        <button type="button" id="pwaInstallBtn" class="btn btn-pwa btn-sm" style="display: none;">
+          📲 Install App
+        </button>
+        <div class="system-status" id="systemStatusPill">
+          <span class="status-indicator live"></span>
+          <span id="sttStatusText">Checking engines...</span>
+        </div>
         <div class="api-key-container" id="apiKeyContainer">
           <input type="password" id="apiKeyInput" placeholder="API Key (optional)" class="api-key-input" autocomplete="off" />
-          <button type="button" id="setApiKeyBtn" class="btn btn-secondary btn-sm">Set Key</button>
-          <span id="apiKeyBadge" class="api-key-badge" style="display: none;">✓ Set</span>
-        </div>
-        <div class="system-status">
-          <span class="status-indicator live"></span>
-          <span id="sttStatusText">Checking system status...</span>
+          <button type="button" id="setApiKeyBtn" class="btn btn-secondary btn-sm">Set</button>
+          <span id="apiKeyBadge" class="api-key-badge" style="display: none;">✓</span>
         </div>
       </div>
     </header>
@@ -39,129 +67,430 @@
       <button type="button" class="btn-dismiss" id="dismissAuthAlertBtn">✕</button>
     </div>
 
-    <!-- Main Grid Content -->
-    <main class="main-grid">
-      <!-- Left Column: Document & Controls -->
-      <section class="panel doc-panel">
-        <div class="panel-header">
-          <h2>📄 Source Document</h2>
-          <span class="doc-badge" id="docBadge">No doc loaded</span>
-        </div>
+    <!-- MAIN VIEWS CONTAINER -->
+    <main class="main-content-area">
 
-        <!-- File Upload Dropzone -->
-        <div class="dropzone" id="dropzone">
-          <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none;">
-          <div class="drop-icon">📤</div>
-          <p class="drop-title">Drop PDF, Word, or Text file</p>
-          <p class="drop-subtitle">or <button type="button" class="btn-link" id="browseBtn">browse your files</button></p>
-          <div class="supported-tags">
-            <span>PDF</span><span>DOCX</span><span>TXT</span><span>MD</span>
+      <!-- ========================================== -->
+      <!-- TAB 1: WISPR FLOW DICTATION STUDIO        -->
+      <!-- ========================================== -->
+      <section class="tab-pane active" id="view-dictate" role="tabpanel">
+        <div class="dictation-hero-card">
+          <div class="dictation-header">
+            <div class="header-badges">
+              <span class="pill-badge pill-glow">✨ Wispr Flow Mode</span>
+              <span class="pill-badge">Hinglish • Hindi • English</span>
+              <span class="pill-badge pill-shortcut">Desktop: Alt+Shift+Space</span>
+            </div>
+            <h2>Speak naturally. Insert anywhere.</h2>
+            <p class="subtitle">Automatic filler removal (umm, uhh, matlab), smart number & rupee formatting, and instant injection into any active desktop window.</p>
           </div>
-        </div>
 
-        <!-- URL Input Option -->
-        <div class="url-bar">
-          <input type="url" id="urlInput" placeholder="https://example.com/article" />
-          <button class="btn btn-secondary" id="loadUrlBtn">Fetch URL</button>
-        </div>
-
-        <!-- Document Info Card -->
-        <div class="doc-info-card" id="docInfoCard" style="display: none;">
-          <div class="doc-icon">📑</div>
-          <div class="doc-details">
-            <h4 id="docTitle">Untitled Document</h4>
-            <p id="docMeta">0 pages • 0 indexed chunks</p>
+          <!-- Hero Mic Pulsing Area -->
+          <div class="mic-stage">
+            <div class="mic-rings-wrapper">
+              <div class="pulse-ring ring-1"></div>
+              <div class="pulse-ring ring-2"></div>
+              <div class="pulse-ring ring-3"></div>
+              <button class="hero-mic-btn" id="dictateMicBtn" title="Click to start dictating (or hold to talk)">
+                <svg class="hero-mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+              </button>
+            </div>
+            <!-- Live Audio Visualizer -->
+            <canvas id="dictateWaveform" class="waveform-canvas" width="400" height="50"></canvas>
+            <div class="mic-hint-text" id="dictateStatusText">Click mic to start speaking (or hold to talk)</div>
           </div>
-          <button class="btn-icon" id="clearDocBtn" title="Clear document">✕</button>
-        </div>
 
-        <!-- Language Selector -->
-        <div class="lang-selector-card">
-          <label for="langSelect">Speaking / Response Language:</label>
-          <select id="langSelect">
-            <option value="hinglish" selected>Hinglish (Natural Code-switch)</option>
-            <option value="hindi">Hindi (Devanagari)</option>
-            <option value="gujarati">Gujarati</option>
-            <option value="english">English</option>
-          </select>
-        </div>
-
-        <!-- In-App Voice Commands Mini Playground -->
-        <div class="commands-box">
-          <div class="panel-header">
-            <h3>⚡ In-App Voice Commands</h3>
-            <span class="badge-shortcut" id="commandShortcutBadge">Alt+Shift+C</span>
+          <!-- Dictation Quick Settings Bar -->
+          <div class="dictate-controls-bar">
+            <div class="script-pills-group">
+              <span class="control-label">Script:</span>
+              <button class="script-pill active" data-script="natural">Natural Mixed</button>
+              <button class="script-pill" data-script="roman">Roman Hinglish</button>
+              <button class="script-pill" data-script="devanagari">हिन्दी Devanagari</button>
+            </div>
+            <div class="filler-toggle-group">
+              <label class="toggle-checkbox-label">
+                <input type="checkbox" id="dictateFillerCheck" checked />
+                <span>Auto-strip fillers (umm, uhh, matlab)</span>
+              </label>
+            </div>
           </div>
-          <textarea id="commandInputText" rows="3" placeholder="Type or paste sample text to test command transformations..."></textarea>
-          <div class="command-chips">
-            <button class="chip" data-cmd="Make it formal and professional">Formal</button>
-            <button class="chip" data-cmd="Summarize in 2 bullet points">Summarize</button>
-            <button class="chip" data-cmd="Translate to natural Hindi">Hindi</button>
-            <button class="chip" data-cmd="Shorten and remove fluff">Concise</button>
-          </div>
-          <button class="btn btn-primary btn-block" id="runCommandBtn">Transform Text</button>
-          <div id="commandOutput" class="command-result" style="display: none;"></div>
-        </div>
-      </section>
 
-      <!-- Right Column: Interactive Voice & Chat Feed -->
-      <section class="panel chat-panel">
-        <div class="panel-header">
-          <h2>🎙️ Voice Conversation & Grounded Q&A</h2>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <button type="button" class="btn btn-secondary btn-sm" id="clearHistoryBtn" style="display: none; font-size: 0.72rem; padding: 2px 8px;">Clear Chat</button>
-            <div class="latency-pill" id="latencyPill">Ready</div>
-          </div>
-        </div>
+          <!-- Transcribed Text Output Card -->
+          <div class="dictate-output-card">
+            <div class="output-header">
+              <div class="metrics-pills">
+                <span class="metric-chip" id="dictateLatencyChip">⚡ 0 ms</span>
+                <span class="metric-chip" id="dictateFillerChip">🧹 0 fillers cleaned</span>
+                <span class="metric-chip" id="dictateDurationChip">⏱️ 0.0s audio</span>
+              </div>
+              <div class="output-actions-top">
+                <button class="btn btn-icon-text btn-sm" id="dictateClearBtn" title="Clear text">
+                  <span>🗑️</span> Clear
+                </button>
+              </div>
+            </div>
 
-        <!-- Conversation History -->
-        <div class="chat-feed" id="chatFeed">
-          <div class="welcome-card">
-            <div class="welcome-icon">✨</div>
-            <h3>Welcome to BolSamajh Web-Call Mode</h3>
-            <p>Upload a document on the left, then click or hold the glowing mic button or type to ask questions. Every answer is grounded directly in the document with page citations and streamed live.</p>
-            <div class="sample-questions">
-              <span class="sample-chip" data-q="Is document ka main summary kya hai?">Is document ka main summary kya hai?</span>
-              <span class="sample-chip" data-q="What are the key technical requirements?">What are the key technical requirements?</span>
-              <span class="sample-chip" data-q="Important deadlines aur dates kya hain?">Important deadlines aur dates kya hain?</span>
+            <textarea id="dictateResultText" class="dictate-textarea" rows="4" placeholder="Your transcribed speech will appear here with automatic filler removal and formatting..."></textarea>
+
+            <div class="output-footer">
+              <button class="btn btn-primary btn-inject" id="dictateInjectBtn">
+                <span>🚀</span> Inject into Active Window
+              </button>
+              <button class="btn btn-secondary" id="dictateCopyBtn">
+                <span>📋</span> Copy to Clipboard
+              </button>
+              <button class="btn btn-secondary" id="dictateSendActionsBtn">
+                <span>⚡</span> Re-tone / Transform
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent Dictation History -->
+          <div class="history-section">
+            <div class="history-header">
+              <h3>🕒 Recent Dictations</h3>
+              <button class="btn-link" id="clearDictateHistoryBtn">Clear History</button>
+            </div>
+            <div class="history-feed" id="dictateHistoryFeed">
+              <div class="history-empty">No dictations yet in this session. Tap mic above to start!</div>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Live Voice Bar & Input Area -->
-        <div class="input-section">
-          <!-- Audio Waveform Visualizer Canvas -->
-          <canvas id="audioVisualizer" height="40"></canvas>
+      <!-- ========================================== -->
+      <!-- TAB 2: DOC INTELLIGENCE (TALK TO DOCUMENT) -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-doc" role="tabpanel">
+        <div class="main-grid">
+          <!-- Left Column: Document & Controls -->
+          <section class="panel doc-panel">
+            <div class="panel-header">
+              <h2>📄 Source Document</h2>
+              <span class="doc-badge" id="docBadge">No doc loaded</span>
+            </div>
 
-          <div class="input-bar">
-            <!-- Push-to-Talk Mic Button -->
-            <button class="mic-button" id="micBtn" title="Click to speak (toggle) or hold">
-              <div class="mic-pulse"></div>
-              <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-              </svg>
-            </button>
+            <!-- File Upload Dropzone -->
+            <div class="dropzone" id="dropzone">
+              <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none;">
+              <div class="drop-icon">📤</div>
+              <p class="drop-title">Drop PDF, Word, or Text file</p>
+              <p class="drop-subtitle">or <button type="button" class="btn-link" id="browseBtn">browse your files</button></p>
+              <div class="supported-tags">
+                <span>PDF</span><span>DOCX</span><span>TXT</span><span>MD</span>
+              </div>
+            </div>
 
-            <!-- Text Query Input -->
-            <input type="text" id="textQueryInput" placeholder="Bolo ya type karo question..." />
+            <!-- URL Input Option -->
+            <div class="url-bar">
+              <input type="url" id="urlInput" placeholder="https://example.com/article" />
+              <button class="btn btn-secondary" id="loadUrlBtn">Fetch URL</button>
+            </div>
 
-            <!-- Send Button -->
-            <button class="btn btn-primary btn-send" id="sendBtn">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-              </svg>
-            </button>
-          </div>
-          <div class="input-hint">Tip: Click mic to speak in Hinglish, Hindi, or English • Live streaming answers & citations</div>
+            <!-- Document Info Card -->
+            <div class="doc-info-card" id="docInfoCard" style="display: none;">
+              <div class="doc-icon">📑</div>
+              <div class="doc-details">
+                <h4 id="docTitle">Untitled Document</h4>
+                <p id="docMeta">0 pages • 0 indexed chunks</p>
+              </div>
+              <button class="btn-icon" id="clearDocBtn" title="Clear document">✕</button>
+            </div>
+
+            <!-- Language Selector -->
+            <div class="lang-selector-card">
+              <label for="langSelect">Speaking / Response Language:</label>
+              <select id="langSelect">
+                <option value="hinglish" selected>Hinglish (Natural Code-switch)</option>
+                <option value="hindi">Hindi (Devanagari)</option>
+                <option value="gujarati">Gujarati</option>
+                <option value="english">English</option>
+              </select>
+            </div>
+
+            <div class="doc-tips-card">
+              <h4>💡 Talk to Document Tips</h4>
+              <ul>
+                <li>Every answer cites exact page numbers.</li>
+                <li>Questions outside the document are strictly refused.</li>
+                <li>You can interrupt speech mid-answer anytime.</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Right Column: Interactive Voice & Chat Feed -->
+          <section class="panel chat-panel">
+            <div class="panel-header">
+              <h2>🎙️ Voice Conversation & Grounded Q&A</h2>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-secondary btn-sm" id="clearHistoryBtn" style="display: none; font-size: 0.72rem; padding: 2px 8px;">Clear Chat</button>
+                <div class="latency-pill" id="latencyPill">Ready</div>
+              </div>
+            </div>
+
+            <!-- Conversation History -->
+            <div class="chat-feed" id="chatFeed">
+              <div class="welcome-card">
+                <div class="welcome-icon">✨</div>
+                <h3>Welcome to BolSamajh Voice Q&A</h3>
+                <p>Upload a PDF, Word document, or URL on the left. Then speak or type questions. Every answer is grounded directly with page citations and streamed live.</p>
+                <div class="sample-questions">
+                  <span class="sample-chip" data-q="Is document ka main summary kya hai?">Is document ka main summary kya hai?</span>
+                  <span class="sample-chip" data-q="What are the key technical requirements?">What are the key technical requirements?</span>
+                  <span class="sample-chip" data-q="Important deadlines aur dates kya hain?">Important deadlines aur dates kya hain?</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Voice Bar & Input Area -->
+            <div class="input-section">
+              <!-- Audio Waveform Visualizer Canvas -->
+              <canvas id="audioVisualizer" height="40"></canvas>
+
+              <div class="input-bar">
+                <!-- Push-to-Talk Mic Button -->
+                <button class="mic-button" id="micBtn" title="Click to speak (toggle) or hold">
+                  <div class="mic-pulse"></div>
+                  <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </button>
+
+                <!-- Text Query Input -->
+                <input type="text" id="textQueryInput" placeholder="Bolo ya type karo question..." />
+
+                <!-- Send Button -->
+                <button class="btn btn-primary btn-send" id="sendBtn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="input-hint">Tip: Click mic to speak in Hinglish, Hindi, or English • Live streaming answers & citations</div>
+            </div>
+          </section>
         </div>
       </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: VOICE ACTIONS & TRANSFORMATIONS    -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-actions" role="tabpanel">
+        <div class="actions-container">
+          <div class="actions-header">
+            <span class="pill-badge pill-glow">⚡ In-App Voice Actions</span>
+            <h2>Transform Text with Voice & AI</h2>
+            <p class="subtitle">Select text in any app, press <kbd>Alt+Shift+C</kbd>, or paste here to rewrite, shorten, translate, or formalize.</p>
+          </div>
+
+          <div class="actions-grid">
+            <div class="actions-input-card">
+              <label for="commandInputText">Source Text:</label>
+              <textarea id="commandInputText" rows="6" placeholder="Type or paste sample text to transform... (e.g. 'yaar kal meeting postpone kar de 3 baje')"></textarea>
+
+              <div class="action-presets">
+                <span class="control-label">Quick Presets:</span>
+                <div class="command-chips">
+                  <button class="chip" data-cmd="Make it formal and professional email">💼 Professional Email</button>
+                  <button class="chip" data-cmd="Summarize in 2 crisp bullet points">📌 2-Bullet Summary</button>
+                  <button class="chip" data-cmd="Translate to natural Hindi (Devanagari)">🇮🇳 Pure Hindi</button>
+                  <button class="chip" data-cmd="Shorten and remove all fluff">✂️ Shorten & Crisp</button>
+                  <button class="chip" data-cmd="Format as casual Slack message">💬 Slack Friendly</button>
+                </div>
+              </div>
+
+              <div class="custom-prompt-row">
+                <input type="text" id="customCommandInput" placeholder="Or enter custom instruction (e.g. 'Add polite greeting and call to action')" />
+                <button class="btn btn-primary" id="runCommandBtn">Transform Text</button>
+              </div>
+            </div>
+
+            <div class="actions-output-card">
+              <label>Transformed Result:</label>
+              <div id="commandOutput" class="command-result">Transformed output will appear here...</div>
+              <div class="action-output-buttons">
+                <button class="btn btn-primary btn-sm" id="actionInjectBtn" disabled>
+                  <span>🚀</span> Inject to Active App
+                </button>
+                <button class="btn btn-secondary btn-sm" id="actionCopyBtn" disabled>
+                  <span>📋</span> Copy Result
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: ANDROID COMPANION (PWA)            -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-mobile" role="tabpanel">
+        <div class="mobile-companion-container">
+          <div class="mobile-header">
+            <span class="pill-badge pill-glow">📱 Android & Mobile Companion</span>
+            <h2>Use BolSamajh on your Phone</h2>
+            <p class="subtitle">Turn any Android phone or tablet into a wireless handheld voice dictation remote and document reader over your local Wi-Fi.</p>
+          </div>
+
+          <div class="mobile-grid">
+            <!-- Left: Connection Card & QR -->
+            <div class="mobile-qr-card">
+              <div class="qr-box">
+                <canvas id="mobileQrCanvas" width="200" height="200"></canvas>
+              </div>
+              <div class="mobile-url-box">
+                <span class="control-label">Local Wi-Fi Address:</span>
+                <div class="url-copy-row">
+                  <code id="mobileLanUrl">http://127.0.0.1:8000</code>
+                  <button class="btn btn-secondary btn-sm" id="copyMobileUrlBtn">Copy</button>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-block" id="mobileInstallPwaBtn">
+                📲 Install BolSamajh App on this Device
+              </button>
+            </div>
+
+            <!-- Right: Instructions & Features -->
+            <div class="mobile-guide-card">
+              <h3>🚀 3-Step Setup for Android</h3>
+              <ol class="step-list">
+                <li>
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <h4>Connect to the Same Wi-Fi</h4>
+                    <p>Make sure your Android phone and this PC are on the same local Wi-Fi network.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h4>Scan QR or Open Link</h4>
+                    <p>Scan the QR code with your phone camera, or open the URL in Chrome on your phone.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <h4>Tap "Add to Home Screen"</h4>
+                    <p>In Chrome, tap the menu <kbd>⋮</kbd> → <strong>"Add to Home screen"</strong> (or "Install app"). BolSamajh will install as a native fullscreen app with full microphone access!</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div class="companion-features">
+                <h4>✨ Android Companion Features</h4>
+                <div class="feature-tags">
+                  <span>🎙️ Phone Mic Streaming</span>
+                  <span>📄 Mobile Doc Q&A</span>
+                  <span>⚡ 100% Offline via Local PC</span>
+                  <span>🛡️ Zero Cloud Spend</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: SYSTEM STATUS & HOTKEYS            -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-system" role="tabpanel">
+        <div class="system-container">
+          <div class="system-header">
+            <span class="pill-badge pill-glow">⚙️ Engine Architecture & Hardware</span>
+            <h2>System Diagnostics & Desktop Hotkeys</h2>
+            <p class="subtitle">BolSamajh runs 100% locally with open-source models, zero cloud subscriptions, and hardware-accelerated speech inference.</p>
+          </div>
+
+          <!-- Hardware Engine Cards Grid -->
+          <div class="engine-cards-grid">
+            <div class="engine-card">
+              <div class="engine-icon">🎙️</div>
+              <div class="engine-info">
+                <h3>Speech-to-Text (STT)</h3>
+                <p class="engine-name" id="sysSttName">Faster-Whisper</p>
+                <p class="engine-meta" id="sysSttDevice">CUDA GPU (float16)</p>
+              </div>
+              <span class="engine-status-tag ready">Active</span>
+            </div>
+
+            <div class="engine-card">
+              <div class="engine-icon">🧠</div>
+              <div class="engine-info">
+                <h3>Language Model (LLM)</h3>
+                <p class="engine-name" id="sysLlmName">Ollama Local</p>
+                <p class="engine-meta" id="sysLlmFallback">Gemini Free Fallback Ready</p>
+              </div>
+              <span class="engine-status-tag ready" id="sysLlmTag">Ready</span>
+            </div>
+
+            <div class="engine-card">
+              <div class="engine-icon">🔊</div>
+              <div class="engine-info">
+                <h3>Text-to-Speech (TTS)</h3>
+                <p class="engine-name" id="sysTtsName">Edge-TTS / Piper</p>
+                <p class="engine-meta">hi-IN-SwaraNeural • gu-IN-DhwaniNeural</p>
+              </div>
+              <span class="engine-status-tag ready">Ready</span>
+            </div>
+
+            <div class="engine-card">
+              <div class="engine-icon">📚</div>
+              <div class="engine-info">
+                <h3>RAG & Embeddings</h3>
+                <p class="engine-name">all-MiniLM-L6-v2</p>
+                <p class="engine-meta">Local Vector Similarity • Page Citations</p>
+              </div>
+              <span class="engine-status-tag ready">Indexed</span>
+            </div>
+          </div>
+
+          <!-- Hotkeys Reference Card -->
+          <div class="hotkeys-reference-card">
+            <h3>⌨️ Global Desktop Hotkeys</h3>
+            <div class="hotkeys-table">
+              <div class="hotkey-row">
+                <span class="hotkey-action">Voice Dictation (Push-to-Talk)</span>
+                <span class="hotkey-desc">Insert cleaned Hinglish text into any active app</span>
+                <kbd class="hotkey-key" id="hkDictation">Alt+Shift+Space</kbd>
+              </div>
+              <div class="hotkey-row">
+                <span class="hotkey-action">Voice Command / Transform</span>
+                <span class="hotkey-desc">Re-tone, summarize or translate selected text</span>
+                <kbd class="hotkey-key" id="hkVoiceCommand">Alt+Shift+C</kbd>
+              </div>
+              <div class="hotkey-row">
+                <span class="hotkey-action">Doc Q&A Voice Query</span>
+                <span class="hotkey-desc">Ask voice question to loaded document</span>
+                <kbd class="hotkey-key" id="hkDocQa">Alt+Shift+A</kbd>
+              </div>
+              <div class="hotkey-row">
+                <span class="hotkey-action">Load Document Dialog</span>
+                <span class="hotkey-desc">Pick PDF or Word document from file explorer</span>
+                <kbd class="hotkey-key" id="hkDocLoad">Alt+Shift+D</kbd>
+              </div>
+              <div class="hotkey-row">
+                <span class="hotkey-action">Open / Toggle Studio</span>
+                <span class="hotkey-desc">Click floating pill HUD or tray icon anytime</span>
+                <span class="hotkey-key">Click HUD / Tray</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
   <!-- Inline Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
 
+  <script src="/static/qrcode.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

@@ -38,7 +38,9 @@ def _create_icon_image(size: int = 64) -> Image.Image:
 
 
 def create_tray(
-    config, on_quit_callback: Optional[Callable[[], None]] = None
+    config,
+    on_quit_callback: Optional[Callable[[], None]] = None,
+    on_open_studio_callback: Optional[Callable[[], None]] = None,
 ) -> Optional[pystray.Icon]:
     """Create and return the system-tray icon with Script Control menu."""
     if pystray is None or Item is None:
@@ -51,9 +53,12 @@ def create_tray(
             on_quit_callback()
         icon.stop()
 
-    def on_open_web(icon, item):
-        log.info("Opening web interface at http://localhost:8000...")
-        webbrowser.open("http://localhost:8000")
+    def on_open_studio(icon=None, item=None):
+        log.info("Opening BolSamajh Studio...")
+        if on_open_studio_callback:
+            on_open_studio_callback()
+        else:
+            webbrowser.open("http://localhost:8000")
 
     def toggle_headphone(icon, item):
         config.headphone_mode = not getattr(config, "headphone_mode", False)
@@ -72,9 +77,9 @@ def create_tray(
         icon=_create_icon_image(),
         title="BolSamajh — Bolo. Samjho.",
         menu=pystray.Menu(
+            Item("Open BolSamajh Studio (Wispr Flow UI)", on_open_studio, default=True),
             Item(f"BolSamajh v{__version__}", lambda *a: None, enabled=False),
             pystray.Menu.SEPARATOR,
-            Item("Open Web-Call Interface", on_open_web),
             Item(
                 "Headphone Mode",
                 toggle_headphone,

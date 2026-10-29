@@ -40,16 +40,13 @@ def build_app(enable_console: bool = False):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # 3. Read version
-    version = "1.1.0"
-    init_file = root / "bolsamajh" / "__init__.py"
-    if init_file.exists():
-        import re
+    version = "1.0.1"
+    try:
+        import bolsamajh
 
-        match = re.search(
-            r'__version__\s*=\s*["\']([^"\']+)["\']', init_file.read_text(encoding="utf-8")
-        )
-        if match:
-            version = match.group(1)
+        version = getattr(bolsamajh, "__version__", version)
+    except Exception:
+        pass
 
     dist_dir = root / "dist"
     app_output_dir = dist_dir / "BolSamajh"

@@ -35,7 +35,7 @@ _DONE_TIMEOUT = 2000
 class OverlayHUD:
     """Floating overlay HUD for BolSamajh status."""
 
-    def __init__(self):
+    def __init__(self, on_click_callback=None):
         self._root: tk.Tk | None = None
         self._label: tk.Label | None = None
         self._thread: threading.Thread | None = None
@@ -43,6 +43,7 @@ class OverlayHUD:
         self._state: HUDState = "idle"
         self._auto_hide_id: str | None = None
         self._cmd_queue: queue.Queue = queue.Queue()
+        self._on_click_callback = on_click_callback
 
     def start(self) -> None:
         """Start the overlay in a background thread."""
@@ -100,6 +101,17 @@ class OverlayHUD:
             pady=6,
         )
         self._label.pack(fill=tk.BOTH, expand=True)
+
+        if self._on_click_callback:
+
+            def _handle_click(e):
+                try:
+                    self._on_click_callback()
+                except Exception as ex:
+                    log.debug("HUD click error: %s", ex)
+
+            self._root.bind("<Button-1>", _handle_click)
+            self._label.bind("<Button-1>", _handle_click)
 
         # Apply Windows no-activate extended style so HUD never steals focus from active apps
         import sys

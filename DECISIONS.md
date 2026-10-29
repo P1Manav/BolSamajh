@@ -217,4 +217,15 @@
 **Date:** 2026-10-29  
 **Choice:** Provide both direct double-click desktop execution (BolSamajh.vbs, BolSamajh.bat, Windows Desktop Shortcut with multi-res icon) and automated standalone executable compilation (BolSamajh.exe) via PyInstaller (scripts/build_executable.py and .github/workflows/release.yml).  
 **Alternatives considered:** Relying strictly on terminal command execution (python -m bolsamajh); distributing only as a pip package.  
-**Reason:** Hackathon judges and daily non-technical users require a true desktop app experience where they can launch BolSamajh by double-clicking a desktop icon without keeping a black command prompt window open or managing virtual environments. PyInstaller onedir mode packages all C++ runtimes (ctranslate2, 	orch, onnxruntime, sounddevice, pystray), web static assets, and local models into a distributable, air-gapped zip archive (BolSamajh-windows-x64.zip).
+**Reason:** Hackathon judges and daily non-technical users require a true desktop app experience where they can launch BolSamajh by double-clicking a desktop icon without keeping a black command prompt window open or managing virtual environments. PyInstaller onedir mode packages all C++ runtimes (ctranslate2, torch, onnxruntime, sounddevice, pystray), web static assets, and local models into a distributable, air-gapped zip archive (BolSamajh-windows-x64.zip).
+
+## D030: Wispr Flow Studio Interface, Built-in Background Server, and Mobile PWA Companion
+**Date:** 2026-10-29  
+**Choice:**
+1. Integrated Uvicorn web server lifecycle directly into `bolsamajh/main.py` via background daemon thread so `http://127.0.0.1:8000` is active automatically upon desktop app launch, fixing "site cant be reached" connection refused errors.
+2. Built native window launcher (`msedge.exe --app=http://127.0.0.1:8000`) for a borderless, clean desktop studio feel without requiring Electron or extra Chromium runtimes.
+3. Completely redesigned web interface with Wispr Flow design system: tabbed studio (Dictation Studio, Doc Intelligence, Voice Actions, Android Companion, System & Hotkeys), glowing pulse rings, live audio waveform canvas, script toggle, filler cleanup counter, and background app injection via `/api/inject`.
+4. Provided Android Companion via Progressive Web App (PWA): manifest.json, sw.js, offline canvas QR code generator, and LAN IP binding allowing mobile phones to connect wirelessly and act as handheld push-to-talk microphones and document readers.  
+**Alternatives considered:** Relying on separate terminal window to run `uvicorn`; using Electron (adds 150MB+ bundle size); requiring cloud mobile apps.  
+**Reason:** Gives users an immediately visual, premium Wispr Flow app experience with zero setup, seamless mobile pairing over local Wi-Fi, and 100% offline local privacy with zero cloud spend.
+

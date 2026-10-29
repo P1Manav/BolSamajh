@@ -166,8 +166,64 @@ def _setup_hotkeys(
     log.info("  Stop:          %s", stop_key)
 
 
+def open_studio_dashboard(port: int = 8000) -> None:
+    """Open BolSamajh Studio in standalone desktop application mode or browser."""
+    import os
+    import subprocess
+    import webbrowser
+
+    url = f"http://127.0.0.1:{port}"
+    edge_paths = [
+        os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
+        os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
+    ]
+    for edge in edge_paths:
+        if os.path.isfile(edge):
+            try:
+                subprocess.Popen([edge, f"--app={url}", "--new-window"])
+                return
+            except Exception as e:
+                log.debug("Failed to launch Edge app mode: %s", e)
+                break
+    webbrowser.open(url)
+
+
+def _start_web_server(config: AppConfig, shutdown_event: threading.Event) -> None:
+    """Start Uvicorn web server in a background daemon thread."""
+    import uvicorn
+
+    from bolsamajh.web.server import app
+
+    host = getattr(config.web, "host", "127.0.0.1")
+    port = getattr(config.web, "port", 8000)
+
+    server_config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="warning",
+        access_log=False,
+    )
+    server = uvicorn.Server(server_config)
+
+    def _monitor_shutdown():
+        shutdown_event.wait()
+        server.should_exit = True
+
+    threading.Thread(target=_monitor_shutdown, daemon=True).start()
+
+    def _run():
+        log.info("Starting BolSamajh Web Studio at http://%s:%d...", host, port)
+        try:
+            server.run()
+        except Exception as e:
+            log.error("Web server error: %s", e)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
 def main() -> None:
-    """Launch BolSamajh: system-tray icon + global hotkey listener."""
+    """Launch BolSamajh: system-tray icon + global hotkey listener + web studio."""
     config = load_config()
     if config.debug:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -185,11 +241,25 @@ def main() -> None:
 
     shutdown_event = threading.Event()
 
-    # 1. Start overlay HUD
-    hud = OverlayHUD()
+    # 1. Start web server in background daemon thread
+    _start_web_server(config, shutdown_event)
+
+    # 2. Start overlay HUD with click-to-open Studio
+    hud = OverlayHUD(
+        on_click_callback=lambda: open_studio_dashboard(port=getattr(config.web, "port", 8000))
+    )
     hud.start()
 
-    # 2. Create engines (lazy-loaded)
+    # 3. Automatically launch Studio Desktop Window
+    if getattr(config.web, "auto_open", True):
+
+        def _deferred_open():
+            time.sleep(0.8)
+            open_studio_dashboard(port=getattr(config.web, "port", 8000))
+
+        threading.Thread(target=_deferred_open, daemon=True).start()
+
+    # 4. Create engines (lazy-loaded)
     stt = _create_stt(config)
     llm = _create_llm(config)
     tts = _create_tts(config)
@@ -276,7 +346,13 @@ def main() -> None:
     # 6. Start system tray (blocks main thread)
     from bolsamajh.overlay.tray import create_tray
 
-    tray = create_tray(config, on_quit_callback=on_quit)
+    tray = create_tray(
+        config,
+        on_quit_callback=on_quit,
+        on_open_studio_callback=lambda: open_studio_dashboard(
+            port=getattr(config.web, "port", 8000)
+        ),
+    )
     tray_holder[0] = tray
     if tray:
         tray.run()

@@ -114,9 +114,21 @@ def track_task(task: asyncio.Task) -> asyncio.Task:
     return task
 
 
+def get_local_ip() -> str:
+    """Detect local LAN IP for mobile/Android PWA companion connection."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
 def check_bind_security(host: Optional[str] = None) -> None:
-    """Refuse to start if server binds to anything but loopback (127.0.0.1/localhost/::1) and no API key is set.
-    Supports IPv4/IPv6 loopbacks and wildcard addresses (0.0.0.0, ::, [::]).
+    """Refuse to start if server binds to public addresses without an API key set.
+    Supports loopback (127.0.0.1/localhost/::1) and private local network addresses.
     """
     api_key = os.getenv("BOLSAMAJH_API_KEY", "").strip()
     if api_key:
@@ -125,6 +137,8 @@ def check_bind_security(host: Optional[str] = None) -> None:
     # If -h or --help was passed, let argparse display help without raising security error
     if "-h" in sys.argv or "--help" in sys.argv:
         return
+
+    allow_lan = os.getenv("BOLSAMAJH_ALLOW_LAN", "0").strip().lower() in ("1", "true", "yes")
 
     target_host = (
         host or os.getenv("BOLSAMAJH_HOST") or os.getenv("UVICORN_HOST") or os.getenv("HOST")
@@ -140,12 +154,20 @@ def check_bind_security(host: Optional[str] = None) -> None:
 
     if target_host:
         clean = target_host.strip().lower()
-        if clean not in ("127.0.0.1", "localhost", "::1", "[::1]"):
-            raise RuntimeError(
-                f"Security Error: Server configured to bind to '{target_host}' without BOLSAMAJH_API_KEY set. "
-                f"Binding to non-loopback addresses exposes the gateway publicly. "
-                f"Either set BOLSAMAJH_API_KEY or bind strictly to 127.0.0.1."
-            )
+        if clean in ("127.0.0.1", "localhost", "::1", "[::1]"):
+            return
+        if allow_lan:
+            try:
+                ip = ipaddress.ip_address(clean.strip("[]"))
+                if ip.is_private and not ip.is_unspecified:
+                    return
+            except ValueError:
+                pass
+        raise RuntimeError(
+            f"Security Error: Server configured to bind to '{target_host}' without BOLSAMAJH_API_KEY set. "
+            f"Binding to non-loopback addresses exposes the gateway publicly. "
+            f"Either set BOLSAMAJH_API_KEY or bind strictly to 127.0.0.1."
+        )
 
 
 @asynccontextmanager
@@ -183,6 +205,19 @@ if os.getenv("BOLSAMAJH_ALLOWED_HOSTS"):
             ALLOWED_HOSTS.add(h.strip().lower())
 
 
+def _is_allowed_host(host_name: str) -> bool:
+    """Validate host header against allowlist and private network addresses for mobile access."""
+    if host_name in ALLOWED_HOSTS:
+        return True
+    try:
+        ip = ipaddress.ip_address(host_name)
+        if ip.is_private or ip.is_loopback:
+            return True
+    except ValueError:
+        pass
+    return False
+
+
 # Security Middleware: Host header allowlist, Bearer auth, and Origin/CSRF validation
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
@@ -194,7 +229,7 @@ async def security_middleware(request: Request, call_next):
             bracket_end = raw_host.find("]")
             if bracket_end != -1:
                 host_name = raw_host[: bracket_end + 1].lower()
-        if host_name not in ALLOWED_HOSTS:
+        if not _is_allowed_host(host_name):
             return JSONResponse(
                 status_code=400,
                 content={"detail": f"Invalid Host header: '{raw_host}'"},
@@ -205,7 +240,12 @@ async def security_middleware(request: Request, call_next):
     path = request.url.path
 
     if expected_key:
-        is_exempt = path == "/" or path.startswith("/static") or path == "/api/status"
+        is_exempt = (
+            path == "/"
+            or path.startswith("/static")
+            or path == "/api/status"
+            or path in ("/manifest.json", "/sw.js", "/favicon.ico")
+        )
         if not is_exempt and (path.startswith("/api/") or path.startswith("/v1/")):
             auth_header = request.headers.get("authorization", "")
             scheme, _, token = auth_header.partition(" ")
@@ -835,10 +875,14 @@ async def get_status(request: Request):
         "tts": tts.name,
         "document_loaded": session_retriever.is_loaded,
         "refusal_threshold": session_retriever.refusal_threshold,
+        "local_ip": get_local_ip(),
+        "port": getattr(config.web, "port", 8000),
+        "script": getattr(config.dictation, "script", "natural"),
         "hotkeys": {
-            "dictation": getattr(config.hotkeys, "dictation", "alt+shift+d"),
+            "dictation": getattr(config.hotkeys, "dictation", "alt+shift+space"),
             "voice_command": getattr(config.hotkeys, "voice_command", "alt+shift+c"),
-            "doc_qa": getattr(config.hotkeys, "doc_qa", "alt+shift+q"),
+            "doc_qa": getattr(config.hotkeys, "doc_qa", "alt+shift+a"),
+            "doc_load": getattr(config.hotkeys, "doc_load", "alt+shift+d"),
         },
     }
 
@@ -1151,6 +1195,73 @@ async def voice_command_endpoint(req: CommandRequest):
         raise HTTPException(status_code=500, detail=f"Command processing failed: {e}")
 
     return {"command": req.command, "result": modified.strip()}
+
+
+class DictateResponse(BaseModel):
+    raw_text: str
+    clean_text: str
+    script: str
+    duration_seconds: float
+    latency_ms: float
+    fillers_removed: int
+
+
+@app.post("/api/dictate", response_model=DictateResponse)
+async def api_dictate(
+    file: UploadFile = File(...),
+    script: str = Form("natural"),
+    remove_fillers: bool = Form(True),
+):
+    """Voice dictation endpoint (Wispr Flow style) with filler removal, number formatting, and script control."""
+    t0 = time.time()
+    audio_bytes = await stream_upload_bytes(file, MAX_UPLOAD_SIZE)
+    clean_wav = await asyncio.to_thread(resample_audio_to_16k_mono, audio_bytes)
+    res = await asyncio.to_thread(stt.transcribe, clean_wav)
+    raw_text = res.text.strip()
+
+    from bolsamajh.utils.text_cleanup import (
+        cleanup_text,
+    )
+    from bolsamajh.utils.text_cleanup import (
+        remove_fillers as clean_fillers_only,
+    )
+
+    clean_text = cleanup_text(
+        raw_text,
+        remove_filler=remove_fillers,
+        script=script,
+    )
+    fillers_removed = 0
+    if remove_fillers and raw_text:
+        text_without_fillers = clean_fillers_only(raw_text)
+        fillers_removed = max(0, len(raw_text.split()) - len(text_without_fillers.split()))
+
+    latency_ms = round((time.time() - t0) * 1000, 1)
+    return DictateResponse(
+        raw_text=raw_text,
+        clean_text=clean_text,
+        script=script,
+        duration_seconds=round(res.duration_seconds, 2),
+        latency_ms=latency_ms,
+        fillers_removed=fillers_removed,
+    )
+
+
+class InjectRequest(BaseModel):
+    text: str
+
+
+@app.post("/api/inject")
+async def api_inject(req: InjectRequest):
+    """Inject text directly into the active desktop application window via clipboard simulator."""
+    try:
+        from bolsamajh.utils.clipboard import insert_text
+
+        await asyncio.to_thread(insert_text, req.text)
+        return {"status": "ok", "injected_length": len(req.text)}
+    except Exception as e:
+        log.warning("Inject failed: %s", e)
+        return {"status": "error", "message": str(e)}
 
 
 @app.get("/api/audio/{audio_file}")
@@ -1536,6 +1647,24 @@ if STATIC_DIR.exists():
     async def serve_index():
         index_file = STATIC_DIR / "index.html"
         return FileResponse(index_file)
+
+    @app.get("/manifest.json")
+    async def serve_manifest():
+        manifest_file = STATIC_DIR / "manifest.json"
+        if manifest_file.exists():
+            return FileResponse(manifest_file, media_type="application/manifest+json")
+        raise HTTPException(status_code=404, detail="Manifest not found")
+
+    @app.get("/sw.js")
+    async def serve_sw():
+        sw_file = STATIC_DIR / "sw.js"
+        if sw_file.exists():
+            return FileResponse(
+                sw_file,
+                media_type="application/javascript",
+                headers={"Service-Worker-Allowed": "/"},
+            )
+        raise HTTPException(status_code=404, detail="Service worker not found")
 
 
 if __name__ == "__main__":

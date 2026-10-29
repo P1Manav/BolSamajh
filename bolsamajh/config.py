@@ -110,6 +110,15 @@ class DocQAConfig:
 
 
 @dataclass
+class WebConfig:
+    """Web server & desktop studio settings."""
+
+    host: str = "127.0.0.1"
+    port: int = 8000
+    auto_open: bool = True
+
+
+@dataclass
 class AppConfig:
     """Top-level application configuration."""
 
@@ -119,6 +128,7 @@ class AppConfig:
     tts: TTSConfig = field(default_factory=TTSConfig)
     dictation: DictationConfig = field(default_factory=DictationConfig)
     doc_qa: DocQAConfig = field(default_factory=DocQAConfig)
+    web: WebConfig = field(default_factory=WebConfig)
     headphone_mode: bool = False  # False = speaker mode (echo gate active); True = headphone mode
     audio_max_record_seconds: int = 120  # Maximum recording duration cap
     audio_input_device: Optional[str] = None  # Audio input device index or name
@@ -320,6 +330,21 @@ def load_config() -> AppConfig:
         config.allowed_hosts = os.getenv("BOLSAMAJH_ALLOWED_HOSTS").strip()
     if os.getenv("BOLSAMAJH_API_KEY"):
         config.api_key = os.getenv("BOLSAMAJH_API_KEY").strip()
+
+    # Web overrides
+    if os.getenv("BOLSAMAJH_HOST"):
+        config.web.host = os.getenv("BOLSAMAJH_HOST").strip()
+    if os.getenv("BOLSAMAJH_PORT"):
+        try:
+            config.web.port = int(os.getenv("BOLSAMAJH_PORT").strip())
+        except ValueError:
+            pass
+    if os.getenv("BOLSAMAJH_AUTO_OPEN"):
+        config.web.auto_open = os.getenv("BOLSAMAJH_AUTO_OPEN").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
     config.validate()
     return config

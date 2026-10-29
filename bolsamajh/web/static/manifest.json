@@ -1,0 +1,37 @@
+{
+  "name": "BolSamajh — Bolo. Samjho.",
+  "short_name": "BolSamajh",
+  "description": "Hinglish-first Voice Companion & Document Intelligence for Desktop and Mobile",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Dictation Studio",
+      "url": "/#dictate",
+      "description": "Open voice dictation studio"
+    },
+    {
+      "name": "Talk to Document",
+      "url": "/#doc",
+      "description": "Voice Q&A with documents"
+    }
+  ]
+}

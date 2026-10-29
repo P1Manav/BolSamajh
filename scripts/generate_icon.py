@@ -41,6 +41,29 @@ def generate_icon():
     # Save highest resolution PNG
     images[-1].save(png_path, format="PNG")
 
+    # Generate static web and Android PWA icons
+    static_dir = root / "bolsamajh" / "web" / "static"
+    if static_dir.exists():
+        for pwa_size in [192, 512]:
+            pwa_img = Image.new("RGBA", (pwa_size, pwa_size), (0, 0, 0, 0))
+            pwa_draw = ImageDraw.Draw(pwa_img)
+            pad = pwa_size // 16
+            pwa_draw.ellipse([pad, pad, pwa_size - pad, pwa_size - pad], fill=(59, 130, 246, 255))
+            f_size = pwa_size // 2
+            try:
+                f = ImageFont.truetype("arial.ttf", f_size)
+            except OSError:
+                f = ImageFont.load_default()
+            b = pwa_draw.textbbox((0, 0), "B", font=f)
+            w_b, h_b = b[2] - b[0], b[3] - b[1]
+            pwa_draw.text(
+                ((pwa_size - w_b) / 2, (pwa_size - h_b) / 2 - (pwa_size // 16)),
+                "B",
+                fill=(255, 255, 255, 255),
+                font=f,
+            )
+            pwa_img.save(static_dir / f"icon-{pwa_size}.png", format="PNG")
+
     # Save multi-size ICO
     images[-1].save(
         ico_path,
