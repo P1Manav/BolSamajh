@@ -18,7 +18,7 @@ def build_app(enable_console: bool = False):
     os.chdir(root)
 
     print("=================================================================")
-    print("  BolSamajh - Standalone Release Executable Builder")
+    print("  BolSamajh — Standalone Release Executable Builder")
     print("=================================================================")
 
     # 1. Ensure icon is generated
@@ -40,13 +40,14 @@ def build_app(enable_console: bool = False):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # 3. Read version
-    version = "1.0.1"
-    try:
-        import bolsamajh
+    version = "1.1.0"
+    init_file = root / "bolsamajh" / "__init__.py"
+    if init_file.exists():
+        import re
 
-        version = getattr(bolsamajh, "__version__", version)
-    except Exception:
-        pass
+        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', init_file.read_text(encoding="utf-8"))
+        if match:
+            version = match.group(1)
 
     dist_dir = root / "dist"
     app_output_dir = dist_dir / "BolSamajh"
@@ -164,7 +165,7 @@ def build_app(enable_console: bool = False):
     if not exe_file.exists():
         raise RuntimeError(f"Build failed: {exe_file} not found.")
 
-    print(f"[OK] Executable built successfully: {exe_file}")
+    print(f"[✓] Executable built successfully: {exe_file}")
 
     # Copy launcher scripts and documentation into the distribution folder
     shutil.copy2(root / "README.md", app_output_dir / "README.md")
@@ -183,7 +184,7 @@ def build_app(enable_console: bool = False):
             zipf.write(file, arcname)
 
     size_mb = zip_path.stat().st_size / (1024 * 1024)
-    print("[OK] Distribution package created successfully!")
+    print("[✓] Distribution package created successfully!")
     print(f"    Package: {zip_path} ({size_mb:.1f} MB)")
     print("=================================================================")
     print("  To use the app directly:")
