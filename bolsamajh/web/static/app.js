@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle URL hash on load
   const hash = window.location.hash.replace('#', '');
-  if (['dashboard', 'dictate', 'doc', 'actions', 'mobile', 'system'].includes(hash)) {
+  if (['dashboard', 'dictate', 'doc', 'actions', 'why', 'mobile', 'system'].includes(hash)) {
     switchTab(hash);
   } else {
     switchTab('dashboard');
@@ -1134,11 +1134,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const dashboardTtsVal = document.getElementById('dashboardTtsVal');
       const dashboardHardwareBadge = document.getElementById('dashboardHardwareBadge');
       const dashboardDocLoadedStatus = document.getElementById('dashboardDocLoadedStatus');
+      const dashboardPrivacyBanner = document.getElementById('dashboardPrivacyBanner');
 
-      if (dashboardSttVal) dashboardSttVal.innerText = data.stt || 'Faster-Whisper Large-v3-Turbo';
-      if (dashboardSttSub) dashboardSttSub.innerText = `${data.device || 'CUDA GPU'} • Local Offline`;
-      if (dashboardLlmVal) dashboardLlmVal.innerText = data.llm || 'Local Gemma 3 / Gemini Flash';
-      if (dashboardTtsVal) dashboardTtsVal.innerText = data.tts || 'Edge-TTS / Piper Indic';
+      const isLlmLocal = (data.llm || '').toLowerCase().includes('ollama');
+      const isTtsLocal = (data.tts || '').toLowerCase().includes('piper');
+      const isFullyOffline = isLlmLocal && isTtsLocal;
+
+      if (dashboardPrivacyBanner) {
+        if (isFullyOffline) {
+          dashboardPrivacyBanner.className = 'privacy-banner privacy-offline';
+          dashboardPrivacyBanner.innerHTML = '<span>🟢</span><span><strong>100% Air-Gapped Offline Mode:</strong> All Speech-to-Text, LLM Intelligence, and Voice Synthesis models are running locally on-device. Zero network traffic leaves this machine.</span>';
+        } else {
+          dashboardPrivacyBanner.className = 'privacy-banner privacy-hybrid';
+          dashboardPrivacyBanner.innerHTML = `<span>🛡️</span><span><strong>System Architecture (Hybrid Mode):</strong> Speech-to-Text &amp; Document RAG run 100% locally on-device (${data.device || 'GPU'}). Voice synthesis uses ${data.tts || 'Edge-TTS'}. For air-gapped offline use, select Piper TTS in Settings.</span>`;
+        }
+      }
+
+      if (dashboardSttVal) dashboardSttVal.innerHTML = `${data.stt || 'Faster-Whisper'} <span class="badge-local">Local</span>`;
+      if (dashboardSttSub) dashboardSttSub.innerText = `${data.device || 'CUDA GPU'} • On-Device`;
+      if (dashboardLlmVal) dashboardLlmVal.innerHTML = `${data.llm || 'LLM'} <span class="${isLlmLocal ? 'badge-local' : 'badge-cloud'}">${isLlmLocal ? 'Local' : 'Cloud API'}</span>`;
+      if (dashboardTtsVal) dashboardTtsVal.innerHTML = `${data.tts || 'TTS'} <span class="${isTtsLocal ? 'badge-local' : 'badge-cloud'}">${isTtsLocal ? '100% Offline' : 'Cloud Endpoint'}</span>`;
       if (dashboardHardwareBadge) dashboardHardwareBadge.innerText = `${data.device || 'System'} Ready`;
       if (dashboardDocLoadedStatus) {
         dashboardDocLoadedStatus.innerText = data.document_loaded ? '✓ Document indexed & ready for Voice Q&A' : 'No document loaded';

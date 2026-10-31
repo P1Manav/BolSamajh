@@ -42,6 +42,9 @@
         <button class="nav-tab" data-tab="actions" role="tab" aria-selected="false">
           <span class="tab-icon">⚡</span> Voice Actions
         </button>
+        <button class="nav-tab" data-tab="why" role="tab" aria-selected="false">
+          <span class="tab-icon">⚖️</span> Why BolSamajh
+        </button>
         <button class="nav-tab" data-tab="mobile" role="tab" aria-selected="false">
           <span class="tab-icon">📱</span> Android Companion
         </button>
@@ -132,6 +135,12 @@
                   Notepad, VS Code, Browser, or Slack to dictate directly!</span>
               </div>
             </div>
+          </div>
+
+          <!-- Privacy & Architecture Transparency Banner -->
+          <div id="dashboardPrivacyBanner" class="privacy-banner privacy-hybrid">
+            <span>🛡️</span>
+            <span><strong>System Architecture:</strong> Speech-to-Text &amp; Document RAG run 100% locally on-device. Voice synthesis uses cloud endpoint (Edge-TTS). For 100% air-gapped offline mode, configure Piper TTS in Settings.</span>
           </div>
 
           <!-- 2. Three Core Capabilities Explainer & Quick-Try -->
@@ -592,6 +601,107 @@
                 <button class="btn btn-secondary btn-sm" id="actionCopyBtn" disabled>
                   <span>📋</span> Copy Result
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB: WHY BOLSAMAJH (HONEST COMPARISON)     -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-why" role="tabpanel">
+        <div class="why-container">
+          <div class="why-hero-card">
+            <span class="pill-badge pill-glow">⚖️ Competitive Transparency</span>
+            <h2>Why BolSamajh? — Honest Differentiation</h2>
+            <p class="subtitle">
+              Comparing BolSamajh with proprietary cloud dictation apps. Verified against official vendor documentation (retrieved 2026-10-31, details in <code>docs/COMPETITIVE_NOTES.md</code>).
+            </p>
+          </div>
+
+          <!-- Side-by-Side Comparison Table -->
+          <div class="comparison-table-wrapper">
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Wispr Flow</th>
+                  <th class="col-highlight">BolSamajh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>License &amp; Source</strong></td>
+                  <td>Proprietary closed-source</td>
+                  <td class="col-highlight">100% Open Source (MIT)</td>
+                </tr>
+                <tr>
+                  <td><strong>Pricing</strong></td>
+                  <td>Free (capped ~2,000 words/wk) / $12–$15/mo</td>
+                  <td class="col-highlight">$0.00 / Zero mandatory spend</td>
+                </tr>
+                <tr>
+                  <td><strong>Air-Gapped Offline Mode</strong></td>
+                  <td>Cloud-dependent (audio leaves device)</td>
+                  <td class="col-highlight">100% Offline Mode (Faster-Whisper + Piper + Ollama)</td>
+                </tr>
+                <tr>
+                  <td><strong>Talk to Documents (Voice RAG)</strong></td>
+                  <td>None (requires third-party web apps)</td>
+                  <td class="col-highlight">Built-in Voice Doc Q&amp;A with page citations &amp; refusal</td>
+                </tr>
+                <tr>
+                  <td><strong>Voice Barge-In</strong></td>
+                  <td>N/A</td>
+                  <td class="col-highlight">Silero VAD voice interruption during speech output</td>
+                </tr>
+                <tr>
+                  <td><strong>Script Control</strong></td>
+                  <td>Implicit (Hindi vs Hinglish selection)</td>
+                  <td class="col-highlight">Explicit 3-way toggle (Natural / Roman / Devanagari)</td>
+                </tr>
+                <tr>
+                  <td><strong>Indian Formats Normalization</strong></td>
+                  <td>General formatting</td>
+                  <td class="col-highlight">Targeted ₹ currency, GST %, Lakh/Crore, Indian dates</td>
+                </tr>
+                <tr>
+                  <td><strong>Voice Agent Gateway</strong></td>
+                  <td>None</td>
+                  <td class="col-highlight">OpenAI-compatible gateway for Bolna voice agents</td>
+                </tr>
+                <tr>
+                  <td><strong>Benchmark Transparency</strong></td>
+                  <td>Proprietary benchmarks</td>
+                  <td class="col-highlight">Public, reproducible benchmark (raw + normalized WER)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Honest: Where Wispr Flow is Stronger -->
+          <div class="honest-box">
+            <h4>💡 Where Wispr Flow is Stronger (Transparent Engineering)</h4>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+              We believe credibility comes from acknowledging competitor strengths. Wispr Flow outperforms BolSamajh in these areas:
+            </p>
+            <div class="honest-list">
+              <div class="honest-item">
+                <strong>🌐 100+ Production Languages</strong>
+                <p>Wispr Flow supports over 100 languages, whereas BolSamajh focuses deeply on Hinglish, Hindi, Gujarati, and English.</p>
+              </div>
+              <div class="honest-item">
+                <strong>📱 Cross-Platform Maturity</strong>
+                <p>Native apps for macOS, Windows, iOS, and Android with unified cloud synchronization.</p>
+              </div>
+              <div class="honest-item">
+                <strong>💻 Zero Hardware Requirements</strong>
+                <p>Runs entirely on cloud servers; does not require local GPU VRAM or CPU allocation.</p>
+              </div>
+              <div class="honest-item">
+                <strong>🏢 Team &amp; Enterprise Workspaces</strong>
+                <p>Built-in SAML/SSO, HIPAA compliance, shared team dictionaries, and meeting notetaker.</p>
               </div>
             </div>
           </div>

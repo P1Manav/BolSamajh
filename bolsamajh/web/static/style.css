@@ -2240,3 +2240,175 @@ audio {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
+
+/* ================================================= */
+/* PRIVACY & CLOUD/LOCAL TRANSPARENCY BADGES         */
+/* ================================================= */
+.privacy-banner {
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.privacy-banner.privacy-offline {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.privacy-banner.privacy-hybrid {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
+.badge-local {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
+.badge-cloud {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
+/* ================================================= */
+/* TAB: WHY BOLSAMAJH (COMPARISON & HONESTY)         */
+/* ================================================= */
+.why-container {
+  max-width: 1050px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 10px 0 40px 0;
+}
+
+.why-hero-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comparison-table-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.comp-table th {
+  text-align: left;
+  padding: 14px 18px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.comp-table th.col-highlight {
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.08);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.comp-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.comp-table td.col-highlight {
+  background: rgba(99, 102, 241, 0.05);
+  font-weight: 600;
+  color: #c7d2fe;
+}
+
+.comp-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comp-table tr:hover td.col-highlight {
+  background: rgba(99, 102, 241, 0.09);
+}
+
+.honest-box {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.honest-box h4 {
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+}
+
+.honest-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.honest-item {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.honest-item strong {
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.honest-item p {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+}

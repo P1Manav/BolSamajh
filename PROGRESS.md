@@ -2,11 +2,21 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Phase 14 Complete — Supervisor Architecture & Resilient Web-Call Core
+## Current Status: 🎯 Phase 15 Complete — UI Privacy Transparency & "Why BolSamajh" Honesty
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 15 — UI Privacy Transparency, Local/Cloud Badges & "Why BolSamajh" Comparison
+- [x] **"Why BolSamajh" Dedicated View:** Integrated an interactive comparison view (`#view-why`) into the Web Studio navigation featuring:
+  - Sourced side-by-side capability matrix vs Wispr Flow (open source vs closed, $0 vs $12–$15/mo, 100% offline vs cloud-dependent, built-in voice Doc Q&A with citations vs none, Silero VAD barge-in vs none, script control, Bolna gateway).
+  - Explicit **"Where Wispr Flow is Stronger"** section detailing 100+ production languages, mobile app maturity, and zero local hardware overhead.
+- [x] **Dynamic Privacy Architecture Banner:** Implemented live engine privacy detection:
+  - 🟢 **100% Air-Gapped Offline Mode:** Displays green shield banner when Faster-Whisper + Piper TTS + Ollama are all active.
+  - 🟡 **Hybrid Mode:** Displays transparent amber badge when cloud TTS (Edge-TTS) or cloud LLM (Google AI) are active.
+- [x] **Component-Level Badges:** Added `<span class="badge-local">Local</span>` and `<span class="badge-cloud">Cloud API / Endpoint</span>` tags next to STT, LLM, and TTS cards on the Welcome dashboard.
+- [x] **Hash Routing Updated:** Added `#why` tab to client-side router in `bolsamajh/web/static/app.js`.
 
 #### Phase 14 — Supervisor Architecture, Auto Port Fallback, /healthz & --selftest
 - [x] **Supervisor Engine (`bolsamajh/web/supervisor.py`):** Built supervisor with:
