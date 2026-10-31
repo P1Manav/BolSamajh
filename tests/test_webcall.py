@@ -1,8 +1,5 @@
 """Tests for BolSamajh Web Call WebSocket endpoint, sample document loader, and benchmark API."""
 
-import json
-from pathlib import Path
-import pytest
 from starlette.testclient import TestClient
 
 from bolsamajh.web.server import app
@@ -61,20 +58,24 @@ def test_webcall_websocket_lifecycle():
         assert "session_id" in ready_msg
 
         # 2. Configure sample document and language
-        ws.send_json({
-            "type": "config",
-            "language": "hinglish",
-            "sample_doc": "sample_policy.pdf",
-        })
+        ws.send_json(
+            {
+                "type": "config",
+                "language": "hinglish",
+                "sample_doc": "sample_policy.pdf",
+            }
+        )
         config_msg = ws.receive_json()
         assert config_msg["type"] == "configured"
         assert config_msg["document_loaded"] is True
 
         # 3. Process a text query over the call
-        ws.send_json({
-            "type": "process_query",
-            "text": "What is the room rent limit?",
-        })
+        ws.send_json(
+            {
+                "type": "process_query",
+                "text": "What is the room rent limit?",
+            }
+        )
 
         # Expect: transcript -> thinking state -> answer -> speaking state
         events = []
@@ -102,11 +103,12 @@ def test_webcall_barge_in_cancellation():
         assert ready["type"] == "ready"
 
         # Send barge-in event
-        ws.send_json({
-            "type": "barge_in",
-            "generation_id": "test_gen_123",
-        })
+        ws.send_json(
+            {
+                "type": "barge_in",
+                "generation_id": "test_gen_123",
+            }
+        )
         barge_msg = ws.receive_json()
         assert barge_msg["type"] == "state"
         assert barge_msg["state"] == "interrupted"
-

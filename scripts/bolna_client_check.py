@@ -36,6 +36,7 @@ import websockets
 try:
     from bolna.synthesizer.openai_synthesizer import OPENAISynthesizer
 except ImportError:
+
     class OPENAISynthesizer:
         """Standalone implementation of Bolna OPENAISynthesizer interface."""
 
@@ -70,9 +71,11 @@ except ImportError:
                 resp.raise_for_status()
                 return resp.content
 
+
 try:
     from openai import AsyncOpenAI
 except ImportError:
+
     class AsyncOpenAI:
         """Lightweight OpenAI client wrapper using httpx for standard STT endpoints."""
 
@@ -118,6 +121,7 @@ except ImportError:
                     self.transcriptions = Transcriptions(self.parent)
 
             self.audio = Audio(self)
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("bolna_check")

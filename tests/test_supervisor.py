@@ -1,8 +1,7 @@
 """Unit tests for BolSamajh Core Supervisor."""
 
-import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from bolsamajh.web.supervisor import (
@@ -10,7 +9,6 @@ from bolsamajh.web.supervisor import (
     find_available_port,
     get_app_dir,
     get_log_dir,
-    get_runtime_file,
     is_port_in_use,
     read_runtime_info,
     setup_rotating_file_logger,
@@ -62,4 +60,3 @@ def test_setup_rotating_file_logger():
     log_file = setup_rotating_file_logger()
     assert log_file.name == "bolsamajh.log"
     assert log_file.parent.exists()
-

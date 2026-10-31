@@ -15,8 +15,8 @@ for all 9 primary application views and verifies zero console errors:
 
 import os
 import sys
-import time
 import threading
+import time
 from pathlib import Path
 
 # Set UTF-8
@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT_DIR))
 
 import uvicorn
 from playwright.sync_api import sync_playwright
+
 from bolsamajh.web.server import app
 
 PORT = 8042
@@ -64,6 +65,7 @@ class ServerThread(threading.Thread):
 
 def wait_for_server():
     import urllib.request
+
     for _ in range(30):
         try:
             with urllib.request.urlopen(f"{SERVER_URL}/healthz", timeout=1) as resp:
@@ -121,14 +123,16 @@ def main():
 
                 screenshot_path = SCREENS_DIR / f"{filename_prefix}_{width}.png"
                 page.screenshot(path=str(screenshot_path), full_page=False)
-                print(f"     Saved {screenshot_path.name} ({os.path.getsize(screenshot_path):,} bytes)")
+                print(
+                    f"     Saved {screenshot_path.name} ({os.path.getsize(screenshot_path):,} bytes)"
+                )
 
                 # If home dashboard desktop, also save to assets/
                 if tab_id == "dashboard" and width == 1440:
                     hero_path = ROOT_DIR / "assets" / "app_screenshot_desktop.png"
                     hero_path.parent.mkdir(parents=True, exist_ok=True)
                     page.screenshot(path=str(hero_path), full_page=False)
-                    print(f"     Saved primary hero capture -> assets/app_screenshot_desktop.png")
+                    print("     Saved primary hero capture -> assets/app_screenshot_desktop.png")
 
             context.close()
 
@@ -154,4 +158,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

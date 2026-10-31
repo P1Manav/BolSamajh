@@ -204,8 +204,13 @@ def main():
     if not notepad_text:
         # Fallback to direct window message injection for headless/session 0
         from bolsamajh.utils.text_cleanup import cleanup_text
+
         transcription_res = stt.transcribe(wav_bytes)
-        cleaned_text = cleanup_text(transcription_res.text, remove_filler=cfg.dictation.remove_fillers, script=cfg.dictation.script)
+        cleaned_text = cleanup_text(
+            transcription_res.text,
+            remove_filler=cfg.dictation.remove_fillers,
+            script=cfg.dictation.script,
+        )
         win32gui.SendMessage(edit_hwnd, win32con.WM_SETTEXT, 0, cleaned_text)
         win32gui.SendMessage(edit_hwnd, win32con.WM_GETTEXT, 2048, buf)
         notepad_text = buf.value.strip()
@@ -302,13 +307,17 @@ def main():
     if not transformed_text or transformed_text == initial_draft:
         # If simulated keystrokes didn't land due to headless session restrictions, transform with LLM directly using production prompt
         import asyncio
+
         from bolsamajh.pipeline.commands import COMMAND_SYSTEM_PROMPT, _clean_llm_response
+
         prompt = (
             f"COMMAND: Fix grammar and make it professional\n\n"
             f'ORIGINAL TEXT:\n"""\n{initial_draft}\n"""\n\n'
             f"MODIFIED TEXT:"
         )
-        transformed_raw = asyncio.run(llm.generate(prompt=prompt, system=COMMAND_SYSTEM_PROMPT)).strip()
+        transformed_raw = asyncio.run(
+            llm.generate(prompt=prompt, system=COMMAND_SYSTEM_PROMPT)
+        ).strip()
         transformed_res = _clean_llm_response(transformed_raw)
         win32gui.SendMessage(edit_hwnd, win32con.WM_SETTEXT, 0, transformed_res)
         win32gui.SendMessage(edit_hwnd, win32con.WM_GETTEXT, 2048, buf2)

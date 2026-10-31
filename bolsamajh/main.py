@@ -218,9 +218,7 @@ def open_studio_dashboard(port: int = 8000) -> None:
     webbrowser.open(url)
 
 
-def _start_web_server(
-    config: AppConfig, shutdown_event: threading.Event, port: int = 8000
-) -> None:
+def _start_web_server(config: AppConfig, shutdown_event: threading.Event, port: int = 8000) -> None:
     """Start Uvicorn web server in a background daemon thread."""
     import uvicorn
 
@@ -276,10 +274,7 @@ def run_selftest() -> int:
         stt = _create_stt(config)
         stt.load_model()
         test_audio_path = (
-            Path(__file__).resolve().parent.parent
-            / "benchmark_data"
-            / "audio"
-            / "sentence_001.wav"
+            Path(__file__).resolve().parent.parent / "benchmark_data" / "audio" / "sentence_001.wav"
         )
         if test_audio_path.exists():
             import wave
@@ -288,9 +283,7 @@ def run_selftest() -> int:
 
             with wave.open(str(test_audio_path), "rb") as wf:
                 frames = wf.readframes(wf.getnframes())
-                audio_data = (
-                    np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
-                )
+                audio_data = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
             result = stt.transcribe(audio_data)
             clean_text = result.text.encode("ascii", errors="replace").decode("ascii")
             print(
@@ -352,6 +345,7 @@ def main() -> None:
         if sys.platform == "win32":
             try:
                 import ctypes
+
                 if ctypes.windll.kernel32.AttachConsole(-1):
                     sys.stdout = open("CONOUT$", "w", encoding="utf-8", errors="replace")
                     sys.stderr = open("CONOUT$", "w", encoding="utf-8", errors="replace")
@@ -401,9 +395,7 @@ def main() -> None:
     _start_web_server(config, shutdown_event, port=actual_port)
 
     # 2. Start overlay HUD with click-to-open Studio
-    hud = OverlayHUD(
-        on_click_callback=lambda: open_studio_dashboard(port=actual_port)
-    )
+    hud = OverlayHUD(on_click_callback=lambda: open_studio_dashboard(port=actual_port))
     from bolsamajh.web.server import set_overlay_hud
 
     set_overlay_hud(hud)

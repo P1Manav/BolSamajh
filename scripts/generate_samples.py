@@ -1,12 +1,13 @@
 """Generate sample documents for BolSamajh demo and tests."""
 
-import os
 from pathlib import Path
+
 import fitz  # PyMuPDF
+
 
 def generate_sample_pdf(output_path: Path):
     doc = fitz.open()
-    
+
     # Page 1: Coverage and Inpatient Care
     p1 = doc.new_page()
     text_p1 = (
@@ -58,6 +59,7 @@ def generate_sample_pdf(output_path: Path):
     doc.close()
     print(f"Generated sample PDF at {output_path}")
 
+
 def generate_sample_html(output_path: Path):
     html_content = """<!DOCTYPE html>
 <html lang="en">
@@ -93,6 +95,7 @@ def generate_sample_html(output_path: Path):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"Generated sample HTML at {output_path}")
+
 
 if __name__ == "__main__":
     base_dir = Path("d:/Projects/BolSamajh")

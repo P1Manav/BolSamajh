@@ -1444,11 +1444,14 @@ async def get_audio_file(audio_file: str):
 @app.get("/api/benchmark")
 async def get_benchmark_results():
     """Return verified empirical benchmark metrics from benchmark_results.json."""
-    benchmark_file = Path(__file__).resolve().parent.parent.parent / "benchmark_data" / "benchmark_results.json"
+    benchmark_file = (
+        Path(__file__).resolve().parent.parent.parent / "benchmark_data" / "benchmark_results.json"
+    )
     if not benchmark_file.exists():
         raise HTTPException(status_code=404, detail="Benchmark results not found")
     try:
         import json
+
         with open(benchmark_file, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
@@ -1530,13 +1533,17 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
     active_gen_id = None
     cancel_event = asyncio.Event()
 
-    await websocket.send_json({
-        "type": "ready",
-        "session_id": session_id,
-        "document_loaded": session_retriever.is_loaded,
-        "document_title": session_retriever.document_title if session_retriever.is_loaded else "",
-        "language": current_lang,
-    })
+    await websocket.send_json(
+        {
+            "type": "ready",
+            "session_id": session_id,
+            "document_loaded": session_retriever.is_loaded,
+            "document_title": session_retriever.document_title
+            if session_retriever.is_loaded
+            else "",
+            "language": current_lang,
+        }
+    )
 
     try:
         while True:
@@ -1549,6 +1556,7 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                 continue
 
             import json
+
             data = json.loads(message["text"])
             msg_type = data.get("type", "")
 
@@ -1557,7 +1565,9 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                 doc_name = data.get("sample_doc")
                 if doc_name:
                     safe_name = Path(doc_name).name
-                    sample_file = Path(__file__).resolve().parent.parent.parent / "samples" / safe_name
+                    sample_file = (
+                        Path(__file__).resolve().parent.parent.parent / "samples" / safe_name
+                    )
                     if sample_file.exists():
                         doc = await asyncio.to_thread(load_document, str(sample_file))
                         doc.title = sample_file.stem
@@ -1565,12 +1575,16 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                         for p in doc.pages:
                             p.source = safe_name
                         await asyncio.to_thread(session_retriever.index_document, doc)
-                await websocket.send_json({
-                    "type": "configured",
-                    "language": current_lang,
-                    "document_loaded": session_retriever.is_loaded,
-                    "document_title": session_retriever.document_title if session_retriever.is_loaded else "",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "configured",
+                        "language": current_lang,
+                        "document_loaded": session_retriever.is_loaded,
+                        "document_title": session_retriever.document_title
+                        if session_retriever.is_loaded
+                        else "",
+                    }
+                )
 
             elif msg_type == "audio_chunk":
                 b64_audio = data.get("data", "")
@@ -1582,19 +1596,23 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                 gen_id = data.get("generation_id")
                 log.info("WebCall: Barge-in triggered for generation %s", gen_id)
                 cancel_event.set()
-                await websocket.send_json({
-                    "type": "state",
-                    "state": "interrupted",
-                    "generation_id": gen_id,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "state",
+                        "state": "interrupted",
+                        "generation_id": gen_id,
+                    }
+                )
 
             elif msg_type == "speech_start":
                 cancel_event.set()
                 audio_buffer.clear()
-                await websocket.send_json({
-                    "type": "state",
-                    "state": "listening",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "state",
+                        "state": "listening",
+                    }
+                )
 
             elif msg_type == "speech_end" or msg_type == "process_query":
                 query_text = data.get("text", "").strip()
@@ -1619,20 +1637,24 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                     await websocket.send_json({"type": "state", "state": "idle"})
                     continue
 
-                await websocket.send_json({
-                    "type": "transcript",
-                    "text": query_text,
-                    "role": "user",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "transcript",
+                        "text": query_text,
+                        "role": "user",
+                    }
+                )
 
                 active_gen_id = uuid.uuid4().hex[:8]
                 cancel_event = asyncio.Event()
 
-                await websocket.send_json({
-                    "type": "state",
-                    "state": "thinking",
-                    "generation_id": active_gen_id,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "state",
+                        "state": "thinking",
+                        "generation_id": active_gen_id,
+                    }
+                )
 
                 chunks = []
                 if session_retriever.is_loaded:
@@ -1647,8 +1669,12 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                     context_str = "(No relevant content found in the document that exceeds the relevance threshold)"
 
                 system_prompt = _SYSTEM_PROMPT.format(
-                    lang_instruction=_LANG_INSTRUCTIONS.get(current_lang.lower(), _LANG_INSTRUCTIONS["hinglish"]),
-                    doc_title=session_retriever.document_title if session_retriever.is_loaded else "Document",
+                    lang_instruction=_LANG_INSTRUCTIONS.get(
+                        current_lang.lower(), _LANG_INSTRUCTIONS["hinglish"]
+                    ),
+                    doc_title=session_retriever.document_title
+                    if session_retriever.is_loaded
+                    else "Document",
                     history_context="",
                     context=context_str,
                 )
@@ -1658,35 +1684,48 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
                 except Exception as e:
                     log.warning("WebCall LLM error: %s", e)
                     if chunks:
-                        full_answer = f"Document ke according ({chunks[0].citation}): {chunks[0].text[:250]}"
+                        full_answer = (
+                            f"Document ke according ({chunks[0].citation}): {chunks[0].text[:250]}"
+                        )
                     else:
                         full_answer = "Is document mein yeh information nahi mili."
 
                 if cancel_event.is_set():
-                    await websocket.send_json({"type": "state", "state": "interrupted", "generation_id": active_gen_id})
+                    await websocket.send_json(
+                        {"type": "state", "state": "interrupted", "generation_id": active_gen_id}
+                    )
                     continue
 
                 citations_list = [c.citation for c in chunks]
 
-                await websocket.send_json({
-                    "type": "answer",
-                    "text": full_answer,
-                    "citations": citations_list,
-                    "generation_id": active_gen_id,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "answer",
+                        "text": full_answer,
+                        "citations": citations_list,
+                        "generation_id": active_gen_id,
+                    }
+                )
 
-                await websocket.send_json({
-                    "type": "state",
-                    "state": "speaking",
-                    "generation_id": active_gen_id,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "state",
+                        "state": "speaking",
+                        "generation_id": active_gen_id,
+                    }
+                )
 
                 from bolsamajh.utils.sentence_splitter import split_into_sentences
+
                 sentences = split_into_sentences(full_answer)
                 if not sentences:
                     sentences = [full_answer]
 
-                lang_code = "gu" if current_lang.lower() in ("gu", "gujarati") else ("en" if current_lang.lower() in ("en", "english") else "hi")
+                lang_code = (
+                    "gu"
+                    if current_lang.lower() in ("gu", "gujarati")
+                    else ("en" if current_lang.lower() in ("en", "english") else "hi")
+                )
 
                 for sentence in sentences:
                     if cancel_event.is_set():
@@ -1706,21 +1745,25 @@ async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
 
                     if audio_bytes:
                         b64 = base64.b64encode(audio_bytes).decode("ascii")
-                        await websocket.send_json({
-                            "type": "audio_chunk",
-                            "audio": b64,
-                            "text": sentence,
-                            "generation_id": active_gen_id,
-                            "format": "mp3",
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "audio_chunk",
+                                "audio": b64,
+                                "text": sentence,
+                                "generation_id": active_gen_id,
+                                "format": "mp3",
+                            }
+                        )
                         await asyncio.sleep(0.04)
 
                 if not cancel_event.is_set():
-                    await websocket.send_json({
-                        "type": "state",
-                        "state": "idle",
-                        "generation_id": active_gen_id,
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "state",
+                            "state": "idle",
+                            "generation_id": active_gen_id,
+                        }
+                    )
 
     except (WebSocketDisconnect, asyncio.CancelledError):
         log.info("WebCall WebSocket closed: %s", session_id)
@@ -2131,7 +2174,5 @@ if __name__ == "__main__":
     config.web.port = actual_port
     log_file = setup_rotating_file_logger()
     write_runtime_info(host=args.host, port=actual_port, log_file=log_file)
-    print(
-        f"[BolSamajh Core] Running at http://{args.host}:{actual_port} (PID {os.getpid()})"
-    )
+    print(f"[BolSamajh Core] Running at http://{args.host}:{actual_port} (PID {os.getpid()})")
     uvicorn.run("bolsamajh.web.server:app", host=args.host, port=actual_port)

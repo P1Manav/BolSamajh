@@ -514,12 +514,11 @@ async def run_pipeline_test():
         answer = await llm.generate(prompt)
         print(f"     LLM Answer: {answer.strip()}")
 
-        keyword_ok = (expected_keyword.lower() in answer.lower()) or (
-            "six" in answer.lower() if expected_keyword == "6" else False
-        ) or (
-            "chhah" in answer.lower() if expected_keyword == "6" else False
-        ) or (
-            "che" in answer.lower() if expected_keyword == "6" else False
+        keyword_ok = (
+            (expected_keyword.lower() in answer.lower())
+            or ("six" in answer.lower() if expected_keyword == "6" else False)
+            or ("chhah" in answer.lower() if expected_keyword == "6" else False)
+            or ("che" in answer.lower() if expected_keyword == "6" else False)
         )
         test_pass = citation_ok and keyword_ok
         if test_pass:

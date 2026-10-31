@@ -10,10 +10,9 @@ Tests the full-duplex Web Call interface:
 7. Screenshots and execution trace at 1440px and 375px viewports.
 """
 
-import os
 import sys
-import time
 import threading
+import time
 from pathlib import Path
 
 # Set UTF-8
@@ -26,6 +25,7 @@ sys.path.insert(0, str(ROOT_DIR))
 
 import uvicorn
 from playwright.sync_api import sync_playwright
+
 from bolsamajh.web.server import app
 
 PORT = 8043
@@ -51,6 +51,7 @@ class ServerThread(threading.Thread):
 
 def wait_for_server():
     import urllib.request
+
     for _ in range(30):
         try:
             with urllib.request.urlopen(f"{SERVER_URL}/healthz", timeout=1) as resp:

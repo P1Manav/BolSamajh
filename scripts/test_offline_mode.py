@@ -181,7 +181,10 @@ async def run_offline_suite():
         if len(ollama_response.strip()) > 0:
             ollama_pass = True
     except Exception as e:
-        log.warning("   -> Ollama service not running on port 11434 (%s). Using offline verification stub.", e)
+        log.warning(
+            "   -> Ollama service not running on port 11434 (%s). Using offline verification stub.",
+            e,
+        )
         ollama_pass = True
         ollama_response = "Yes operational offline (Ollama service requires manual launch)"
 

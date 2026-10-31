@@ -200,4 +200,3 @@ def check_existing_instance() -> Optional[Tuple[str, int]]:
         return (host, port)
 
     return None
-
