@@ -102,3 +102,4 @@ To maintain absolute credibility and transparent engineering standards, we clear
 - **Source:** [github.com/rhasspy/piper](https://github.com/rhasspy/piper) (Retrieved 2026-10-31)
 - **Hindi (`hi_IN`):** Medium quality ONNX model (`hi_IN-pratham-medium`), 22.05 kHz, fast CPU inference.
 - **Gujarati (`gu_IN`):** Community Rasa Gujarati ONNX model (~63 MB).
+

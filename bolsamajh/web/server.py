@@ -871,6 +871,19 @@ VOICE_MAP = {
 # --- API Endpoints ---
 
 
+@app.get("/healthz")
+async def healthz():
+    """Liveness & readiness probe for BolSamajh core server."""
+    return {
+        "status": "ok",
+        "app": "BolSamajh",
+        "version": __version__,
+        "pid": os.getpid(),
+        "port": getattr(config.web, "port", 8000),
+        "timestamp": time.time(),
+    }
+
+
 @app.get("/api/status")
 async def get_status(request: Request):
     """Return system health and hardware without leaking loaded document title."""
@@ -1782,6 +1795,11 @@ if STATIC_DIR.exists():
         index_file = STATIC_DIR / "index.html"
         return FileResponse(index_file)
 
+    @app.get("/call", response_class=HTMLResponse)
+    async def serve_call():
+        index_file = STATIC_DIR / "index.html"
+        return FileResponse(index_file)
+
     @app.get("/manifest.json")
     async def serve_manifest():
         manifest_file = STATIC_DIR / "manifest.json"
@@ -1806,10 +1824,23 @@ if __name__ == "__main__":
 
     import uvicorn
 
+    from bolsamajh.web.supervisor import (
+        find_available_port,
+        setup_rotating_file_logger,
+        write_runtime_info,
+    )
+
     parser = argparse.ArgumentParser(description="BolSamajh Web Server & API Gateway")
     parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8000, help="Bind port (default: 8000)")
     args = parser.parse_args()
 
     check_bind_security(host=args.host)
-    uvicorn.run("bolsamajh.web.server:app", host=args.host, port=args.port)
+    actual_port = find_available_port(host=args.host, start_port=args.port)
+    config.web.port = actual_port
+    log_file = setup_rotating_file_logger()
+    write_runtime_info(host=args.host, port=actual_port, log_file=log_file)
+    print(
+        f"[BolSamajh Core] Running at http://{args.host}:{actual_port} (PID {os.getpid()})"
+    )
+    uvicorn.run("bolsamajh.web.server:app", host=args.host, port=actual_port)

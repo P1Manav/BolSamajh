@@ -45,6 +45,14 @@ from bolsamajh import __version__
 from bolsamajh.config import AppConfig, load_config
 from bolsamajh.overlay.hud import OverlayHUD
 from bolsamajh.tts.factory import create_tts_adapter
+from bolsamajh.web.supervisor import (
+    clean_runtime_info,
+    check_existing_instance,
+    find_available_port,
+    setup_rotating_file_logger,
+    wait_for_health,
+    write_runtime_info,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -210,14 +218,15 @@ def open_studio_dashboard(port: int = 8000) -> None:
     webbrowser.open(url)
 
 
-def _start_web_server(config: AppConfig, shutdown_event: threading.Event) -> None:
+def _start_web_server(
+    config: AppConfig, shutdown_event: threading.Event, port: int = 8000
+) -> None:
     """Start Uvicorn web server in a background daemon thread."""
     import uvicorn
 
     from bolsamajh.web.server import app
 
     host = getattr(config.web, "host", "127.0.0.1")
-    port = getattr(config.web, "port", 8000)
 
     server_config = uvicorn.Config(
         app,
@@ -245,8 +254,116 @@ def _start_web_server(config: AppConfig, shutdown_event: threading.Event) -> Non
     threading.Thread(target=_run, daemon=True).start()
 
 
+def run_selftest() -> int:
+    """Run comprehensive self-test verifying models, transcription, retrieval, and server."""
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    print("========================================")
+    print(f"  BolSamajh v{__version__} - Automated Self-Test")
+    print("========================================")
+    log_file = setup_rotating_file_logger()
+    try:
+        from pathlib import Path
+
+        config = load_config()
+        print(f"[1/4] Config loaded: STT={config.stt.engine}, Device={config.stt.device}")
+
+        # 1. Test STT model loading & transcription
+        print("[2/4] Testing STT engine...")
+        stt = _create_stt(config)
+        stt.load_model()
+        test_audio_path = (
+            Path(__file__).resolve().parent.parent
+            / "benchmark_data"
+            / "audio"
+            / "sentence_001.wav"
+        )
+        if test_audio_path.exists():
+            import wave
+            import numpy as np
+
+            with wave.open(str(test_audio_path), "rb") as wf:
+                frames = wf.readframes(wf.getnframes())
+                audio_data = (
+                    np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+                )
+            result = stt.transcribe(audio_data)
+            clean_text = result.text.encode("ascii", errors="replace").decode("ascii")
+            print(
+                f"      STT output: {clean_text[:60]}... (latency {result.processing_seconds:.2f}s)"
+            )
+        else:
+            print("      STT model loaded successfully.")
+
+        # 2. Test Document Retriever
+        print("[3/4] Testing document retriever embedding model...")
+        from bolsamajh.documents.retriever import DocumentRetriever
+
+        retriever = DocumentRetriever()
+        retriever._load_embedding_model()
+        print("      Retriever embedding model loaded.")
+
+        # 3. Test Core Server & /healthz
+        print("[4/4] Testing core web server & /healthz...")
+        import uvicorn
+        from bolsamajh.web.server import app
+
+        test_port = find_available_port("127.0.0.1", start_port=8900)
+        server_cfg = uvicorn.Config(
+            app,
+            host="127.0.0.1",
+            port=test_port,
+            log_level="error",
+            access_log=False,
+            log_config=None,
+        )
+        server = uvicorn.Server(server_cfg)
+        threading.Thread(target=server.run, daemon=True).start()
+
+        if wait_for_health("127.0.0.1", test_port, timeout=12.0):
+            print(f"      /healthz OK at http://127.0.0.1:{test_port}")
+            server.should_exit = True
+        else:
+            server.should_exit = True
+            print("      FAILED: /healthz did not respond within timeout.")
+            return 1
+
+        stt.unload_model()
+        print("========================================")
+        print("  [PASS] SELF-TEST PASSED: ALL SUBSYSTEMS OPERATIONAL")
+        print("========================================")
+        return 0
+    except Exception as e:
+        print(f"ERROR during selftest: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return 1
+
+
 def main() -> None:
     """Launch BolSamajh: system-tray icon + global hotkey listener + web studio."""
+    if "--selftest" in sys.argv:
+        sys.exit(run_selftest())
+
+    # 1. Setup rotating file logging early so all logs are preserved
+    log_file = setup_rotating_file_logger()
+
+    # 2. Check for already running instance
+    existing = check_existing_instance()
+    if existing:
+        host, existing_port = existing
+        log.info(
+            "BolSamajh is already running at http://%s:%d. Opening dashboard...",
+            host,
+            existing_port,
+        )
+        open_studio_dashboard(port=existing_port)
+        return
+
     config = load_config()
     if config.debug:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -262,38 +379,50 @@ def main() -> None:
         config.dictation.script,
     )
 
+    host = getattr(config.web, "host", "127.0.0.1")
+    configured_port = getattr(config.web, "port", 8000)
+    actual_port = find_available_port(host=host, start_port=configured_port)
+    config.web.port = actual_port
+    write_runtime_info(host=host, port=actual_port, log_file=log_file)
+
     shutdown_event = threading.Event()
 
-    # 1. Start web server in background daemon thread
-    _start_web_server(config, shutdown_event)
+    # 1. Start web server on chosen port
+    _start_web_server(config, shutdown_event, port=actual_port)
 
     # 2. Start overlay HUD with click-to-open Studio
     hud = OverlayHUD(
-        on_click_callback=lambda: open_studio_dashboard(port=getattr(config.web, "port", 8000))
+        on_click_callback=lambda: open_studio_dashboard(port=actual_port)
     )
     from bolsamajh.web.server import set_overlay_hud
 
     set_overlay_hud(hud)
     hud.start()
 
-    # 3. Automatically launch Studio Desktop Window once server is listening
+    # 3. Automatically launch Studio Desktop Window once server is verified healthy
     if getattr(config.web, "auto_open", True):
 
         def _deferred_open():
-            host = getattr(config.web, "host", "127.0.0.1")
-            port = getattr(config.web, "port", 8000)
-            import socket
+            if wait_for_health(host, actual_port, timeout=15.0):
+                time.sleep(0.2)
+                open_studio_dashboard(port=actual_port)
+            else:
+                log.error(
+                    "BolSamajh core server failed to respond on http://%s:%d/healthz within 15s. Log: %s",
+                    host,
+                    actual_port,
+                    log_file,
+                )
+                if tk:
+                    try:
+                        import tkinter.messagebox as mb
 
-            for _ in range(60):  # poll up to 6.0 seconds for server socket ready
-                if shutdown_event.is_set():
-                    return
-                try:
-                    with socket.create_connection((host, port), timeout=0.1):
-                        break
-                except OSError:
-                    time.sleep(0.1)
-            time.sleep(0.2)
-            open_studio_dashboard(port=port)
+                        mb.showerror(
+                            "BolSamajh Notice",
+                            f"Core server failed to respond on port {actual_port}.\n\nPlease check log:\n{log_file}",
+                        )
+                    except Exception:
+                        pass
 
         threading.Thread(target=_deferred_open, daemon=True).start()
 
@@ -355,6 +484,7 @@ def main() -> None:
 
     def on_quit():
         log.info("Quit invoked: cleaning up...")
+        clean_runtime_info()
         shutdown_event.set()
         dictation.cancel()
         doc_qa.cancel()

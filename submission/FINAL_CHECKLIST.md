@@ -9,17 +9,13 @@
 
 ## 1. Quick Verification & Execution
 
-### One-Command Launch (Desktop Overlay)
+### One-Command Launch (Complete App: Studio Dashboard, Tray & Overlay)
 ```powershell
 python -m bolsamajh
 ```
-*HUD overlay docks in system tray with hotkeys: `Alt+Shift+Space` (dictate), `Alt+Shift+D` (load doc), `Alt+Shift+A` (ask doc), `Alt+Shift+C` (voice command), `Escape` (cancel/stop).*
+*Automatically starts the core server, launches the Studio Dashboard in your browser (with automatic port fallback and /healthz validation), docks in the system tray, and enables global hotkeys: `Alt+Shift+Space` (dictate), `Alt+Shift+D` (load doc), `Alt+Shift+A` (ask doc), `Alt+Shift+C` (voice command), `Escape` (cancel/stop).*
 
-### One-Command Launch (Web UI & Bolna Gateway)
-```powershell
-python -m uvicorn bolsamajh.web.server:app --port 8000
-```
-*Access browser interface at `http://localhost:8000` or target OpenAI-compatible voice gateway at `http://localhost:8000/v1`.*
+*(Developer headless mode: `python -m bolsamajh.web.server`)*
 
 ### Run All Unit & Integration Tests (Locally on Clean Venvs)
 ```powershell

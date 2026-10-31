@@ -8,6 +8,21 @@ from bolsamajh.web.server import app, is_safe_external_url
 client = TestClient(app)
 
 
+def test_healthz_endpoint():
+    resp = client.get("/healthz")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
+    assert data["app"] == "BolSamajh"
+    assert "port" in data
+    assert "pid" in data
+
+
+def test_call_endpoint():
+    resp = client.get("/call")
+    assert resp.status_code == 200
+
+
 def test_status_endpoint():
     resp = client.get("/api/status")
     assert resp.status_code == 200

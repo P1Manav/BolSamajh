@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BolSamajh — Bolo. Samjho. | Voice AI Studio & Document Intelligence</title>
-  <meta name="description" content="Talk to any document in your language and dictate anywhere. Multilingual voice assistant for Indian languages.">
+  <meta name="description"
+    content="Talk to any document in your language and dictate anywhere. Multilingual voice assistant for Indian languages.">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0a0f1d">
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
   <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
   <div class="app-container">
     <!-- Top Navigation Bar -->
@@ -49,7 +52,8 @@
 
       <!-- Right Nav Controls -->
       <div class="nav-controls">
-        <button type="button" id="toggleOverlayBtn" class="btn btn-overlay btn-sm" title="Toggle desktop floating overlay pill">
+        <button type="button" id="toggleOverlayBtn" class="btn btn-overlay btn-sm"
+          title="Toggle desktop floating overlay pill">
           <span class="status-indicator" id="overlayDot"></span>
           <span id="overlayBtnText">Start Overlay</span>
         </button>
@@ -61,7 +65,8 @@
           <span id="sttStatusText">Checking engines...</span>
         </div>
         <div class="api-key-container" id="apiKeyContainer">
-          <input type="password" id="apiKeyInput" placeholder="API Key (optional)" class="api-key-input" autocomplete="off" />
+          <input type="password" id="apiKeyInput" placeholder="API Key (optional)" class="api-key-input"
+            autocomplete="off" />
           <button type="button" id="setApiKeyBtn" class="btn btn-secondary btn-sm">Set</button>
           <span id="apiKeyBadge" class="api-key-badge" style="display: none;">✓</span>
         </div>
@@ -70,7 +75,8 @@
 
     <!-- Global Auth / Notification Banner -->
     <div id="authAlertBanner" class="auth-alert-banner" style="display: none;">
-      <span id="authAlertText">⚠️ Authentication required (HTTP 401). Please enter your BOLSAMAJH_API_KEY in the top bar.</span>
+      <span id="authAlertText">⚠️ Authentication required (HTTP 401). Please enter your BOLSAMAJH_API_KEY in the top
+        bar.</span>
       <button type="button" class="btn-dismiss" id="dismissAuthAlertBtn">✕</button>
     </div>
 
@@ -93,7 +99,8 @@
               </div>
               <h2 class="welcome-title">Your Hinglish-First AI Voice Companion</h2>
               <p class="welcome-subtitle">
-                Speak to write in any application with smart filler removal, talk to any PDF or document to understand it in your own language, and transform selected text with voice commands.
+                Speak to write in any application with smart filler removal, talk to any PDF or document to understand
+                it in your own language, and transform selected text with voice commands.
               </p>
             </div>
 
@@ -104,7 +111,8 @@
                   <span class="status-indicator" id="dashboardOverlayDot"></span>
                   <span class="activation-status-label" id="dashboardOverlayStatusText">Overlay Inactive</span>
                 </div>
-                <span class="activation-hint">Global Shortcut: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></span>
+                <span class="activation-hint">Global Shortcut: <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                  <kbd>Space</kbd></span>
               </div>
 
               <div class="activation-action-row">
@@ -112,14 +120,16 @@
                   <span class="btn-icon">🎙️</span>
                   <span id="dashboardOverlayActivateBtnText">Activate Desktop Overlay</span>
                 </button>
-                <button type="button" class="btn btn-secondary" id="dashboardInstallShortcutsBtn" title="Create Windows Desktop & Start Menu Shortcuts">
+                <button type="button" class="btn btn-secondary" id="dashboardInstallShortcutsBtn"
+                  title="Create Windows Desktop & Start Menu Shortcuts">
                   <span>📌</span> Add Desktop Shortcut
                 </button>
               </div>
 
               <div class="activation-footer-note">
                 <span class="note-icon">💡</span>
-                <span>When active, a floating glass pill sits on your desktop. Hold <kbd>Alt+Shift+Space</kbd> in Word, Notepad, VS Code, Browser, or Slack to dictate directly!</span>
+                <span>When active, a floating glass pill sits on your desktop. Hold <kbd>Alt+Shift+Space</kbd> in Word,
+                  Notepad, VS Code, Browser, or Slack to dictate directly!</span>
               </div>
             </div>
           </div>
@@ -137,9 +147,10 @@
                 </div>
               </div>
               <p class="pillar-description">
-                Hold to talk in natural Hinglish, Hindi, or English. Fillers (umm, uhh, matlab) are automatically cleaned, and numbers, dates, and rupees (₹) are formatted intelligently.
+                Hold to talk in natural Hinglish, Hindi, or English. Fillers (umm, uhh, matlab) are automatically
+                cleaned, and numbers, dates, and rupees (₹) are formatted intelligently.
               </p>
-              
+
               <!-- Quick Try Sandbox -->
               <div class="pillar-sandbox">
                 <div class="sandbox-label">Quick Mic Test:</div>
@@ -149,7 +160,8 @@
                   </button>
                   <span class="sandbox-status" id="dashboardQuickMicStatus">Ready</span>
                 </div>
-                <div class="sandbox-result-box" id="dashboardQuickMicResult">Click above, speak a sentence in Hinglish, and release to test!</div>
+                <div class="sandbox-result-box" id="dashboardQuickMicResult">Click above, speak a sentence in Hinglish,
+                  and release to test!</div>
               </div>
 
               <button type="button" class="btn-link pillar-switch-link" data-switch-tab="dictate">
@@ -167,7 +179,8 @@
                 </div>
               </div>
               <p class="pillar-description">
-                Ask anything about any PDF, Word document, or webpage. Answers are spoken back in Hinglish, grounded strictly in the source text with page citations and barge-in interruption.
+                Ask anything about any PDF, Word document, or webpage. Answers are spoken back in Hinglish, grounded
+                strictly in the source text with page citations and barge-in interruption.
               </p>
 
               <!-- Quick Document Upload Box -->
@@ -196,17 +209,22 @@
                 </div>
               </div>
               <p class="pillar-description">
-                Highlight text in any desktop app, hold <kbd>Alt+Shift+C</kbd>, and speak a command: <em>"Rewrite politely in Hinglish"</em>, <em>"Summarize in bullets"</em>, or <em>"Translate to English"</em>.
+                Highlight text in any desktop app, hold <kbd>Alt+Shift+C</kbd>, and speak a command: <em>"Rewrite
+                  politely in Hinglish"</em>, <em>"Summarize in bullets"</em>, or <em>"Translate to English"</em>.
               </p>
 
               <!-- Quick Actions Sandbox -->
               <div class="pillar-sandbox">
                 <div class="sandbox-label">Try Voice Transformation:</div>
-                <input type="text" class="sandbox-input" id="dashboardActionSampleInput" value="Meeting was ok but client ko timeline me changes chahiye." />
+                <input type="text" class="sandbox-input" id="dashboardActionSampleInput"
+                  value="Meeting was ok but client ko timeline me changes chahiye." />
                 <div class="sandbox-chip-row">
-                  <button type="button" class="chip chip-action" data-sample-cmd="Rewrite politely in formal Hinglish">Formalize</button>
-                  <button type="button" class="chip chip-action" data-sample-cmd="Summarize into 3 bullet points">Bullets</button>
-                  <button type="button" class="chip chip-action" data-sample-cmd="Translate to clean English">English</button>
+                  <button type="button" class="chip chip-action"
+                    data-sample-cmd="Rewrite politely in formal Hinglish">Formalize</button>
+                  <button type="button" class="chip chip-action"
+                    data-sample-cmd="Summarize into 3 bullet points">Bullets</button>
+                  <button type="button" class="chip chip-action"
+                    data-sample-cmd="Translate to clean English">English</button>
                 </div>
                 <div class="sandbox-result-box" id="dashboardActionResult">Result will appear here...</div>
               </div>
@@ -266,23 +284,28 @@
             <div class="hotkeys-table">
               <div class="hotkey-row">
                 <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></div>
-                <div class="hotkey-desc"><strong>Push-to-Talk Dictation:</strong> Hold anywhere to speak. Release to insert formatted text.</div>
+                <div class="hotkey-desc"><strong>Push-to-Talk Dictation:</strong> Hold anywhere to speak. Release to
+                  insert formatted text.</div>
               </div>
               <div class="hotkey-row">
                 <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd></div>
-                <div class="hotkey-desc"><strong>Load Document:</strong> Opens file picker to select PDF or Word document for voice Q&amp;A.</div>
+                <div class="hotkey-desc"><strong>Load Document:</strong> Opens file picker to select PDF or Word
+                  document for voice Q&amp;A.</div>
               </div>
               <div class="hotkey-row">
                 <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd></div>
-                <div class="hotkey-desc"><strong>Talk to Document:</strong> Hold to ask any question about the currently loaded document.</div>
+                <div class="hotkey-desc"><strong>Talk to Document:</strong> Hold to ask any question about the currently
+                  loaded document.</div>
               </div>
               <div class="hotkey-row">
                 <div class="hotkey-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd></div>
-                <div class="hotkey-desc"><strong>Voice Command:</strong> Select text anywhere on your screen and speak a transformation instruction.</div>
+                <div class="hotkey-desc"><strong>Voice Command:</strong> Select text anywhere on your screen and speak a
+                  transformation instruction.</div>
               </div>
               <div class="hotkey-row">
                 <div class="hotkey-keys"><kbd>Escape</kbd></div>
-                <div class="hotkey-desc"><strong>Stop / Barge-in:</strong> Immediately stop any active speech or synthesis.</div>
+                <div class="hotkey-desc"><strong>Stop / Barge-in:</strong> Immediately stop any active speech or
+                  synthesis.</div>
               </div>
             </div>
           </div>
@@ -302,7 +325,8 @@
               <span class="pill-badge pill-shortcut">Desktop: Alt+Shift+Space</span>
             </div>
             <h2>Speak naturally. Insert anywhere.</h2>
-            <p class="subtitle">Automatic filler removal (umm, uhh, matlab), smart number & rupee formatting, and instant injection into any active desktop window.</p>
+            <p class="subtitle">Automatic filler removal (umm, uhh, matlab), smart number & rupee formatting, and
+              instant injection into any active desktop window.</p>
           </div>
 
           <!-- Floating Overlay Launch Banner -->
@@ -311,7 +335,8 @@
               <span class="callout-badge" id="overlayCalloutBadge">Floating Pill: Idle</span>
               <div class="callout-info">
                 <h4>🖥️ Desktop Floating Overlay</h4>
-                <p>Dictate directly into any open app (Notepad, VS Code, Browser, Word) using global hotkey <kbd>Alt+Shift+Space</kbd>.</p>
+                <p>Dictate directly into any open app (Notepad, VS Code, Browser, Word) using global hotkey
+                  <kbd>Alt+Shift+Space</kbd>.</p>
               </div>
             </div>
             <button type="button" class="btn btn-primary btn-sm" id="overlayHeroToggleBtn">
@@ -327,8 +352,9 @@
               <div class="pulse-ring ring-3"></div>
               <button class="hero-mic-btn" id="dictateMicBtn" title="Click to start dictating (or hold to talk)">
                 <svg class="hero-mic-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                  <path
+                    d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                 </svg>
               </button>
             </div>
@@ -368,7 +394,8 @@
               </div>
             </div>
 
-            <textarea id="dictateResultText" class="dictate-textarea" rows="4" placeholder="Your transcribed speech will appear here with automatic filler removal and formatting..."></textarea>
+            <textarea id="dictateResultText" class="dictate-textarea" rows="4"
+              placeholder="Your transcribed speech will appear here with automatic filler removal and formatting..."></textarea>
 
             <div class="output-footer">
               <button class="btn btn-primary btn-inject" id="dictateInjectBtn">
@@ -413,7 +440,8 @@
               <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none;">
               <div class="drop-icon">📤</div>
               <p class="drop-title">Drop PDF, Word, or Text file</p>
-              <p class="drop-subtitle">or <button type="button" class="btn-link" id="browseBtn">browse your files</button></p>
+              <p class="drop-subtitle">or <button type="button" class="btn-link" id="browseBtn">browse your
+                  files</button></p>
               <div class="supported-tags">
                 <span>PDF</span><span>DOCX</span><span>TXT</span><span>MD</span>
               </div>
@@ -461,7 +489,8 @@
             <div class="panel-header">
               <h2>🎙️ Voice Conversation & Grounded Q&A</h2>
               <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="button" class="btn btn-secondary btn-sm" id="clearHistoryBtn" style="display: none; font-size: 0.72rem; padding: 2px 8px;">Clear Chat</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="clearHistoryBtn"
+                  style="display: none; font-size: 0.72rem; padding: 2px 8px;">Clear Chat</button>
                 <div class="latency-pill" id="latencyPill">Ready</div>
               </div>
             </div>
@@ -471,11 +500,15 @@
               <div class="welcome-card">
                 <div class="welcome-icon">✨</div>
                 <h3>Welcome to BolSamajh Voice Q&A</h3>
-                <p>Upload a PDF, Word document, or URL on the left. Then speak or type questions. Every answer is grounded directly with page citations and streamed live.</p>
+                <p>Upload a PDF, Word document, or URL on the left. Then speak or type questions. Every answer is
+                  grounded directly with page citations and streamed live.</p>
                 <div class="sample-questions">
-                  <span class="sample-chip" data-q="Is document ka main summary kya hai?">Is document ka main summary kya hai?</span>
-                  <span class="sample-chip" data-q="What are the key technical requirements?">What are the key technical requirements?</span>
-                  <span class="sample-chip" data-q="Important deadlines aur dates kya hain?">Important deadlines aur dates kya hain?</span>
+                  <span class="sample-chip" data-q="Is document ka main summary kya hai?">Is document ka main summary
+                    kya hai?</span>
+                  <span class="sample-chip" data-q="What are the key technical requirements?">What are the key technical
+                    requirements?</span>
+                  <span class="sample-chip" data-q="Important deadlines aur dates kya hain?">Important deadlines aur
+                    dates kya hain?</span>
                 </div>
               </div>
             </div>
@@ -490,8 +523,9 @@
                 <button class="mic-button" id="micBtn" title="Click to speak (toggle) or hold">
                   <div class="mic-pulse"></div>
                   <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                    <path
+                      d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                   </svg>
                 </button>
 
@@ -501,11 +535,12 @@
                 <!-- Send Button -->
                 <button class="btn btn-primary btn-send" id="sendBtn">
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                   </svg>
                 </button>
               </div>
-              <div class="input-hint">Tip: Click mic to speak in Hinglish, Hindi, or English • Live streaming answers & citations</div>
+              <div class="input-hint">Tip: Click mic to speak in Hinglish, Hindi, or English • Live streaming answers &
+                citations</div>
             </div>
           </section>
         </div>
@@ -519,13 +554,15 @@
           <div class="actions-header">
             <span class="pill-badge pill-glow">⚡ In-App Voice Actions</span>
             <h2>Transform Text with Voice & AI</h2>
-            <p class="subtitle">Select text in any app, press <kbd>Alt+Shift+C</kbd>, or paste here to rewrite, shorten, translate, or formalize.</p>
+            <p class="subtitle">Select text in any app, press <kbd>Alt+Shift+C</kbd>, or paste here to rewrite, shorten,
+              translate, or formalize.</p>
           </div>
 
           <div class="actions-grid">
             <div class="actions-input-card">
               <label for="commandInputText">Source Text:</label>
-              <textarea id="commandInputText" rows="6" placeholder="Type or paste sample text to transform... (e.g. 'yaar kal meeting postpone kar de 3 baje')"></textarea>
+              <textarea id="commandInputText" rows="6"
+                placeholder="Type or paste sample text to transform... (e.g. 'yaar kal meeting postpone kar de 3 baje')"></textarea>
 
               <div class="action-presets">
                 <span class="control-label">Quick Presets:</span>
@@ -539,7 +576,8 @@
               </div>
 
               <div class="custom-prompt-row">
-                <input type="text" id="customCommandInput" placeholder="Or enter custom instruction (e.g. 'Add polite greeting and call to action')" />
+                <input type="text" id="customCommandInput"
+                  placeholder="Or enter custom instruction (e.g. 'Add polite greeting and call to action')" />
                 <button class="btn btn-primary" id="runCommandBtn">Transform Text</button>
               </div>
             </div>
@@ -568,7 +606,8 @@
           <div class="mobile-header">
             <span class="pill-badge pill-glow">📱 Android & Mobile Companion</span>
             <h2>Use BolSamajh on your Phone</h2>
-            <p class="subtitle">Turn any Android phone or tablet into a wireless handheld voice dictation remote and document reader over your local Wi-Fi.</p>
+            <p class="subtitle">Turn any Android phone or tablet into a wireless handheld voice dictation remote and
+              document reader over your local Wi-Fi.</p>
           </div>
 
           <div class="mobile-grid">
@@ -611,7 +650,8 @@
                   <div class="step-num">3</div>
                   <div class="step-content">
                     <h4>Tap "Add to Home Screen"</h4>
-                    <p>In Chrome, tap the menu <kbd>⋮</kbd> → <strong>"Add to Home screen"</strong> (or "Install app"). BolSamajh will install as a native fullscreen app with full microphone access!</p>
+                    <p>In Chrome, tap the menu <kbd>⋮</kbd> → <strong>"Add to Home screen"</strong> (or "Install app").
+                      BolSamajh will install as a native fullscreen app with full microphone access!</p>
                   </div>
                 </li>
               </ol>
@@ -638,7 +678,8 @@
           <div class="system-header">
             <span class="pill-badge pill-glow">⚙️ Engine Architecture & Hardware</span>
             <h2>System Diagnostics & Desktop Hotkeys</h2>
-            <p class="subtitle">BolSamajh runs 100% locally with open-source models, zero cloud subscriptions, and hardware-accelerated speech inference.</p>
+            <p class="subtitle">BolSamajh runs 100% locally with open-source models, zero cloud subscriptions, and
+              hardware-accelerated speech inference.</p>
           </div>
 
           <!-- Hardware Engine Cards Grid -->
@@ -727,4 +768,5 @@
   <script src="/static/qrcode.js"></script>
   <script src="/static/app.js"></script>
 </body>
+
 </html>

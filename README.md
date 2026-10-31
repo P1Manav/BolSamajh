@@ -189,12 +189,7 @@ python -m bolsamajh
 ```
 *A sleek overlay HUD appears in bottom-center and preloads models. When ready, the HUD shows "BolSamajh Ready ✓" and docks in the system tray.*
 
-### Step 5: (Optional) Run Web-Call Mode & Bolna Gateway
-```powershell
-python -m uvicorn bolsamajh.web.server:app --port 8000
-```
-- Open `http://localhost:8000` for browser voice chat.
-- See [docs/bolna_integration.md](docs/bolna_integration.md) to integrate with Bolna agents.
+*(Developer alternative: to run only the headless core server without desktop hotkeys: `python -m bolsamajh.web.server`)*
 
 > **Note on First-Run Downloads:** On first startup, Hugging Face and CTranslate2 models (~1.6 GB for whisper large-v3-turbo, ~400 MB for multilingual-e5-base) are downloaded and cached locally in `~/.cache/huggingface/hub`. All subsequent runs load 100% locally from disk.
 

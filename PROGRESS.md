@@ -2,11 +2,24 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Phase 13 Complete — Truth Pass & Competitive Realism
+## Current Status: 🎯 Phase 14 Complete — Supervisor Architecture & Resilient Web-Call Core
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 14 — Supervisor Architecture, Auto Port Fallback, /healthz & --selftest
+- [x] **Supervisor Engine (`bolsamajh/web/supervisor.py`):** Built supervisor with:
+  - Dynamic port fallback (`find_available_port` testing 8000..8025 with socket bind).
+  - Single-instance detection (`check_existing_instance`): second double-clicks activate the existing running dashboard and exit 0 cleanly without port conflicts.
+  - Runtime state tracking (`write_runtime_info` to `%LOCALAPPDATA%\BolSamajh\runtime.json`).
+  - Rotating file logger (`setup_rotating_file_logger` to `%LOCALAPPDATA%\BolSamajh\logs\bolsamajh.log`, 5 MB, 3 backups) eliminating invisible errors in windowless mode.
+  - Active `/healthz` HTTP probe with timeout coordination.
+- [x] **Core Server Endpoints:** Added `/healthz` liveness/readiness probe and `/call` route to `bolsamajh/web/server.py`.
+- [x] **Robust Startup & Error Dialog:** Updated `bolsamajh/main.py` to poll `/healthz` before launching the browser. On failure, presents a friendly message box with log file paths and diagnostics instead of an Edge connection refused error.
+- [x] **Automated `--selftest` Flag:** Implemented `python -m bolsamajh --selftest` testing CUDA STT on sample Hinglish audio, SentenceTransformers multilingual embedding retriever, and core web server on an isolated port. Verified exiting code 0 in CI and local test harnesses.
+- [x] **Removed Redundant Server Instructions:** Cleaned up duplicate `uvicorn` commands from `README.md`, `submission/FINAL_CHECKLIST.md`, and `docs/` so users never start competing servers.
+- [x] **Unit & Integration Test Suite Expanded:** Added 10 tests across `tests/test_supervisor.py` and `tests/test_server.py`. All 139 non-slow tests passing green.
 
 #### Phase 13 — Truth Pass, Competitor Scrub & Sourced Competitive Grounding
 - [x] **Competitor Branding Scrubbed:** Removed all occurrences of competitor names ("Wispr Flow") from tray icon menu, web studio HTML, JavaScript, CSS, and docstrings.

@@ -154,7 +154,7 @@ python scripts/check_gemini.py --api-key "AIzaSy..."
 - Launch BolSamajh web gateway:
   ```powershell
   $env:BOLSAMAJH_API_KEY="test-bolna-key-2026"
-  python -m uvicorn bolsamajh.web.server:app --host 127.0.0.1 --port 8000
+  python -m bolsamajh.web.server --port 8000
   ```
 - Expose via Cloudflare tunnel (free, no account needed):
   ```powershell

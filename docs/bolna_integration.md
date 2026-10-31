@@ -59,7 +59,7 @@ Start the web service locally on port 8000:
 export BOLSAMAJH_API_KEY="my-secret-bolna-key"
 
 # Launch server with uvicorn
-python -m uvicorn bolsamajh.web.server:app --host 127.0.0.1 --port 8000
+python -m bolsamajh.web.server --port 8000
 ```
 
 Verify service readiness using the health check endpoint:
@@ -202,7 +202,7 @@ Follow these exact steps to test BolSamajh against a live Bolna agent:
 ```bash
 # Terminal 1: Run BolSamajh with gateway security enabled
 export BOLSAMAJH_API_KEY="test-bolna-key-2026"
-python -m uvicorn bolsamajh.web.server:app --host 127.0.0.1 --port 8000
+python -m bolsamajh.web.server --port 8000
 ```
 
 ### Step 2: Expose the Gateway via Secure Tunnel
