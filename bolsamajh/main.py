@@ -46,8 +46,8 @@ from bolsamajh.config import AppConfig, load_config
 from bolsamajh.overlay.hud import OverlayHUD
 from bolsamajh.tts.factory import create_tts_adapter
 from bolsamajh.web.supervisor import (
-    clean_runtime_info,
     check_existing_instance,
+    clean_runtime_info,
     find_available_port,
     setup_rotating_file_logger,
     wait_for_health,
@@ -264,7 +264,7 @@ def run_selftest() -> int:
     print("========================================")
     print(f"  BolSamajh v{__version__} - Automated Self-Test")
     print("========================================")
-    log_file = setup_rotating_file_logger()
+    setup_rotating_file_logger()
     try:
         from pathlib import Path
 
@@ -283,6 +283,7 @@ def run_selftest() -> int:
         )
         if test_audio_path.exists():
             import wave
+
             import numpy as np
 
             with wave.open(str(test_audio_path), "rb") as wf:
@@ -309,6 +310,7 @@ def run_selftest() -> int:
         # 3. Test Core Server & /healthz
         print("[4/4] Testing core web server & /healthz...")
         import uvicorn
+
         from bolsamajh.web.server import app
 
         test_port = find_available_port("127.0.0.1", start_port=8900)
@@ -347,6 +349,14 @@ def run_selftest() -> int:
 def main() -> None:
     """Launch BolSamajh: system-tray icon + global hotkey listener + web studio."""
     if "--selftest" in sys.argv:
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                if ctypes.windll.kernel32.AttachConsole(-1):
+                    sys.stdout = open("CONOUT$", "w", encoding="utf-8", errors="replace")
+                    sys.stderr = open("CONOUT$", "w", encoding="utf-8", errors="replace")
+            except Exception:
+                pass
         sys.exit(run_selftest())
 
     # 1. Setup rotating file logging early so all logs are preserved

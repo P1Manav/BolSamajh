@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">BolSamajh</string>
+    <string name="tagline">Bolo. Samjho. — Voice AI Companion</string>
+    <string name="connect_pc">Connect to Desktop Core</string>
+    <string name="ip_hint">192.168.x.x:8000</string>
+    <string name="btn_connect">Pair with PC</string>
+    <string name="btn_start_call">Start Live Call</string>
+    <string name="btn_end_call">End Call</string>
+    <string name="btn_interrupt">Interrupt / Barge-in</string>
+    <string name="status_disconnected">Status: Not connected to PC</string>
+    <string name="status_connected">Status: Connected to PC Core</string>
+</resources>

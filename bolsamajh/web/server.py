@@ -1441,6 +1441,297 @@ async def get_audio_file(audio_file: str):
     return FileResponse(target_path, media_type="audio/mpeg")
 
 
+@app.get("/api/benchmark")
+async def get_benchmark_results():
+    """Return verified empirical benchmark metrics from benchmark_results.json."""
+    benchmark_file = Path(__file__).resolve().parent.parent.parent / "benchmark_data" / "benchmark_results.json"
+    if not benchmark_file.exists():
+        raise HTTPException(status_code=404, detail="Benchmark results not found")
+    try:
+        import json
+        with open(benchmark_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/documents/sample")
+async def load_sample_document_endpoint(request: Request, name: str = Query("sample_policy.pdf")):
+    """Load and index a bundled sample document from samples/ directory."""
+    session_id = get_session_id(request)
+    session_retriever = get_retriever_for_session(session_id)
+    safe_name = Path(name).name
+    sample_file = Path(__file__).resolve().parent.parent.parent / "samples" / safe_name
+    if not sample_file.exists():
+        raise HTTPException(status_code=404, detail=f"Sample document '{safe_name}' not found")
+    try:
+        doc = await asyncio.to_thread(load_document, str(sample_file))
+        doc.title = sample_file.stem
+        doc.source = safe_name
+        for p in doc.pages:
+            p.source = safe_name
+        chunks = await asyncio.to_thread(session_retriever.index_document, doc)
+        return {
+            "success": True,
+            "title": doc.title,
+            "pages": doc.page_count,
+            "chunks": chunks,
+            "filename": safe_name,
+        }
+    except Exception as e:
+        log.error("Failed to load sample document: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SettingsUpdateRequest(BaseModel):
+    script: Optional[str] = None
+    headphone_mode: Optional[bool] = None
+
+
+@app.post("/api/settings")
+async def update_settings_endpoint(req: SettingsUpdateRequest):
+    """Update runtime configuration settings."""
+    if req.script in ("natural", "roman", "devanagari"):
+        config.dictation.script = req.script
+    if req.headphone_mode is not None:
+        config.headphone_mode = req.headphone_mode
+    return {
+        "status": "ok",
+        "script": getattr(config.dictation, "script", "natural"),
+        "headphone_mode": getattr(config, "headphone_mode", False),
+    }
+
+
+@app.websocket("/ws/call")
+async def webcall_websocket(websocket: WebSocket, lang: str = "hinglish"):
+    """Full-duplex WebSocket endpoint for Live Voice Web Call mode with barge-in."""
+    origin = websocket.headers.get("origin")
+    if origin:
+        parsed_origin = urlparse(origin)
+        orig_host = (parsed_origin.hostname or "").lower()
+        if orig_host and orig_host not in ALLOWED_HOSTS:
+            await websocket.close(code=1008, reason="Forbidden: untrusted origin")
+            return
+
+    await websocket.accept()
+
+    session_id = f"call_{uuid.uuid4().hex[:12]}"
+    session_retriever = get_retriever_for_session(session_id)
+    with _SESSION_LOCK:
+        if "default" in _SESSION_RETRIEVERS and not session_retriever.is_loaded:
+            _, default_r = _SESSION_RETRIEVERS["default"]
+            if default_r.is_loaded:
+                session_retriever = default_r
+        elif not session_retriever.is_loaded and retriever.is_loaded:
+            session_retriever = retriever
+
+    current_lang = lang or "hinglish"
+    audio_buffer = bytearray()
+    active_gen_id = None
+    cancel_event = asyncio.Event()
+
+    await websocket.send_json({
+        "type": "ready",
+        "session_id": session_id,
+        "document_loaded": session_retriever.is_loaded,
+        "document_title": session_retriever.document_title if session_retriever.is_loaded else "",
+        "language": current_lang,
+    })
+
+    try:
+        while True:
+            message = await websocket.receive()
+            if "bytes" in message and message["bytes"]:
+                audio_buffer.extend(message["bytes"])
+                continue
+
+            if "text" not in message or not message["text"]:
+                continue
+
+            import json
+            data = json.loads(message["text"])
+            msg_type = data.get("type", "")
+
+            if msg_type == "config":
+                current_lang = data.get("language", current_lang)
+                doc_name = data.get("sample_doc")
+                if doc_name:
+                    safe_name = Path(doc_name).name
+                    sample_file = Path(__file__).resolve().parent.parent.parent / "samples" / safe_name
+                    if sample_file.exists():
+                        doc = await asyncio.to_thread(load_document, str(sample_file))
+                        doc.title = sample_file.stem
+                        doc.source = safe_name
+                        for p in doc.pages:
+                            p.source = safe_name
+                        await asyncio.to_thread(session_retriever.index_document, doc)
+                await websocket.send_json({
+                    "type": "configured",
+                    "language": current_lang,
+                    "document_loaded": session_retriever.is_loaded,
+                    "document_title": session_retriever.document_title if session_retriever.is_loaded else "",
+                })
+
+            elif msg_type == "audio_chunk":
+                b64_audio = data.get("data", "")
+                if b64_audio:
+                    pcm_chunk = base64.b64decode(b64_audio)
+                    audio_buffer.extend(pcm_chunk)
+
+            elif msg_type == "barge_in":
+                gen_id = data.get("generation_id")
+                log.info("WebCall: Barge-in triggered for generation %s", gen_id)
+                cancel_event.set()
+                await websocket.send_json({
+                    "type": "state",
+                    "state": "interrupted",
+                    "generation_id": gen_id,
+                })
+
+            elif msg_type == "speech_start":
+                cancel_event.set()
+                audio_buffer.clear()
+                await websocket.send_json({
+                    "type": "state",
+                    "state": "listening",
+                })
+
+            elif msg_type == "speech_end" or msg_type == "process_query":
+                query_text = data.get("text", "").strip()
+                if not query_text and len(audio_buffer) >= 1600:
+                    await websocket.send_json({"type": "state", "state": "transcribing"})
+                    wav_io = io.BytesIO()
+                    with wave.open(wav_io, "wb") as wf:
+                        wf.setnchannels(1)
+                        wf.setsampwidth(2)
+                        wf.setframerate(16000)
+                        wf.writeframes(bytes(audio_buffer))
+                    raw_wav = wav_io.getvalue()
+                    audio_buffer.clear()
+                    try:
+                        transcribe_res = await asyncio.to_thread(stt.transcribe, raw_wav)
+                        query_text = transcribe_res.text.strip()
+                    except Exception as e:
+                        log.error("WebCall STT error: %s", e)
+                        query_text = ""
+
+                if not query_text:
+                    await websocket.send_json({"type": "state", "state": "idle"})
+                    continue
+
+                await websocket.send_json({
+                    "type": "transcript",
+                    "text": query_text,
+                    "role": "user",
+                })
+
+                active_gen_id = uuid.uuid4().hex[:8]
+                cancel_event = asyncio.Event()
+
+                await websocket.send_json({
+                    "type": "state",
+                    "state": "thinking",
+                    "generation_id": active_gen_id,
+                })
+
+                chunks = []
+                if session_retriever.is_loaded:
+                    chunks = await asyncio.to_thread(
+                        session_retriever.retrieve, query_text, config.doc_qa.top_k, True
+                    )
+
+                context_str = "\n\n".join(
+                    f"[Source {i + 1} — {c.citation}]\n{c.text}" for i, c in enumerate(chunks)
+                )
+                if not chunks:
+                    context_str = "(No relevant content found in the document that exceeds the relevance threshold)"
+
+                system_prompt = _SYSTEM_PROMPT.format(
+                    lang_instruction=_LANG_INSTRUCTIONS.get(current_lang.lower(), _LANG_INSTRUCTIONS["hinglish"]),
+                    doc_title=session_retriever.document_title if session_retriever.is_loaded else "Document",
+                    history_context="",
+                    context=context_str,
+                )
+
+                try:
+                    full_answer = await llm.generate(prompt=query_text, system=system_prompt)
+                except Exception as e:
+                    log.warning("WebCall LLM error: %s", e)
+                    if chunks:
+                        full_answer = f"Document ke according ({chunks[0].citation}): {chunks[0].text[:250]}"
+                    else:
+                        full_answer = "Is document mein yeh information nahi mili."
+
+                if cancel_event.is_set():
+                    await websocket.send_json({"type": "state", "state": "interrupted", "generation_id": active_gen_id})
+                    continue
+
+                citations_list = [c.citation for c in chunks]
+
+                await websocket.send_json({
+                    "type": "answer",
+                    "text": full_answer,
+                    "citations": citations_list,
+                    "generation_id": active_gen_id,
+                })
+
+                await websocket.send_json({
+                    "type": "state",
+                    "state": "speaking",
+                    "generation_id": active_gen_id,
+                })
+
+                from bolsamajh.utils.sentence_splitter import split_into_sentences
+                sentences = split_into_sentences(full_answer)
+                if not sentences:
+                    sentences = [full_answer]
+
+                lang_code = "gu" if current_lang.lower() in ("gu", "gujarati") else ("en" if current_lang.lower() in ("en", "english") else "hi")
+
+                for sentence in sentences:
+                    if cancel_event.is_set():
+                        log.info("WebCall: playback cancelled mid-answer")
+                        break
+                    if not sentence.strip():
+                        continue
+
+                    audio_bytes = b""
+                    try:
+                        audio_bytes = await tts.synthesize(sentence, lang=lang_code)
+                    except Exception as e:
+                        log.debug("WebCall TTS warning: %s", e)
+
+                    if cancel_event.is_set():
+                        break
+
+                    if audio_bytes:
+                        b64 = base64.b64encode(audio_bytes).decode("ascii")
+                        await websocket.send_json({
+                            "type": "audio_chunk",
+                            "audio": b64,
+                            "text": sentence,
+                            "generation_id": active_gen_id,
+                            "format": "mp3",
+                        })
+                        await asyncio.sleep(0.04)
+
+                if not cancel_event.is_set():
+                    await websocket.send_json({
+                        "type": "state",
+                        "state": "idle",
+                        "generation_id": active_gen_id,
+                    })
+
+    except (WebSocketDisconnect, asyncio.CancelledError):
+        log.info("WebCall WebSocket closed: %s", session_id)
+    except Exception as e:
+        log.error("WebCall WebSocket exception: %s", e)
+        try:
+            await websocket.close(code=1011, reason=str(e)[:100])
+        except Exception:
+            pass
+
+
 # --- Tier 4 Sponsor Alignment: OpenAI-Compatible Gateway ---
 
 

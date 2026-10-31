@@ -31,25 +31,31 @@
       <!-- Center Studio Navigation Tabs -->
       <nav class="nav-tabs" id="mainTabs" role="tablist">
         <button class="nav-tab active" data-tab="dashboard" role="tab" aria-selected="true">
-          <span class="tab-icon">🏠</span> Welcome & Setup
+          <span class="tab-icon">🏠</span> Home
         </button>
         <button class="nav-tab" data-tab="dictate" role="tab" aria-selected="false">
-          <span class="tab-icon">🎙️</span> Dictation Studio
+          <span class="tab-icon">🎙️</span> Dictate
         </button>
         <button class="nav-tab" data-tab="doc" role="tab" aria-selected="false">
-          <span class="tab-icon">📄</span> Doc Intelligence
+          <span class="tab-icon">📄</span> Documents
         </button>
         <button class="nav-tab" data-tab="actions" role="tab" aria-selected="false">
-          <span class="tab-icon">⚡</span> Voice Actions
+          <span class="tab-icon">⚡</span> Commands
+        </button>
+        <button class="nav-tab" data-tab="webcall" role="tab" aria-selected="false">
+          <span class="tab-icon">📞</span> Web Call
+        </button>
+        <button class="nav-tab" data-tab="history" role="tab" aria-selected="false">
+          <span class="tab-icon">🕒</span> History
         </button>
         <button class="nav-tab" data-tab="why" role="tab" aria-selected="false">
           <span class="tab-icon">⚖️</span> Why BolSamajh
         </button>
-        <button class="nav-tab" data-tab="mobile" role="tab" aria-selected="false">
-          <span class="tab-icon">📱</span> Android Companion
+        <button class="nav-tab" data-tab="benchmark" role="tab" aria-selected="false">
+          <span class="tab-icon">📊</span> Benchmark
         </button>
-        <button class="nav-tab" data-tab="system" role="tab" aria-selected="false">
-          <span class="tab-icon">⚙️</span> System & Hotkeys
+        <button class="nav-tab" data-tab="settings" role="tab" aria-selected="false">
+          <span class="tab-icon">⚙️</span> Settings
         </button>
       </nav>
 
@@ -140,7 +146,9 @@
           <!-- Privacy & Architecture Transparency Banner -->
           <div id="dashboardPrivacyBanner" class="privacy-banner privacy-hybrid">
             <span>🛡️</span>
-            <span><strong>System Architecture:</strong> Speech-to-Text &amp; Document RAG run 100% locally on-device. Voice synthesis uses cloud endpoint (Edge-TTS). For 100% air-gapped offline mode, configure Piper TTS in Settings.</span>
+            <span><strong>System Architecture:</strong> Speech-to-Text &amp; Document RAG run 100% locally on-device.
+              Voice synthesis uses cloud endpoint (Edge-TTS). For 100% air-gapped offline mode, configure Piper TTS in
+              Settings.</span>
           </div>
 
           <!-- 2. Three Core Capabilities Explainer & Quick-Try -->
@@ -345,7 +353,8 @@
               <div class="callout-info">
                 <h4>🖥️ Desktop Floating Overlay</h4>
                 <p>Dictate directly into any open app (Notepad, VS Code, Browser, Word) using global hotkey
-                  <kbd>Alt+Shift+Space</kbd>.</p>
+                  <kbd>Alt+Shift+Space</kbd>.
+                </p>
               </div>
             </div>
             <button type="button" class="btn btn-primary btn-sm" id="overlayHeroToggleBtn">
@@ -616,7 +625,8 @@
             <span class="pill-badge pill-glow">⚖️ Competitive Transparency</span>
             <h2>Why BolSamajh? — Honest Differentiation</h2>
             <p class="subtitle">
-              Comparing BolSamajh with proprietary cloud dictation apps. Verified against official vendor documentation (retrieved 2026-10-31, details in <code>docs/COMPETITIVE_NOTES.md</code>).
+              Comparing BolSamajh with proprietary cloud dictation apps. Verified against official vendor documentation
+              (retrieved 2026-10-31, details in <code>docs/COMPETITIVE_NOTES.md</code>).
             </p>
           </div>
 
@@ -684,12 +694,14 @@
           <div class="honest-box">
             <h4>💡 Where Wispr Flow is Stronger (Transparent Engineering)</h4>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
-              We believe credibility comes from acknowledging competitor strengths. Wispr Flow outperforms BolSamajh in these areas:
+              We believe credibility comes from acknowledging competitor strengths. Wispr Flow outperforms BolSamajh in
+              these areas:
             </p>
             <div class="honest-list">
               <div class="honest-item">
                 <strong>🌐 100+ Production Languages</strong>
-                <p>Wispr Flow supports over 100 languages, whereas BolSamajh focuses deeply on Hinglish, Hindi, Gujarati, and English.</p>
+                <p>Wispr Flow supports over 100 languages, whereas BolSamajh focuses deeply on Hinglish, Hindi,
+                  Gujarati, and English.</p>
               </div>
               <div class="honest-item">
                 <strong>📱 Cross-Platform Maturity</strong>
@@ -828,7 +840,7 @@
               <div class="engine-icon">📚</div>
               <div class="engine-info">
                 <h3>RAG & Embeddings</h3>
-                <p class="engine-name">all-MiniLM-L6-v2</p>
+                <p class="engine-name">multilingual-e5-base</p>
                 <p class="engine-meta">Local Vector Similarity • Page Citations</p>
               </div>
               <span class="engine-status-tag ready">Indexed</span>
@@ -864,6 +876,355 @@
                 <span class="hotkey-desc">Click floating pill HUD or tray icon anytime</span>
                 <span class="hotkey-key">Click HUD / Tray</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB: WEB CALL (Full-Duplex Voice)          -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-webcall" role="tabpanel">
+        <div class="webcall-container">
+          <div class="webcall-hero-card">
+            <span class="pill-badge pill-glow">📞 Live Voice Call</span>
+            <h2>Talk to Your Documents — Live</h2>
+            <p class="subtitle">Full-duplex voice conversation with any loaded PDF, DOCX or webpage. Ask questions in
+              Hinglish, Hindi, Gujarati or English. Answers stream back with page citations. Interrupt anytime.</p>
+          </div>
+
+          <!-- Document Picker -->
+          <div class="webcall-doc-section">
+            <div class="webcall-doc-row">
+              <div class="webcall-doc-upload">
+                <input type="file" id="webcallFileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none;">
+                <button class="btn btn-secondary" id="webcallUploadBtn">📁 Load Document</button>
+                <span class="webcall-doc-status" id="webcallDocStatus">No document loaded</span>
+              </div>
+              <div class="webcall-lang-select">
+                <label for="webcallLangSelect">Language:</label>
+                <select id="webcallLangSelect">
+                  <option value="hinglish" selected>Hinglish</option>
+                  <option value="hindi">Hindi</option>
+                  <option value="gujarati">Gujarati</option>
+                  <option value="english">English</option>
+                </select>
+              </div>
+            </div>
+            <!-- Sample docs -->
+            <div class="webcall-samples">
+              <span class="control-label">Try sample docs:</span>
+              <button class="chip" data-sample-doc="sample_policy.pdf">📋 Health Policy (PDF)</button>
+              <button class="chip" data-sample-doc="sample_circular.html">📜 DPDP Circular (Web)</button>
+            </div>
+          </div>
+
+          <!-- Call Interface -->
+          <div class="webcall-call-area">
+            <!-- State indicator -->
+            <div class="webcall-state-bar">
+              <div class="webcall-state-indicator" id="webcallStateIndicator">
+                <span class="webcall-state-dot idle"></span>
+                <span class="webcall-state-text" id="webcallStateText">Ready — Load a document, then press Call</span>
+              </div>
+            </div>
+
+            <!-- Live transcript area -->
+            <div class="webcall-transcript" id="webcallTranscript">
+              <div class="webcall-welcome">
+                <div class="welcome-icon">🎙️</div>
+                <h3>Voice Call Mode</h3>
+                <p>Load a document above, press the call button, and ask your questions by voice. Answers will appear
+                  here with page citations.</p>
+              </div>
+            </div>
+
+            <!-- Audio visualizer -->
+            <canvas id="webcallWaveform" class="waveform-canvas" width="600" height="40"></canvas>
+
+            <!-- Call controls -->
+            <div class="webcall-controls">
+              <button class="btn btn-call btn-lg" id="webcallStartBtn" title="Start voice call">
+                <span class="call-icon">📞</span>
+                <span id="webcallStartBtnText">Start Call</span>
+              </button>
+              <button class="btn btn-danger btn-lg" id="webcallStopBtn" style="display:none;" title="End voice call">
+                <span class="call-icon">📵</span>
+                <span>End Call</span>
+              </button>
+              <button class="btn btn-secondary" id="webcallMuteBtn" style="display:none;">
+                🔇 Mute
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB: HISTORY                               -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-history" role="tabpanel">
+        <div class="history-container">
+          <div class="history-page-header">
+            <span class="pill-badge pill-glow">🕒 Session History</span>
+            <h2>Recent Dictations & Conversations</h2>
+            <p class="subtitle">All your voice interactions from this session, stored locally on your device.</p>
+          </div>
+
+          <div class="history-controls-bar">
+            <div class="history-filter-group">
+              <button class="chip active" data-history-filter="all">All</button>
+              <button class="chip" data-history-filter="dictation">Dictation</button>
+              <button class="chip" data-history-filter="qa">Doc Q&A</button>
+              <button class="chip" data-history-filter="command">Commands</button>
+            </div>
+            <button class="btn btn-danger btn-sm" id="clearAllHistoryBtn">🗑️ Clear All</button>
+          </div>
+
+          <div class="history-list" id="historyList">
+            <div class="history-empty-state">
+              <div class="empty-icon">📭</div>
+              <h3>No history yet</h3>
+              <p>Start dictating, ask document questions, or run voice commands. Everything will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB: BENCHMARK                             -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-benchmark" role="tabpanel">
+        <div class="benchmark-container">
+          <div class="benchmark-header">
+            <span class="pill-badge pill-glow">📊 Public Reproducible Benchmark</span>
+            <h2>STT Accuracy & Latency Results</h2>
+            <p class="subtitle">Measured on NVIDIA RTX 3060 Ti. All results from
+              <code>benchmark_data/benchmark_results.json</code> — reproducible by running
+              <code>python -m bolsamajh.benchmark.evaluate</code>.</p>
+          </div>
+
+          <!-- Caveats -->
+          <div class="benchmark-caveats">
+            <div class="honest-box">
+              <h4>⚠️ Important Caveats</h4>
+              <ul>
+                <li><strong>Synthetic audio:</strong> The "Synthetic Stress" set uses Edge-TTS synthesized clips with
+                  DSP degradations (speed, noise, telephony). This biases WER and is NOT real human speech.</li>
+                <li><strong>Real speech sources:</strong> Google FLEURS (Hindi, Gujarati read speech) and HiACC
+                  (code-switched Hinglish). These are public datasets, not BolSamajh-specific recordings.</li>
+                <li><strong>Normalization:</strong> "Norm WER" applies transliteration normalization via Aksharamukha.
+                  "Raw WER" is without normalization. Both are reported for transparency.</li>
+                <li><strong>Human Hinglish recordings:</strong> Not yet completed. The recorder tool exists at
+                  <code>bolsamajh/benchmark/record_tool.py</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Real Speech Table -->
+          <div class="benchmark-section">
+            <h3>Real Speech Results (300 clips: 100 HiACC + 100 FLEURS Hindi + 100 FLEURS Gujarati)</h3>
+            <div class="benchmark-table-wrapper">
+              <table class="bench-table" id="benchRealTable">
+                <thead>
+                  <tr>
+                    <th>Engine</th>
+                    <th>Overall WER</th>
+                    <th>CER</th>
+                    <th>Hinglish (HiACC)</th>
+                    <th>Hindi (FLEURS)</th>
+                    <th>Gujarati (FLEURS)</th>
+                    <th>Latency (ms)</th>
+                    <th>RTF</th>
+                  </tr>
+                </thead>
+                <tbody id="benchRealBody">
+                  <tr>
+                    <td colspan="8" class="loading-cell">Loading benchmark data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Synthetic Table -->
+          <div class="benchmark-section">
+            <h3>Synthetic Stress Test (100 TTS-generated clips with DSP degradation)</h3>
+            <div class="benchmark-table-wrapper">
+              <table class="bench-table" id="benchSynthTable">
+                <thead>
+                  <tr>
+                    <th>Engine</th>
+                    <th>Overall WER</th>
+                    <th>Latency (ms)</th>
+                    <th>RTF</th>
+                  </tr>
+                </thead>
+                <tbody id="benchSynthBody">
+                  <tr>
+                    <td colspan="4" class="loading-cell">Loading benchmark data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Where we lose -->
+          <div class="benchmark-section">
+            <div class="honest-box">
+              <h4>📉 Where BolSamajh Loses</h4>
+              <ul>
+                <li><strong>Gujarati WER is high</strong> (~66-78%) — Whisper models are not optimized for Gujarati
+                  script.</li>
+                <li><strong>Code-switched Hinglish</strong> remains challenging (~39-51% WER) across all engines.</li>
+                <li><strong>Swift model:</strong> Fastest but is an unverified third-party CT2 conversion. Use with
+                  caution.</li>
+                <li><strong>Default recommendation:</strong> <code>large-v3-turbo</code> balances accuracy (43.5% WER)
+                  and speed (573ms), though Swift is faster on synthetic data.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB: SETTINGS                              -->
+      <!-- ========================================== -->
+      <section class="tab-pane" id="view-settings" role="tabpanel">
+        <div class="settings-container">
+          <div class="settings-header">
+            <span class="pill-badge pill-glow">⚙️ Configuration</span>
+            <h2>Settings</h2>
+            <p class="subtitle">Configure hotkeys, engines, and privacy preferences. Changes are stored in
+              <code>%LOCALAPPDATA%\BolSamajh\config.json</code>.</p>
+          </div>
+
+          <!-- Hotkey Settings -->
+          <div class="settings-section">
+            <h3>⌨️ Global Hotkeys</h3>
+            <p class="settings-note">Hotkeys are configured via environment variables in <code>.env</code>. Restart
+              required after changes.</p>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <label>Dictation (Push-to-Talk)</label>
+                <kbd id="settingsHkDictation">Alt+Shift+Space</kbd>
+              </div>
+              <div class="setting-row">
+                <label>Voice Command</label>
+                <kbd id="settingsHkCommand">Alt+Shift+C</kbd>
+              </div>
+              <div class="setting-row">
+                <label>Document Q&A</label>
+                <kbd id="settingsHkDocQa">Alt+Shift+A</kbd>
+              </div>
+              <div class="setting-row">
+                <label>Load Document</label>
+                <kbd id="settingsHkDocLoad">Alt+Shift+D</kbd>
+              </div>
+            </div>
+          </div>
+
+          <!-- Engine Settings -->
+          <div class="settings-section">
+            <h3>🧠 Engine Configuration</h3>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <label>STT Engine</label>
+                <span class="setting-value" id="settingsStt">Faster-Whisper (large-v3-turbo)</span>
+              </div>
+              <div class="setting-row">
+                <label>STT Device</label>
+                <span class="setting-value" id="settingsDevice">CUDA (int8_float16)</span>
+              </div>
+              <div class="setting-row">
+                <label>LLM Engine</label>
+                <span class="setting-value" id="settingsLlm">Ollama (gemma3:4b)</span>
+              </div>
+              <div class="setting-row">
+                <label>TTS Engine</label>
+                <span class="setting-value" id="settingsTts">Edge-TTS (cloud)</span>
+                <span class="badge-cloud">Cloud</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Script & Language -->
+          <div class="settings-section">
+            <h3>🌐 Language & Script</h3>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <label>Script Mode</label>
+                <select id="settingsScript" class="settings-select">
+                  <option value="natural">Natural (Mixed as transcribed)</option>
+                  <option value="roman">Roman (English letters)</option>
+                  <option value="devanagari">Devanagari (Hindi script)</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label>Headphone Mode</label>
+                <label class="toggle-checkbox-label">
+                  <input type="checkbox" id="settingsHeadphone" />
+                  <span>Enable (disables echo-cancel barge-in threshold)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Privacy Settings -->
+          <div class="settings-section">
+            <h3>🛡️ Privacy & Offline Mode</h3>
+            <div id="settingsPrivacyBanner" class="privacy-banner privacy-hybrid" style="margin-bottom: 16px;">
+              <span>🛡️</span>
+              <span id="settingsPrivacyText">Checking engine configuration...</span>
+            </div>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <label>STT</label>
+                <span class="badge-local">🟢 Local (on-device)</span>
+              </div>
+              <div class="setting-row">
+                <label>LLM</label>
+                <span id="settingsLlmPrivacy" class="badge-local">Checking...</span>
+              </div>
+              <div class="setting-row">
+                <label>TTS</label>
+                <span id="settingsTtsPrivacy" class="badge-cloud">Checking...</span>
+              </div>
+            </div>
+            <p class="settings-note">For 100% offline air-gapped mode, use: Faster-Whisper (STT) + Ollama (LLM) + Piper
+              (TTS). Set <code>TTS_ENGINE=piper</code> in <code>.env</code>.</p>
+          </div>
+
+          <!-- Data & Storage -->
+          <div class="settings-section">
+            <h3>💾 Data & Storage</h3>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <label>Config Location</label>
+                <code>%LOCALAPPDATA%\BolSamajh\</code>
+              </div>
+              <div class="setting-row">
+                <label>Log Files</label>
+                <code>%LOCALAPPDATA%\BolSamajh\logs\</code>
+              </div>
+              <div class="setting-row">
+                <label>Models Cache</label>
+                <code>%USERPROFILE%\.cache\huggingface\</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform Scope -->
+          <div class="settings-section">
+            <div class="honest-box">
+              <h4>📋 Platform Scope</h4>
+              <ul>
+                <li><strong>Supported:</strong> Windows 10/11 x64, Android 8+ (companion)</li>
+                <li><strong>Not supported in this release:</strong> macOS, Linux (the <code>keyboard</code> library
+                  requires root on Linux; macOS accessibility permissions differ)</li>
+                <li><strong>Hotkey editing:</strong> Via <code>.env</code> file only in this release. UI-based hotkey
+                  editing is planned for v2.</li>
+              </ul>
             </div>
           </div>
         </div>

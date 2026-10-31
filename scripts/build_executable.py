@@ -91,6 +91,10 @@ def build_app(enable_console: bool = False, package_only: bool = False):
     if calib_json.exists():
         cmd.extend(["--add-data", f"{calib_json}{os.pathsep}benchmark_data"])
 
+    samples_src = root / "samples"
+    if samples_src.exists():
+        cmd.extend(["--add-data", f"{samples_src}{os.pathsep}samples"])
+
     # Add hidden imports
     hidden_imports = [
         "bolsamajh",
@@ -98,14 +102,18 @@ def build_app(enable_console: bool = False, package_only: bool = False):
         "bolsamajh.overlay.hud",
         "bolsamajh.overlay.tray",
         "bolsamajh.web.server",
+        "bolsamajh.web.supervisor",
         "bolsamajh.pipeline.dictation",
         "bolsamajh.pipeline.doc_qa",
         "bolsamajh.pipeline.commands",
         "bolsamajh.stt.faster_whisper_stt",
         "bolsamajh.tts.edge_tts_adapter",
         "bolsamajh.tts.piper_adapter",
+        "bolsamajh.tts.factory",
         "bolsamajh.llm.ollama_adapter",
         "bolsamajh.llm.google_ai",
+        "bolsamajh.llm.factory",
+        "bolsamajh.llm.fallback",
         "bolsamajh.documents.loader",
         "bolsamajh.documents.retriever",
         "bolsamajh.documents.chunker",

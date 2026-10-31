@@ -78,3 +78,4 @@ BolSamajh serves as a drop-in OpenAI-compatible audio gateway for Bolna agents:
 - `WS /v1/realtime`: Realtime audio WebSocket protocol
 
 Expose locally via Cloudflare tunnel: `cloudflared tunnel --url http://127.0.0.1:8000` and set base URL in your Bolna agent configuration.
+

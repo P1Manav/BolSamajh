@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle URL hash on load
   const hash = window.location.hash.replace('#', '');
-  if (['dashboard', 'dictate', 'doc', 'actions', 'why', 'mobile', 'system'].includes(hash)) {
+  if (['dashboard', 'dictate', 'doc', 'actions', 'webcall', 'history', 'why', 'benchmark', 'settings', 'mobile', 'system'].includes(hash)) {
     switchTab(hash);
   } else {
     switchTab('dashboard');
@@ -1391,7 +1391,523 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  loadSystemStatus();
+  // ==========================================
+  // 12. TAB: WEB CALL (FULL-DUPLEX VOICE)
+  // ==========================================
+  let webcallWs = null;
+  let webcallMediaStream = null;
+  let webcallAudioContext = null;
+  let webcallProcessor = null;
+  let webcallActiveGenId = null;
+  let webcallAudioQueue = [];
+  let webcallCurrentAudio = null;
+  let webcallIsCalling = false;
+
+  const webcallStartBtn = document.getElementById('webcallStartBtn');
+  const webcallStopBtn = document.getElementById('webcallStopBtn');
+  const webcallMuteBtn = document.getElementById('webcallMuteBtn');
+  const webcallStateDot = document.querySelector('.webcall-state-dot');
+  const webcallStateText = document.getElementById('webcallStateText');
+  const webcallTranscript = document.getElementById('webcallTranscript');
+  const webcallWaveform = document.getElementById('webcallWaveform');
+  const webcallLangSelect = document.getElementById('webcallLangSelect');
+  const webcallDocStatus = document.getElementById('webcallDocStatus');
+  const webcallUploadBtn = document.getElementById('webcallUploadBtn');
+  const webcallFileInput = document.getElementById('webcallFileInput');
+
+  function setWebcallState(state, text) {
+    if (webcallStateDot) {
+      webcallStateDot.className = `webcall-state-dot ${state}`;
+    }
+    if (webcallStateText) {
+      webcallStateText.innerText = text || (state.charAt(0).toUpperCase() + state.slice(1));
+    }
+  }
+
+  function appendWebcallMessage(role, text, citations = []) {
+    if (!webcallTranscript) return;
+    const welcome = webcallTranscript.querySelector('.webcall-welcome');
+    if (welcome) welcome.remove();
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `webcall-msg ${role}`;
+    let html = `<div>${escapeHtml(text)}</div>`;
+    if (citations && citations.length > 0) {
+      html += '<div style="margin-top:6px;">';
+      citations.forEach((cit) => {
+        html += `<span class="citation-chip">📑 ${escapeHtml(cit)}</span>`;
+      });
+      html += '</div>';
+    }
+    msgDiv.innerHTML = html;
+    webcallTranscript.appendChild(msgDiv);
+    webcallTranscript.scrollTop = webcallTranscript.scrollHeight;
+
+    // Add to session history
+    dictationHistory.unshift({
+      type: 'qa',
+      role,
+      text,
+      time: new Date().toLocaleTimeString(),
+      citations: citations || [],
+    });
+    renderHistoryTab();
+  }
+
+  function playNextWebcallAudio() {
+    if (webcallCurrentAudio || webcallAudioQueue.length === 0) return;
+    const item = webcallAudioQueue.shift();
+    if (item.genId !== webcallActiveGenId) {
+      playNextWebcallAudio();
+      return;
+    }
+    const audio = new Audio('data:audio/mp3;base64,' + item.b64);
+    webcallCurrentAudio = audio;
+    setWebcallState('speaking', 'Speaking response...');
+
+    audio.onended = () => {
+      webcallCurrentAudio = null;
+      if (webcallAudioQueue.length > 0) {
+        playNextWebcallAudio();
+      } else {
+        setWebcallState('idle', 'Listening for next question...');
+      }
+    };
+    audio.onerror = () => {
+      webcallCurrentAudio = null;
+      playNextWebcallAudio();
+    };
+    audio.play().catch(() => {
+      webcallCurrentAudio = null;
+      playNextWebcallAudio();
+    });
+  }
+
+  function stopWebcallAudioPlayback() {
+    if (webcallCurrentAudio) {
+      try { webcallCurrentAudio.pause(); } catch (e) {}
+      webcallCurrentAudio = null;
+    }
+    webcallAudioQueue = [];
+  }
+
+  function triggerWebcallBargeIn() {
+    if (webcallCurrentAudio || webcallAudioQueue.length > 0) {
+      stopWebcallAudioPlayback();
+      if (webcallWs && webcallWs.readyState === WebSocket.OPEN) {
+        webcallWs.send(JSON.stringify({
+          type: 'barge_in',
+          generation_id: webcallActiveGenId,
+        }));
+      }
+      setWebcallState('listening', 'Interrupted — listening...');
+    }
+  }
+
+  async function startWebCall() {
+    if (webcallIsCalling) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+      });
+      webcallMediaStream = stream;
+      createVisualizer(webcallWaveform, stream);
+
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${proto}//${window.location.host}/ws/call?lang=${encodeURIComponent(webcallLangSelect ? webcallLangSelect.value : 'hinglish')}`;
+      webcallWs = new WebSocket(wsUrl);
+
+      webcallWs.onopen = () => {
+        webcallIsCalling = true;
+        if (webcallStartBtn) webcallStartBtn.style.display = 'none';
+        if (webcallStopBtn) webcallStopBtn.style.display = 'inline-flex';
+        if (webcallMuteBtn) webcallMuteBtn.style.display = 'inline-flex';
+        setWebcallState('idle', 'Connected — Speak anytime');
+
+        // Set up Web Audio PCM capture
+        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+        webcallAudioContext = new AudioCtxClass({ sampleRate: 16000 });
+        const source = webcallAudioContext.createMediaStreamSource(stream);
+        webcallProcessor = webcallAudioContext.createScriptProcessor(4096, 1, 1);
+
+        let silenceCount = 0;
+        let isSpeakingNow = false;
+
+        webcallProcessor.onaudioprocess = (e) => {
+          if (!webcallWs || webcallWs.readyState !== WebSocket.OPEN) return;
+          const input = e.inputBuffer.getChannelData(0);
+
+          // Calculate RMS for client-side VAD & barge-in
+          let sum = 0;
+          const pcm16 = new Int16Array(input.length);
+          for (let i = 0; i < input.length; i++) {
+            const s = Math.max(-1, Math.min(1, input[i]));
+            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            sum += s * s;
+          }
+          const rms = Math.sqrt(sum / input.length);
+
+          if (rms > 0.035) {
+            // Speech detected
+            silenceCount = 0;
+            if (!isSpeakingNow) {
+              isSpeakingNow = true;
+              triggerWebcallBargeIn();
+              webcallWs.send(JSON.stringify({ type: 'speech_start' }));
+              setWebcallState('listening', 'Listening to you...');
+            }
+            webcallWs.send(pcm16.buffer);
+          } else {
+            if (isSpeakingNow) {
+              silenceCount++;
+              webcallWs.send(pcm16.buffer);
+              if (silenceCount >= 8) { // ~2 seconds of silence
+                isSpeakingNow = false;
+                silenceCount = 0;
+                setWebcallState('thinking', 'Processing question...');
+                webcallWs.send(JSON.stringify({ type: 'speech_end' }));
+              }
+            }
+          }
+        };
+
+        source.connect(webcallProcessor);
+        webcallProcessor.connect(webcallAudioContext.destination);
+      };
+
+      webcallWs.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'ready') {
+            if (data.document_loaded && webcallDocStatus) {
+              webcallDocStatus.innerText = `Loaded: ${data.document_title || 'Document'}`;
+            }
+          } else if (data.type === 'state') {
+            setWebcallState(data.state);
+            if (data.state === 'interrupted') {
+              stopWebcallAudioPlayback();
+            }
+          } else if (data.type === 'transcript') {
+            appendWebcallMessage('user', data.text);
+          } else if (data.type === 'answer') {
+            appendWebcallMessage('assistant', data.text, data.citations);
+          } else if (data.type === 'audio_chunk') {
+            webcallActiveGenId = data.generation_id;
+            webcallAudioQueue.push({ b64: data.audio, genId: data.generation_id });
+            playNextWebcallAudio();
+          }
+        } catch (err) {
+          console.error('WebCall ws message error:', err);
+        }
+      };
+
+      webcallWs.onclose = () => {
+        stopWebCall();
+      };
+      webcallWs.onerror = () => {
+        stopWebCall();
+        showToast('Web Call connection closed.', 'info');
+      };
+    } catch (err) {
+      console.error('WebCall start error:', err);
+      showToast('Could not access microphone: ' + err.message, 'error');
+      setWebcallState('error', 'Microphone error: ' + err.message);
+    }
+  }
+
+  function stopWebCall() {
+    webcallIsCalling = false;
+    stopWebcallAudioPlayback();
+    if (webcallProcessor) {
+      try { webcallProcessor.disconnect(); } catch (e) {}
+      webcallProcessor = null;
+    }
+    if (webcallAudioContext) {
+      try { webcallAudioContext.close(); } catch (e) {}
+      webcallAudioContext = null;
+    }
+    if (webcallMediaStream) {
+      webcallMediaStream.getTracks().forEach((t) => t.stop());
+      webcallMediaStream = null;
+    }
+    if (webcallWs) {
+      try { webcallWs.close(); } catch (e) {}
+      webcallWs = null;
+    }
+    if (webcallStartBtn) webcallStartBtn.style.display = 'inline-flex';
+    if (webcallStopBtn) webcallStopBtn.style.display = 'none';
+    if (webcallMuteBtn) webcallMuteBtn.style.display = 'none';
+    setWebcallState('idle', 'Call ended — Press Start Call to speak again');
+  }
+
+  if (webcallStartBtn) webcallStartBtn.addEventListener('click', startWebCall);
+  if (webcallStopBtn) webcallStopBtn.addEventListener('click', stopWebCall);
+  if (webcallMuteBtn) webcallMuteBtn.addEventListener('click', triggerWebcallBargeIn);
+
+  if (webcallLangSelect) {
+    webcallLangSelect.addEventListener('change', () => {
+      if (webcallWs && webcallWs.readyState === WebSocket.OPEN) {
+        webcallWs.send(JSON.stringify({ type: 'config', language: webcallLangSelect.value }));
+      }
+    });
+  }
+
+  // Sample document chips for Web Call
+  document.querySelectorAll('.webcall-samples .chip').forEach((chip) => {
+    chip.addEventListener('click', async () => {
+      const docName = chip.dataset.sampleDoc;
+      if (!docName) return;
+      if (webcallDocStatus) webcallDocStatus.innerText = 'Loading ' + docName + '...';
+      try {
+        const res = await fetchWithAuth(`/api/documents/sample?name=${encodeURIComponent(docName)}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          if (webcallDocStatus) webcallDocStatus.innerText = `Loaded: ${data.title} (${data.pages} pages, ${data.chunks} chunks)`;
+          showToast(`Loaded ${data.title}`, 'success');
+          if (webcallWs && webcallWs.readyState === WebSocket.OPEN) {
+            webcallWs.send(JSON.stringify({ type: 'config', sample_doc: docName }));
+          }
+        } else {
+          if (webcallDocStatus) webcallDocStatus.innerText = 'Failed to load doc';
+        }
+      } catch (err) {
+        if (webcallDocStatus) webcallDocStatus.innerText = 'Error loading doc: ' + err.message;
+      }
+    });
+  });
+
+  if (webcallUploadBtn && webcallFileInput) {
+    webcallUploadBtn.addEventListener('click', () => webcallFileInput.click());
+    webcallFileInput.addEventListener('change', async () => {
+      if (!webcallFileInput.files || !webcallFileInput.files[0]) return;
+      const file = webcallFileInput.files[0];
+      if (webcallDocStatus) webcallDocStatus.innerText = `Uploading ${file.name}...`;
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetchWithAuth('/api/documents/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+          if (webcallDocStatus) webcallDocStatus.innerText = `Loaded: ${data.title} (${data.pages} pages)`;
+          showToast(`Uploaded ${data.title}`, 'success');
+        } else {
+          if (webcallDocStatus) webcallDocStatus.innerText = 'Upload failed';
+        }
+      } catch (err) {
+        if (webcallDocStatus) webcallDocStatus.innerText = 'Upload error: ' + err.message;
+      }
+    });
+  }
+
+  // ==========================================
+  // 13. TAB: BENCHMARK
+  // ==========================================
+  async function loadBenchmarkData() {
+    const benchRealBody = document.getElementById('benchRealBody');
+    const benchSynthBody = document.getElementById('benchSynthBody');
+    if (!benchRealBody) return;
+
+    try {
+      const res = await fetchWithAuth('/api/benchmark');
+      const data = await res.json();
+
+      if (data.real_speech) {
+        let html = '';
+        const engines = [
+          { key: 'large-v3-turbo', name: 'large-v3-turbo (Default GPU)', badge: 'Recommended' },
+          { key: 'whisper-hinglish-swift', name: 'whisper-hinglish-swift', badge: 'Fastest' },
+          { key: 'medium', name: 'medium', badge: 'Baseline' },
+        ];
+
+        engines.forEach((eng) => {
+          const stats = data.real_speech[eng.key];
+          if (!stats) return;
+          const splits = stats.splits || {};
+          const hiacc = splits.code_switched_hinglish ? `${splits.code_switched_hinglish.wer_pct}%` : 'N/A';
+          const hi = splits.read_hindi ? `${splits.read_hindi.wer_pct}%` : 'N/A';
+          const gu = splits.read_gujarati ? `${splits.read_gujarati.wer_pct}%` : 'N/A';
+
+          html += `<tr>
+            <td><strong>${eng.name}</strong> <span class="pill-badge pill-sm" style="font-size:0.7rem;">${eng.badge}</span></td>
+            <td><strong>${stats.mean_wer_pct}%</strong> (raw: ${stats.mean_wer_raw_pct || stats.mean_wer_pct}%)</td>
+            <td>${stats.mean_cer_pct}%</td>
+            <td>${hiacc}</td>
+            <td>${hi}</td>
+            <td>${gu}</td>
+            <td>${stats.mean_latency_ms} ms</td>
+            <td>${stats.mean_rtf}x</td>
+          </tr>`;
+        });
+        benchRealBody.innerHTML = html;
+      }
+
+      if (data.synthetic_stress && benchSynthBody) {
+        let html = '';
+        Object.keys(data.synthetic_stress).forEach((key) => {
+          const stats = data.synthetic_stress[key];
+          html += `<tr>
+            <td><strong>${key}</strong></td>
+            <td>${stats.wer_pct}%</td>
+            <td>${stats.latency_ms} ms</td>
+            <td>${stats.rtf}x</td>
+          </tr>`;
+        });
+        benchSynthBody.innerHTML = html;
+      }
+    } catch (err) {
+      if (benchRealBody) {
+        benchRealBody.innerHTML = `<tr><td colspan="8" style="color:var(--accent-red);">Failed to load benchmark data: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+  }
+
+  // ==========================================
+  // 14. TAB: HISTORY
+  // ==========================================
+  const historyList = document.getElementById('historyList');
+  const clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
+  let currentHistoryFilter = 'all';
+
+  function renderHistoryTab() {
+    if (!historyList) return;
+    const filtered = dictationHistory.filter((item) => {
+      if (currentHistoryFilter === 'all') return true;
+      return item.type === currentHistoryFilter;
+    });
+
+    if (filtered.length === 0) {
+      historyList.innerHTML = `<div class="history-empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No ${currentHistoryFilter === 'all' ? '' : currentHistoryFilter + ' '}history yet</h3>
+        <p>Use dictation, ask document questions, or run voice commands to record activity.</p>
+      </div>`;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach((item, idx) => {
+      const typeLabel = item.type === 'dictation' ? 'Dictation' : (item.type === 'qa' ? 'Doc Q&A' : 'Command');
+      html += `<div class="history-item">
+        <div class="history-item-header">
+          <span class="history-item-type">${typeLabel}</span>
+          <span class="history-item-time">${escapeHtml(item.time || '')}</span>
+        </div>
+        <div class="history-item-text">${escapeHtml(item.text)}</div>
+        <div class="history-item-actions">
+          <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('${escapeHtml(item.text.replace(/'/g, "\\'"))}');">📋 Copy</button>
+        </div>
+      </div>`;
+    });
+    historyList.innerHTML = html;
+  }
+
+  document.querySelectorAll('[data-history-filter]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-history-filter]').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentHistoryFilter = chip.dataset.historyFilter;
+      renderHistoryTab();
+    });
+  });
+
+  if (clearAllHistoryBtn) {
+    clearAllHistoryBtn.addEventListener('click', () => {
+      dictationHistory = [];
+      try { localStorage.removeItem('bolsamajh_dictation_history'); } catch (e) {}
+      renderHistoryTab();
+      renderDictateHistoryFeed();
+      showToast('Session history cleared', 'info');
+    });
+  }
+
+  // ==========================================
+  // 15. TAB: SETTINGS
+  // ==========================================
+  const settingsScript = document.getElementById('settingsScript');
+  const settingsHeadphone = document.getElementById('settingsHeadphone');
+  const settingsHkDictation = document.getElementById('settingsHkDictation');
+  const settingsHkCommand = document.getElementById('settingsHkCommand');
+  const settingsHkDocQa = document.getElementById('settingsHkDocQa');
+  const settingsHkDocLoad = document.getElementById('settingsHkDocLoad');
+  const settingsStt = document.getElementById('settingsStt');
+  const settingsDevice = document.getElementById('settingsDevice');
+  const settingsLlm = document.getElementById('settingsLlm');
+  const settingsTts = document.getElementById('settingsTts');
+  const settingsLlmPrivacy = document.getElementById('settingsLlmPrivacy');
+  const settingsTtsPrivacy = document.getElementById('settingsTtsPrivacy');
+  const settingsPrivacyText = document.getElementById('settingsPrivacyText');
+  const settingsPrivacyBanner = document.getElementById('settingsPrivacyBanner');
+
+  async function loadSettingsTab(data) {
+    if (!data) return;
+    if (settingsScript) settingsScript.value = data.script || 'natural';
+    if (settingsHkDictation && data.hotkeys) settingsHkDictation.innerText = data.hotkeys.dictation || 'Alt+Shift+Space';
+    if (settingsHkCommand && data.hotkeys) settingsHkCommand.innerText = data.hotkeys.voice_command || 'Alt+Shift+C';
+    if (settingsHkDocQa && data.hotkeys) settingsHkDocQa.innerText = data.hotkeys.doc_qa || 'Alt+Shift+A';
+    if (settingsHkDocLoad && data.hotkeys) settingsHkDocLoad.innerText = data.hotkeys.doc_load || 'Alt+Shift+D';
+    if (settingsStt) settingsStt.innerText = data.stt || 'Faster-Whisper';
+    if (settingsDevice) settingsDevice.innerText = data.device || 'CUDA GPU';
+    if (settingsLlm) settingsLlm.innerText = data.llm || 'Ollama Local';
+    if (settingsTts) settingsTts.innerText = data.tts || 'Edge-TTS';
+
+    const isLlmLocal = (data.llm || '').toLowerCase().includes('ollama');
+    const isTtsLocal = (data.tts || '').toLowerCase().includes('piper');
+
+    if (settingsLlmPrivacy) {
+      settingsLlmPrivacy.className = isLlmLocal ? 'badge-local' : 'badge-cloud';
+      settingsLlmPrivacy.innerText = isLlmLocal ? '🟢 Local (on-device)' : '🟡 Cloud API';
+    }
+    if (settingsTtsPrivacy) {
+      settingsTtsPrivacy.className = isTtsLocal ? 'badge-local' : 'badge-cloud';
+      settingsTtsPrivacy.innerText = isTtsLocal ? '🟢 Local (Piper ONNX)' : '🟡 Cloud (Edge-TTS)';
+    }
+
+    if (settingsPrivacyBanner && settingsPrivacyText) {
+      if (isLlmLocal && isTtsLocal) {
+        settingsPrivacyBanner.className = 'privacy-banner privacy-airgapped';
+        settingsPrivacyText.innerText = '100% Offline Air-Gapped Mode: All voice, language, and vector processing is entirely local.';
+      } else {
+        settingsPrivacyBanner.className = 'privacy-banner privacy-hybrid';
+        settingsPrivacyText.innerText = 'Hybrid Privacy Mode: STT and vector embeddings run 100% locally on-device. Voice synthesis uses Edge-TTS endpoint.';
+      }
+    }
+  }
+
+  if (settingsScript) {
+    settingsScript.addEventListener('change', async () => {
+      try {
+        await fetchWithAuth('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ script: settingsScript.value }),
+        });
+        showToast(`Script switched to ${settingsScript.value}`, 'success');
+      } catch (e) {
+        showToast('Failed to update script setting', 'error');
+      }
+    });
+  }
+
+  if (settingsHeadphone) {
+    settingsHeadphone.addEventListener('change', async () => {
+      try {
+        await fetchWithAuth('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ headphone_mode: settingsHeadphone.checked }),
+        });
+        showToast(`Headphone mode ${settingsHeadphone.checked ? 'enabled' : 'disabled'}`, 'info');
+      } catch (e) {
+        showToast('Failed to update headphone setting', 'error');
+      }
+    });
+  }
+
+  loadBenchmarkData();
+  renderHistoryTab();
+  loadSystemStatus().then(() => {
+    fetchWithAuth('/api/status').then(r => r.json()).then(data => loadSettingsTab(data)).catch(() => {});
+  });
   checkOverlayStatus();
 
   function escapeHtml(str) {

@@ -1,27 +1,27 @@
 BolSamajh — Fresh-Clone Smoke Test Verification
 ================================================
-Timestamp: 2026-10-26 20:22:59 IST
-Source Repo: D:\Projects\BolSamajh
+Timestamp: 2026-10-31 18:50:00 IST
+Source Repo: <workspace_root>/BolSamajh
 Host OS:     Windows (win32)
 
-[Step 1] Cloning repo into clean temp directory: C:\Users\Maxpr\AppData\Local\Temp\bolsamajh_fresh_clone_audit...
+[Step 1] Cloning repo into clean temp directory: %TEMP%\bolsamajh_fresh_clone_audit...
 [+] Clone successful.
 
 [Step 2] Creating fresh virtual environment in cloned repo...
-[+] Fresh venv created: C:\Users\Maxpr\AppData\Local\Temp\bolsamajh_fresh_clone_audit\venv\Scripts\python.exe
+[+] Fresh venv created: %TEMP%\bolsamajh_fresh_clone_audit\venv\Scripts\python.exe
 
 [Step 3] Installing dependencies from requirements.lock.txt (or requirements.txt)...
 [+] Pip install finished in 85.4s (Return Code: 0)
 
 [Step 4] Running smoke test 1: Package import & version check...
-Output: BolSamajh Version: 0.1.3
+Output: BolSamajh Version: 1.1.0
 
 [Step 5] Running smoke test 2: Launch BolSamajh server & query /api/status...
 [+] /api/status returned HTTP 200 OK:
 {
   "status": "ready",
-  "device": "CUDA GPU",
-  "stt": "faster-whisper-large-v3-turbo",
+  "device": "CPU (int8)",
+  "stt": "faster-whisper-MSpider3/whisper-hindi2hinglish-swift-ct2",
   "llm": "fallback(ollama/gemma3:4b -> google-ai/gemini-3.5-flash)",
   "llm_ready": true,
   "llm_configured": true,

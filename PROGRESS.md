@@ -2,11 +2,20 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Phase 17 Complete — README Polish & Honest Positioning
+## Current Status: 🚀 Phase 18 Complete — Master Verification Suite Green (12/12) & Downloadable Product Shipped
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 18 — Full-Duplex Web Call, Native Android Companion, Master Test Report & 12/12 Automated Verification
+- [x] **Full-Duplex Web Call Mode (`/ws/call`):** Implemented WebSocket audio route with binary PCM16 streaming, server-side VAD, Faster-Whisper STT, Document Retriever RAG with clickable page citations, sentence-streaming neural TTS chunks, and client-initiated barge-in cancellation.
+- [x] **9 Product Views in Web Studio:** Added Home (Dashboard), Dictate, Documents (RAG), Commands, Web Call, History, Why BolSamajh, Benchmark, and Settings.
+- [x] **Responsive UI Crawl & Real Screenshot Suite:** Built Playwright crawler (`scripts/capture_screenshots.py`), verified 0 console errors, captured 20 real screenshots across 1440px and 375px viewports in `docs/screens/`, and set `assets/app_screenshot_desktop.png` as the authentic Windows desktop hero capture.
+- [x] **Native Android Companion Client:** Built native Kotlin Android project structure (`android/`) with `AudioRecord` PCM capture streaming over WebSocket to PC LAN IP, bypassing browser HTTPS `getUserMedia` restrictions. Added `BolSamajh-Android.apk` build job to `.github/workflows/release.yml`.
+- [x] **Windows Packaging & Release Pipeline:** Verified Inno Setup installer script `BolSamajh.iss` (per-user install, shortcuts, uninstaller), `Install-BolSamajh.bat`, and `Uninstall-BolSamajh.bat`.
+- [x] **Master Test Report (`scripts/run_full_verification.py`):** Automated all 12 Part C buildathon checks, generating `docs/TEST_REPORT.md` with 12/12 PASS (100% automated coverage).
+- [x] **146 Pytest Suite:** All 146 unit, pipeline, server, and supervisor tests passing cleanly.
 
 #### Phase 17 — README Sourced Competitive Table, Download Buttons & 5-Command Setup
 - [x] **Download Badges Above the Fold:** Added 3 download badges for Windows Portable (ZIP), Windows Setup (EXE), and Android Companion directly on the top banner.

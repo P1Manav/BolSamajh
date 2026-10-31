@@ -10,15 +10,14 @@ Provides:
 
 import json
 import logging
-from logging.handlers import RotatingFileHandler
 import os
-from pathlib import Path
 import socket
-import sys
 import time
-from typing import Any, Dict, Optional, Tuple
 import urllib.error
 import urllib.request
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
 from bolsamajh import __version__
 
@@ -186,7 +185,7 @@ def wait_for_health(
 
 def check_existing_instance() -> Optional[Tuple[str, int]]:
     """Check if another BolSamajh instance is already running and healthy.
-    
+
     If running and healthy, returns (host, port). Otherwise returns None.
     """
     info = read_runtime_info()

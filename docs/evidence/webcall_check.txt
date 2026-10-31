@@ -1,0 +1,19 @@
+BolSamajh — Playwright Web Call E2E Verification
+================================================
+Timestamp: 2026-10-31 18:45:55 IST
+Target URL: http://127.0.0.1:8043/#webcall
+
+[desktop] Navigated to #webcall - view active: PASS
+[desktop] Language selector verified: PASS
+[desktop] Clicked sample policy doc: PASS
+[desktop] State bar during call: 'Listening'
+[desktop] Saved active call screenshot: webcall_active_1440.png
+[desktop] Clicked 'End Call': PASS
+[mobile] Navigated to #webcall - view active: PASS
+[mobile] Language selector verified: PASS
+[mobile] Clicked sample policy doc: PASS
+[mobile] State bar during call: 'Listening'
+[mobile] Saved active call screenshot: webcall_active_375.png
+[mobile] Clicked 'End Call': PASS
+
+Web Call Automated E2E Result: PASS

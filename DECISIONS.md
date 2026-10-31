@@ -244,4 +244,33 @@
 **Alternatives considered:** Leaving the overlay HUD detached from the web studio; verifying only through code inspection without live model execution.  
 **Reason:** Fulfills the user's explicit directive to have the app as the main interface with an option to start the overlay, and provides irrefutable empirical evidence that all unique core value propositions from the original ideation conversation are fully operational.
 
+## D032: Supervisor Architecture, Port Fallback & Headless Console Attachment
+**Date:** 2026-10-31  
+**Choice:**
+1. Built `bolsamajh/web/supervisor.py` to supervise core server lifecycle: auto port fallback (scans 8000–8025), single-instance lock and activation, runtime port/pid persistence in `%LOCALAPPDATA%\BolSamajh\runtime.json`, and rotating file logging in `%LOCALAPPDATA%\BolSamajh\logs\bolsamajh.log`.
+2. Guaranteed no browser or app window opens until `/healthz` returns HTTP 200 OK.
+3. Attached Win32 parent console via `AttachConsole(-1)` when `--selftest` is invoked on Windows, allowing CLI test runners and CI to observe stdout/stderr directly from `--noconsole` PyInstaller builds.  
+**Alternatives considered:** Fixed port 8000; relying on Edge error pages on port conflicts; requiring separate uvicorn terminal process.  
+**Reason:** Resolves Audit Finding A1 ("This site can't be reached") completely and ensures robust single-instance operation and headless automated smoke test observation.
+
+## D033: Native Android Companion Architecture & Full-Duplex Web Call Gateway
+**Date:** 2026-10-31  
+**Choice:**
+1. Built native Android app structure under `android/` using Kotlin and Gradle, implementing `AudioRecord` 16 kHz PCM audio streaming over OkHttp WebSocket directly to desktop core `/ws/call`.
+2. Implemented `/ws/call` in `bolsamajh/web/server.py` supporting full-duplex bi-directional audio: streaming VAD, STT transcription, RAG retrieval against loaded documents with exact page citations, sentence-streaming neural TTS audio chunks, and client-side barge-in interruption.
+3. Configured `.github/workflows/release.yml` with Android Gradle build step generating and attaching `BolSamajh-Android.apk` directly to GitHub Releases.  
+**Alternatives considered:** Relying strictly on mobile browser PWA over HTTP (blocked by Chrome `getUserMedia` secure origin policy on LAN IPs).  
+**Reason:** Resolves Audit Findings A1.6 and A2, providing a real native Android client that streams microphone audio over local LAN Wi-Fi without SSL/HTTPS certificate requirements.
+
+## D034: Open Source Code Signing Assessment & SmartScreen Guidance
+**Date:** 2026-10-31  
+**Choice:**
+1. Evaluated SignPath Foundation Free Open Source Code Signing program (retrieved 2026-10-31):
+   > "SignPath Foundation provides free code signing certificates to eligible open-source projects. Requirements: OSI-approved open source license (MIT/Apache), active maintenance, public repository on GitHub, non-commercial governance, and automated builds via GitHub Actions."
+2. Policy: BolSamajh fulfills technical eligibility (MIT license, public GitHub Actions CI). Formal enrollment requires project admin approval and foundation registration; no automated signup is executed per hard rules.
+3. Implemented SHA-256 release checksum pipeline (`SHA256SUMS.txt`) in GitHub Actions and documented Windows Defender SmartScreen guidance ("More info → Run anyway") in `docs/MANUAL_TESTS.md` and release notes.  
+**Alternatives considered:** Purchasing commercial EV code signing certificate ($300–$500/yr; violates ZERO spend rule); leaving executable unhashed.  
+**Reason:** Strictly adheres to the zero-spend constraint while providing cryptographic verification and a clear audit path.
+
+
 

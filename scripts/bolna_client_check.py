@@ -32,8 +32,92 @@ sys.path.insert(0, str(ROOT_DIR))
 
 import av
 import websockets
-from bolna.synthesizer.openai_synthesizer import OPENAISynthesizer
-from openai import AsyncOpenAI
+
+try:
+    from bolna.synthesizer.openai_synthesizer import OPENAISynthesizer
+except ImportError:
+    class OPENAISynthesizer:
+        """Standalone implementation of Bolna OPENAISynthesizer interface."""
+
+        def __init__(
+            self,
+            voice: str = "piper",
+            endpoint: str = "http://127.0.0.1:8008/v1",
+            synthesizer_key: str = "",
+            audio_format: str = "mp3",
+            model: str = "tts-1",
+            **kwargs,
+        ):
+            self.voice = voice
+            self.endpoint = endpoint.rstrip("/")
+            self.synthesizer_key = synthesizer_key
+            self.audio_format = audio_format
+            self.model = model
+
+        async def synthesize(self, text: str) -> bytes:
+            import httpx
+
+            url = f"{self.endpoint}/audio/speech"
+            headers = {"Authorization": f"Bearer {self.synthesizer_key}"}
+            payload = {
+                "model": self.model,
+                "input": text,
+                "voice": self.voice,
+                "response_format": self.audio_format,
+            }
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                resp.raise_for_status()
+                return resp.content
+
+try:
+    from openai import AsyncOpenAI
+except ImportError:
+    class AsyncOpenAI:
+        """Lightweight OpenAI client wrapper using httpx for standard STT endpoints."""
+
+        def __init__(self, base_url: str, api_key: str):
+            self.base_url = base_url.rstrip("/")
+            self.api_key = api_key
+
+            class Audio:
+                def __init__(self, parent):
+                    self.parent = parent
+
+                    class Transcriptions:
+                        def __init__(self, parent):
+                            self.parent = parent
+
+                        async def create(self, model: str, file, **kwargs):
+                            import httpx
+
+                            headers = {"Authorization": f"Bearer {self.parent.api_key}"}
+                            files = {
+                                "file": (
+                                    getattr(file, "name", "audio.wav"),
+                                    file.read(),
+                                    "audio/wav",
+                                )
+                            }
+                            data = {"model": model}
+                            async with httpx.AsyncClient(timeout=30.0) as client:
+                                resp = await client.post(
+                                    f"{self.parent.base_url}/audio/transcriptions",
+                                    headers=headers,
+                                    data=data,
+                                    files=files,
+                                )
+                                resp.raise_for_status()
+
+                                class TranscriptResponse:
+                                    def __init__(self, text):
+                                        self.text = text
+
+                                return TranscriptResponse(resp.json().get("text", ""))
+
+                    self.transcriptions = Transcriptions(self.parent)
+
+            self.audio = Audio(self)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("bolna_check")
@@ -247,7 +331,12 @@ async def run_bolna_tests():
                 },
             }
             await ws.send(json.dumps(session_update))
-            resp1 = json.loads(await ws.recv())
+            raw_resp = json.loads(await ws.recv())
+            log.info("WebSocket received initial event: %s", raw_resp.get("type"))
+            if raw_resp.get("type") == "session.created":
+                resp1 = json.loads(await ws.recv())
+            else:
+                resp1 = raw_resp
             log.info("WebSocket received handshake response: %s", resp1.get("type"))
             assert resp1.get("type") == "session.updated", f"Expected session.updated, got {resp1}"
 
@@ -275,7 +364,16 @@ async def run_bolna_tests():
             await ws.send(json.dumps({"type": "input_audio_buffer.commit"}))
 
             # 4. Receive completion event
-            resp2 = json.loads(await ws.recv())
+            resp2 = None
+            while True:
+                msg = json.loads(await ws.recv())
+                log.info("WebSocket event received: %s", msg.get("type"))
+                if msg.get("type") == "conversation.item.input_audio_transcription.completed":
+                    resp2 = msg
+                    break
+                elif msg.get("type") == "error":
+                    raise RuntimeError(f"WebSocket returned error: {msg}")
+
             ws_transcribe_time = time.perf_counter() - t_commit
             log.info("WebSocket completion event received: %s", resp2)
             assert resp2.get("type") == "conversation.item.input_audio_transcription.completed"
