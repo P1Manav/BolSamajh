@@ -109,3 +109,4 @@ def test_webcall_barge_in_cancellation():
         barge_msg = ws.receive_json()
         assert barge_msg["type"] == "state"
         assert barge_msg["state"] == "interrupted"
+

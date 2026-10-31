@@ -1,2 +1,3 @@
 rootProject.name = "BolSamajh-Android"
 include ':app'
+

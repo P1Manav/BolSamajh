@@ -225,3 +225,4 @@ class MainActivity : AppCompatActivity() {
         webSocket?.close(1000, "App closed")
     }
 }
+
