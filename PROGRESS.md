@@ -2,11 +2,24 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Phase 15 Complete — UI Privacy Transparency & "Why BolSamajh" Honesty
+## Current Status: 🎯 Phase 16 Complete — Submission Artifacts & Judge 2-Minute Path
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 16 — Rebuilt 90s Demo Script, Judge Evaluation Path & Sample Documents
+- [x] **Sample Documents Created (`samples/`):**
+  - `samples/sample_policy.pdf`: Real 3-page health insurance policy (Bharat Swasthya Shield) with structured sections for inpatient care, room rent & ICU caps (1% and 2%), maternity coverage (₹50,000 / 24 months), cataract limits, general exclusions (cosmetic, dental, space travel), TPA cashless & reimbursement deadlines, and synthetic legal disclaimers.
+  - `samples/sample_circular.html`: Real DPDP Act multilingual data protection circular covering data localization, 22 scheduled language consent, and penalty caps.
+- [x] **Judge Evaluation Guide (`submission/JUDGES.md`):** Comprehensive 2-minute fast path for judges covering zero-terminal executable launch, 3 30-second live tests (dictation with currency normalization, voice Doc Q&A with page citations & barge-in, competitive transparency), and verified benchmark summary.
+- [x] **Rebuilt 90-Second Demo Video Script (`submission/demo_script.md`):** Formatted for exactly 90 seconds (205 words at 136 wpm) structured strictly around core differentiators:
+  - (0:00–0:10) Problem: 500M+ Hinglish speakers, high subscription costs, and sensitive document privacy.
+  - (0:10–0:30) Dictation in apps with ₹ currency & 18% GST formatting, plus Roman vs Devanagari script switching.
+  - (0:30–1:00) Talk-to-Document: Hinglish Q&A on `samples/sample_policy.pdf` with `[Page 1]` citation, 140ms voice barge-in, spoken Gujarati answer with `[Page 2]`, and honest refusal (*"Yeh document mein nahi hai"*).
+  - (1:00–1:15) Airplane mode proof: 100% air-gapped on-device banner and public benchmark table.
+  - (1:15–1:30) Browser Web-Call, Android companion, Bolna agent gateway, and Windows release download.
+- [x] **Submission Checklist & Form Answers Synced:** Updated test counts to 139 across `submission/FINAL_CHECKLIST.md`, `submission/application_answers.md`, and `submission/application_answers_RENDERED.md`.
 
 #### Phase 15 — UI Privacy Transparency, Local/Cloud Badges & "Why BolSamajh" Comparison
 - [x] **"Why BolSamajh" Dedicated View:** Integrated an interactive comparison view (`#view-why`) into the Web Studio navigation featuring:

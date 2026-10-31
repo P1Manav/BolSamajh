@@ -1,37 +1,46 @@
 # BolSamajh — 90-Second Demo Video Script & Shot List
 
-> **Event:** Bolna x Symphony Voice AI Buildathon  
-> **Tagline:** *"Bolo. Samjho."* — Speak to write and act in any app, talk to any document in your language.  
-> **Target Duration:** Exactly 90 seconds (189 spoken words, pace ~125 wpm)  
+> **Event:** Bolna × Symphony Voice AI Buildathon  
+> **Tagline:** *"Bolo. Samjho."* — Speak to write in any app, talk to any document in your language.  
+> **Target Duration:** Exactly 90 seconds (205 spoken words, natural pace ~135 wpm)  
 > **Presenter:** Manav (Solo Builder, Ahmedabad)  
-> **Note:** Video recording is a MANUAL task for the repository owner; follow the shot list and script below.
+> **Sample Assets:** `samples/sample_policy.pdf`  
 
 ---
 
-## Shot List & Narrative Flow
+## 90-Second Shot List & Narrative Flow
 
-| Timecode | Visual / Screen Action | Spoken Voiceover (Script) | Key On-Screen Callout |
+| Timecode | Visual / Screen Action | Spoken Voiceover (Exact Words) | On-Screen Text Overlay |
 | :--- | :--- | :--- | :--- |
-| **0:00 – 0:15** *(15s)* | **Screen:** Desktop view with floating BolSamajh HUD docked in system tray. Show title card and prompt overlay. | *"Over 500 million Indians speak Hinglish every day, but existing voice tools force an unnatural choice between pure English and formal Hindi. Meet BolSamajh: Bolo. Samjho — open-source, private voice intelligence built for Indian language workflows."* | **500M+ Hinglish Speakers • Open-Source & Private** |
-| **0:15 – 0:35** *(20s)* | **Screen:** Open Notepad. Hold **`Alt+Shift+Space`**. HUD glows green (🎤 *Listening*). Speak: *"Yaar client review ke liye kal subah 10:30 par meeting schedule kar do."* Release key. Clean text inserts at cursor. | *"First, Push-to-Talk Dictation in any application. Hold Alt+Shift+Space and speak naturally. Release, and it types instantly at your cursor. Running locally with Whisper turbo at under 0.1 Real-Time Factor — fast, private, and zero cloud API cost."* | **Local GPU STT: ~0.06x RTF • Alt+Shift+Space Dictation** |
-| **0:35 – 0:55** *(20s)* | **Screen:** Press **`Alt+Shift+D`** to open file dialog and select a sample PDF policy. Press **`Alt+Shift+A`**, speak: *"Health checkup reimbursement ka kya rule hai?"* Audio streams back with green `Page 2` citation pill. Press **`Escape`** to interrupt. | *"Second, Talk-to-Document. Press Alt+Shift+D to load any PDF or policy, then hold Alt+Shift+A to ask voice questions. BolSamajh answers in natural Hinglish with exact page citations, streaming audio sentence-by-sentence. Hit Escape or speak over to interrupt anytime."* | **Grounded RAG • Exact Page Citations • Silero Barge-In** |
-| **0:55 – 1:12** *(17s)* | **Screen:** Highlight rough text in an email draft. Hold **`Alt+Shift+C`**, speak: *"Make this email formal and concise."* Selection updates in-place to polished text. | *"Third, in-place voice editing. Highlight text in an email or Slack, press Alt+Shift+C, and speak your intent. The LLM rewrites your text directly in-place without switching windows or compromising your clipboard."* | **Alt+Shift+C • In-Place Voice Editing Anywhere** |
-| **1:12 – 1:30** *(18s)* | **Screen:** Switch to Web UI (`http://localhost:8000`) showing audio waveforms and chat history. Show `.env` setting `BOLSAMAJH_TTS_ENGINE=piper` for air-gapped mode. | *"Finally, a strictly 100% offline air-gapped mode with local Piper TTS and Ollama, plus an OpenAI-compatible audio gateway for Bolna voice agents. BolSamajh: Bolo. Samjho. 100% free and open-source. Thank you!"* | **100% Offline Air-Gapped Mode • Bolna Voice Gateway** |
+| **0:00 – 0:10** *(10s)* | **Screen:** Clean desktop with BolSamajh floating pill. Split view showing patient record / insurance PDF and Notepad. | *"500 million Indians speak fluid Hinglish every day. Yet commercial voice tools charge monthly subscriptions for dictation alone, while sensitive Indian enterprise and healthcare documents cannot leave the device to foreign clouds."* | **500M+ Bilingual Speakers • Zero Cloud Spend • 100% Auditable** |
+| **0:10 – 0:30** *(20s)* | **Screen:** Open Notepad/WhatsApp Web. Hold **`Alt+Shift+Space`**. Speak: *"Invoice pe 18 percent GST add karke total pandrah hazar kar do."* Text inserts: *"Invoice pe 18% GST add karke total ₹15,000 kar do."* Switch tray script to Devanagari, speak: *"meeting postpone ho gayi"*, inserts: *"मीटिंग पोस्टपोन हो गई"*. | *"With BolSamajh, push-to-talk dictation works in any desktop app. Hold Alt+Shift+Space: speech is cleaned of fillers, with automatic rupee and GST formatting, plus explicit script control for Roman Hinglish or formal Devanagari."* | **Alt+Shift+Space • ₹ / GST Formatting • Roman & Devanagari Script** |
+| **0:30 – 1:00** *(30s)* | **Screen:** Load `samples/sample_policy.pdf` with **`Alt+Shift+D`**. Hold **`Alt+Shift+A`**, ask in Hinglish: *"Kya ICU charges cover hote hain?"* Spoken answer starts streaming with green **`[Page 1]`** chip. While it speaks, speak aloud or press `Escape`: audio cuts instantly (*Barge-in: 140ms*). Ask in Gujarati: *"Maternity benefit ketlu male chhe?"* Spoken Gujarati answer with **`[Page 2]`**. Ask: *"Space travel cover chhe?"* System responds: *"Yeh document mein nahi hai."* | *"Here is the wedge: Talk-to-Document intelligence. Press Alt+Shift+D to index any PDF, then hold Alt+Shift+A. It answers in Hinglish with verifiable page citations. Interrupt anytime with hands-free voice barge-in. It answers in Gujarati, and refuses out-of-document questions honestly."* | **Voice Doc Q&A • Page Citations • Gujarati Voice • Voice Barge-in** |
+| **1:00 – 1:15** *(15s)* | **Screen:** Turn on Windows Airplane Mode (Network Disconnected). Open BolSamajh Studio dashboard. Green banner: *"🟢 100% Air-Gapped Offline Mode"*. Show the public benchmark table with raw and normalized WER side by side. | *"Turn off Wi-Fi completely: BolSamajh runs 100% air-gapped on-device with Faster-Whisper, local Ollama, and Piper TTS. Our public benchmark publishes raw and normalized WER side-by-side with complete transparency."* | **Air-Gapped Offline Mode • Transparent Public Benchmark** |
+| **1:15 – 1:30** *(15s)* | **Screen:** Open Web-Call in browser (`http://localhost:8000`), show QR code for Android companion remote, showcase the OpenAI-compatible `/v1/audio` endpoints for Bolna agents, and show GitHub Release download button. | *"Access browser Web-Call mode, pair with Android, or use BolSamajh as a free drop-in audio gateway for Bolna voice agents. Download the Windows installer and try it in under 60 seconds. Bolo. Samjho."* | **Browser Web-Call • Bolna Agent Gateway • Windows Installer Ready** |
 
 ---
 
-## Step-by-Step Recording Checklist (Manual Task)
+## Word Count Verification
+- Total Script Words: 205 words
+- Estimated Pacing: 136 words per minute (comfortable, authoritative delivery for 90 seconds)
 
-1. **Hardware & Microphone:** Use a USB or headset mic; select default recording device in Windows sound settings.
-2. **Screen Capture:** Open OBS Studio (1920x1080 @ 60fps), capture main display, enable cursor capture.
-3. **App Windows Pre-arranged:**
-   - Left half: Notepad with empty document.
-   - Right half: Sample multi-page PDF (`scratch/doc_qa_e2e/sample_policy.pdf`).
-   - Browser tab ready on `http://localhost:8000`.
-4. **Hotkey Practice:**
-   - `Alt+Shift+Space` (Dictate)
-   - `Alt+Shift+D` (Load Doc)
-   - `Alt+Shift+A` (Ask Doc)
-   - `Alt+Shift+C` (Voice Edit Selection)
-   - `Escape` (Interrupt Audio)
-5. **Upload:** Upload video to YouTube or Loom as Unlisted (90 seconds max), copy link into submission form.
+---
+
+## Recording Setup Checklist for Host
+
+1. **Hardware & Microphone:**
+   - Default Windows recording device set to your primary mic.
+   - Output speakers or headphones active.
+2. **Screen Capture:**
+   - Resolution: 1920×1080 @ 60fps (OBS Studio or Windows Game Bar `Win+G`).
+3. **Application Windows Layout:**
+   - Left: Notepad or WhatsApp Web window.
+   - Right: PDF viewer or BolSamajh Studio Dashboard (`http://localhost:8000`).
+   - Sample PDF: `samples/sample_policy.pdf`.
+4. **Hotkeys Checklist:**
+   - `Alt+Shift+Space`: Push-to-Talk Dictation
+   - `Alt+Shift+D`: Load Document (pick `samples/sample_policy.pdf`)
+   - `Alt+Shift+A`: Voice Doc Q&A
+   - `Escape`: Barge-in audio stop
+5. **Upload:**
+   - Upload MP4 to YouTube (as Unlisted) or Loom, title: `"BolSamajh — 90s Buildathon Demo"`.

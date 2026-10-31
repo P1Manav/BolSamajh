@@ -67,7 +67,7 @@ BolSamajh directly supports Bolna's vision of autonomous voice agents:
 
 ### 10. Links & Verification
 - **GitHub Repository:** https://github.com/P1Manav/BolSamajh
-- **CI Status:** GitHub Actions multi-OS CPU matrix workflow (Ubuntu + Windows on Python 3.11 and 3.12) running 129 non-slow tests all passing green.
+- **CI Status:** GitHub Actions multi-OS CPU matrix workflow (Ubuntu + Windows on Python 3.11 and 3.12) running 139 non-slow tests all passing green.
 - **Dataset Licenses:** Detailed in [`benchmark_data/DATASETS.md`](benchmark_data/DATASETS.md)
 - **Architectural Decision Records:** 28 ADRs (D001–D028) documented in [`DECISIONS.md`](DECISIONS.md)
 - **Final Submission Checklist:** [`submission/FINAL_CHECKLIST.md`](submission/FINAL_CHECKLIST.md)

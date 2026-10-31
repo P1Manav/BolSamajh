@@ -21,7 +21,7 @@ python -m bolsamajh
 ```powershell
 pytest -v -m "not slow and not network" tests/
 ```
-*129 tests passing green across both Python 3.11 and 3.12.*
+*139 tests passing green across both Python 3.11 and 3.12.*
 
 ---
 
@@ -51,7 +51,7 @@ Every claimed feature has automated code-level verification in the repository. E
 
 | Feature | Verification Method | Evidence Link |
 |:---|:---|:---|
-| **CI & Test Suite** | 129 tests passing on Python 3.11 & 3.12 in clean venvs | [docs/evidence/ci_health.txt](../docs/evidence/ci_health.txt) |
+| **CI & Test Suite** | 139 tests passing on Python 3.11 & 3.12 in clean venvs | [docs/evidence/ci_health.txt](../docs/evidence/ci_health.txt) |
 | **Dictation & Text Insertion** | Automated Notepad launch, real `keybd_event` (Alt+Shift+Space), WER 0.0000, modifier released check (`GetAsyncKeyState`), clipboard restored | [docs/evidence/e2e_dictation.txt](../docs/evidence/e2e_dictation.txt) |
 | **In-Place Voice Commands** | Automated Notepad launch with selection, Alt+Shift+C, in-place text rewrite | [docs/evidence/e2e_dictation.txt](../docs/evidence/e2e_dictation.txt) |
 | **Voice Barge-In** | 10 min continuous TTS playback (93 sentences, 0 false triggers in speaker mode and 0 in headphone mode; median latency 231.5ms speaker / 66.2ms headphones) | [docs/evidence/bargein_check.txt](../docs/evidence/bargein_check.txt)<br>[benchmark_data/bargein_measurements.json](../benchmark_data/bargein_measurements.json) |
