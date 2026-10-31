@@ -13,6 +13,7 @@ BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by defa
 
 <div align="center">
 
+[![Watch 90s Demo Video](https://img.shields.io/badge/🎬_Watch_Demo-90s_Launch_Film-ef4444?style=for-the-badge&logo=youtube&logoColor=white)](demo.mp4)
 [![Download Windows Portable](https://img.shields.io/badge/📦_Download-Windows_Portable_(ZIP)-2563eb?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
 [![Download Windows Installer](https://img.shields.io/badge/🚀_Download-Windows_Setup_(EXE)-16a34a?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
 [![Android Companion](https://img.shields.io/badge/📱_Android-Companion_App-7c3aed?style=for-the-badge&logo=android&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
