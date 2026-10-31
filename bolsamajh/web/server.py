@@ -1255,7 +1255,7 @@ async def api_dictate(
     script: str = Form("natural"),
     remove_fillers: bool = Form(True),
 ):
-    """Voice dictation endpoint (Wispr Flow style) with filler removal, number formatting, and script control."""
+    """Voice dictation endpoint with filler removal, number formatting, and script control."""
     t0 = time.time()
     audio_bytes = await stream_upload_bytes(file, MAX_UPLOAD_SIZE)
     clean_wav = await asyncio.to_thread(resample_audio_to_16k_mono, audio_bytes)

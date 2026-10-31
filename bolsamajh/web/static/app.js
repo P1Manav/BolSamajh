@@ -1,4 +1,4 @@
-// BolSamajh Web Client — Wispr Flow Studio & Voice Intelligence Engine
+// BolSamajh Web Client — Studio & Voice Intelligence Engine
 
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 6. TAB 1: WISPR FLOW DICTATION STUDIO
+  // 6. TAB 1: DICTATION STUDIO
   // ==========================================
   let isDictating = false;
   let dictateMediaRecorder = null;

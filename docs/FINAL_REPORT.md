@@ -30,7 +30,7 @@
 ### Python 3.12 (Host Virtualenv `venv`)
 ```text
 ============================= test session starts =============================
-platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0 -- D:\Projects\BolSamajh\venv\Scripts\python.exe
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0 -- .\venv\Scripts\python.exe
 collected 83 items / 2 deselected / 81 selected
 
 ================ 81 passed, 2 deselected, 3 warnings in 9.92s =================
@@ -39,7 +39,7 @@ collected 83 items / 2 deselected / 81 selected
 ### Python 3.11 (Clean Virtualenv `test_venv_311`)
 ```text
 ============================= test session starts =============================
-platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.7.0 -- D:\Projects\BolSamajh\test_venv_311\Scripts\python.exe
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.7.0 -- .\test_venv_311\Scripts\python.exe
 collected 83 items / 2 deselected / 81 selected
 
 ================ 81 passed, 2 deselected, 4 warnings in 32.63s ================
@@ -57,10 +57,10 @@ All checks passed!
 
 ### Fresh-Clone Quickstart Smoke Test (`scripts/test_fresh_clone.py`)
 ```text
-[Step 1] Cloning repo into clean temp directory: C:\Users\Maxpr\AppData\Local\Temp\bolsamajh_fresh_clone_audit...
+[Step 1] Cloning repo into clean temp directory: %TEMP%\bolsamajh_fresh_clone_audit...
 [+] Clone successful.
 [Step 2] Creating fresh virtual environment in cloned repo...
-[+] Fresh venv created: C:\Users\Maxpr\AppData\Local\Temp\bolsamajh_fresh_clone_audit\venv\Scripts\python.exe
+[+] Fresh venv created: %TEMP%\bolsamajh_fresh_clone_audit\venv\Scripts\python.exe
 [Step 3] Installing dependencies from requirements.lock.txt (or requirements.txt)...
 [+] Pip install finished in 85.4s (Return Code: 0)
 [Step 4] Running smoke test 1: Package import & version check...

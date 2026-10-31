@@ -77,7 +77,7 @@ def create_tray(
         icon=_create_icon_image(),
         title="BolSamajh — Bolo. Samjho.",
         menu=pystray.Menu(
-            Item("Open BolSamajh Studio (Wispr Flow UI)", on_open_studio, default=True),
+            Item("Open BolSamajh Studio", on_open_studio, default=True),
             Item(f"BolSamajh v{__version__}", lambda *a: None, enabled=False),
             pystray.Menu.SEPARATOR,
             Item(

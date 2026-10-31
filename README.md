@@ -11,11 +11,7 @@
 
 BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable page citations and sentence-streaming audio, and in-place voice editing — running natively on your hardware with optional cloud fallbacks and zero mandatory subscription fees.
 
-<div align="center">
 
-![BolSamajh Desktop App & Overlay HUD](assets/bolsamajh_app_demo.jpg)
-
-</div>
 
 ### ⚡ Direct Application Launch (Zero Terminal Required)
 

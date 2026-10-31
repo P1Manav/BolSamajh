@@ -2,11 +2,19 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 v1.1.0 Released & Verified — Standalone Direct Windows App & Welcoming Dashboard (Phases 1–12 Complete)
+## Current Status: 🎯 Phase 13 Complete — Truth Pass & Competitive Realism
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 13 — Truth Pass, Competitor Scrub & Sourced Competitive Grounding
+- [x] **Competitor Branding Scrubbed:** Removed all occurrences of competitor names ("Wispr Flow") from tray icon menu, web studio HTML, JavaScript, CSS, and docstrings.
+- [x] **Personal Paths Sanitized:** Scrubbed user paths (`Maxpr`, `d:\Projects\BolSamajh`) from `docs/FINAL_REPORT.md`, `docs/MANUAL_VERIFICATION.md`, and `PROGRESS.md`.
+- [x] **Fake Hero Image Removed:** Deleted AI-generated macOS mockup (`assets/bolsamajh_app_demo.jpg`) and removed reference from `README.md`.
+- [x] **Ideation History Archived:** Moved `docs/ideation_transcript.md` (101 KB) into `docs/archive/` to keep root docs clean.
+- [x] **Sourced Competitive Grounding (`docs/COMPETITIVE_NOTES.md`):** Formally analyzed Wispr Flow capabilities from official vendor pages (retrieved 2026-10-31), documenting verified free tier, 100+ languages, Hinglish support, script selection, Command Mode, SignPath Foundation OSS program, and genuine BolSamajh differentiators (built-in voice Doc Q&A with citations, local air-gap offline mode, open reproducible benchmarks, Bolna gateway).
+- [x] **Application Answers Cleaned:** Deleted unverified claim regarding code-switching failure from `submission/application_answers.md` and updated problem statement with verified, sourced claims.
 
 #### Phase 12 — Windows GUI Double-Click Crash Resolution & Welcoming Explainer Dashboard
 - [x] **Windows GUI `NoneType.isatty` Crash Resolved:** Identified root cause of unhandled exception dialog on double-click: Windows `--noconsole` launches with `sys.stdout = None` and `sys.stderr = None`, causing `uvicorn.logging.DefaultFormatter` to crash on `sys.stdout.isatty()`. Implemented `_SafeNullStream` wrappers in `bolsamajh/__main__.py`, `bolsamajh/main.py`, and `bolsamajh/web/server.py`, and configured `uvicorn.Config` with `log_config=None`.
@@ -25,8 +33,8 @@
 - [x] **Active Socket Polling for Edge App Mode:** Eliminated `ERR_CONNECTION_REFUSED` race condition in `bolsamajh/main.py` by polling the server port via socket connection up to 6.0s before launching Microsoft Edge borderless application window.
 - [x] **Persistent Glass Overlay HUD:** Hardened `bolsamajh/overlay/hud.py` so pinned state (`/api/overlay/toggle`) keeps a persistent pill (` 🎙️ BolSamajh  Ready`) on top of all windows instead of auto-withdrawing.
 - [x] **Standalone Executable Compilation:** Recompiled `dist/BolSamajh/BolSamajh.exe` and packaged `dist/BolSamajh-v1.1.0-windows-x64.zip` (451.5 MB) containing PyTorch runtime, CT2 CUDA DLLs, PyAV, SentenceTransformers, and all web assets.
-- [x] **Live Binary Empirical Verification:** Automated tests verified that running `dist/BolSamajh/BolSamajh.exe` starts Uvicorn, serves the Wispr Flow-style Studio UI (`GET /`, HTTP 200, 24,983 bytes), serves PWA manifest, and handles HUD overlay controls (`/api/overlay`, `/api/overlay/toggle`).
-- [x] **Direct Desktop Shortcut:** Updated `scripts/create_desktop_shortcut.py` and regenerated `C:\Users\Maxpr\Desktop\BolSamajh.lnk` pointing directly to `dist\BolSamajh\BolSamajh.exe`.
+- [x] **Live Binary Empirical Verification:** Automated tests verified that running `dist/BolSamajh/BolSamajh.exe` starts Uvicorn, serves the Studio UI (`GET /`, HTTP 200, 24,983 bytes), serves PWA manifest, and handles HUD overlay controls (`/api/overlay`, `/api/overlay/toggle`).
+- [x] **Direct Desktop Shortcut:** Updated `scripts/create_desktop_shortcut.py` and regenerated `%USERPROFILE%\Desktop\BolSamajh.lnk` pointing directly to `dist\BolSamajh\BolSamajh.exe`.
 - [x] **GitHub Release Asset Clobber:** Uploaded updated 451.5 MB standalone archive to GitHub Release v1.1.0 (`https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0`).
 
 #### Phase 10 — Standalone Application Release & CI Matrix Resolution (v1.1.0)

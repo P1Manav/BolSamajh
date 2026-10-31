@@ -8,7 +8,7 @@
 
 1. **Activate Virtual Environment & Check `.env`:**
    ```powershell
-   cd d:\Projects\BolSamajh
+   cd <path-to-repo>\BolSamajh
    .\venv\Scripts\activate
    # Ensure .env exists with any desired overrides:
    cp .env.example .env  # if not already present
