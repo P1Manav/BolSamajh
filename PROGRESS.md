@@ -2,11 +2,18 @@
 
 > Updated after each milestone. Carry this file across sessions.
 
-## Current Status: 🎯 Phase 16 Complete — Submission Artifacts & Judge 2-Minute Path
+## Current Status: 🎯 Phase 17 Complete — README Polish & Honest Positioning
 
 ---
 
 ### ✅ Completed Milestones
+
+#### Phase 17 — README Sourced Competitive Table, Download Buttons & 5-Command Setup
+- [x] **Download Badges Above the Fold:** Added 3 download badges for Windows Portable (ZIP), Windows Setup (EXE), and Android Companion directly on the top banner.
+- [x] **"Why Not Just Wispr Flow?" Comparison:** Sourced side-by-side comparison table directly in `README.md` backed by `docs/COMPETITIVE_NOTES.md` (retrieved 2026-10-31), including open source auditability, $0.00 cost, 100% offline air-gapped mode, voice Doc Q&A with citations, barge-in, script control, and Bolna gateway.
+- [x] **Honest Engineering Reality:** Documented where Wispr Flow is stronger (100+ languages, mature iOS/Android apps, zero local GPU/RAM requirement, enterprise workspaces).
+- [x] **5-Command Developer Quickstart:** Streamlined clean clone and setup path to exactly 5 commands with automated GPU detection.
+- [x] **Automated Benchmark Sync Passing:** Verified `scripts/generate_readme_tables.py --check` passing with zero drift across all documentation numbers.
 
 #### Phase 16 — Rebuilt 90s Demo Script, Judge Evaluation Path & Sample Documents
 - [x] **Sample Documents Created (`samples/`):**

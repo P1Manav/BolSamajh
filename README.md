@@ -11,6 +11,40 @@
 
 BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by default, offline TTS optional) built specifically for **500 million Hinglish and Indian-language speakers**. It combines push-to-talk dictation in any desktop application, document intelligence with verifiable page citations and sentence-streaming audio, and in-place voice editing — running natively on your hardware with optional cloud fallbacks and zero mandatory subscription fees.
 
+<div align="center">
+
+[![Download Windows Portable](https://img.shields.io/badge/📦_Download-Windows_Portable_(ZIP)-2563eb?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
+[![Download Windows Installer](https://img.shields.io/badge/🚀_Download-Windows_Setup_(EXE)-16a34a?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
+[![Android Companion](https://img.shields.io/badge/📱_Android-Companion_App-7c3aed?style=for-the-badge&logo=android&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
+
+</div>
+
+---
+
+## ⚖️ "Why Not Just Wispr Flow?" — Honest Sourced Comparison
+
+> **Transparency Policy:** Data verified against official vendor documentation ([wisprflow.ai](https://wisprflow.ai), retrieved **2026-10-31**). Full analysis in [`docs/COMPETITIVE_NOTES.md`](docs/COMPETITIVE_NOTES.md).
+
+| Capability | Wispr Flow | BolSamajh |
+| :--- | :--- | :--- |
+| **License & Auditability** | Proprietary closed-source | **100% Open Source (MIT)** — fully self-hostable |
+| **Pricing** | Free tier (~2,000 words/wk) / **$12–$15/mo** | **$0.00 / Zero mandatory spend** |
+| **Air-Gapped / Offline** | Cloud-dependent (voice audio sent to cloud) | **100% Offline Mode** (Faster-Whisper + Piper + Ollama) |
+| **Talk to Documents (RAG)** | None (requires external tools) | **Built-in Voice Doc Q&A** with page citations & refusal |
+| **Voice Barge-In** | N/A | **Silero VAD Voice Interruption** during speech playback |
+| **Script Control** | Implicit (Hindi vs Hinglish selection) | **Explicit 3-way toggle** (Natural / Roman / Devanagari) |
+| **Indian Normalization** | General formatting | **Targeted ₹ currency, GST %, Lakh/Crore, Indian dates** |
+| **Voice Agent Gateway** | None | **Drop-in OpenAI-compatible gateway** for Bolna agents |
+| **Benchmark Transparency** | Proprietary benchmarks | **Public, reproducible benchmark** with raw + norm WER |
+
+### 💡 Where Wispr Flow is Stronger (Honest Engineering Reality)
+- **100+ Production Languages:** Wispr Flow supports over 100 languages, whereas BolSamajh focuses deeply on Hinglish, Hindi, Gujarati, and English.
+- **Cross-Platform Maturity:** Native production apps for macOS, Windows, iOS, and Android with unified cloud synchronization.
+- **Hardware Independence:** Cloud-based processing requires no local GPU VRAM or CPU allocation.
+- **Team & Enterprise Workspaces:** SAML/SSO, HIPAA compliance, shared team dictionaries, and built-in AI meeting notetaker.
+
+---
+
 
 
 ### ⚡ Direct Application Launch (Zero Terminal Required)
@@ -21,12 +55,25 @@ Once installed, **no terminal or commands are needed** to use BolSamajh:
 - **Batch Launcher:** Double-click BolSamajh.bat for quick startup.
 - **Pre-Built Standalone Release:** Download the portable BolSamajh-windows-x64.zip from [Releases](https://github.com/P1Manav/BolSamajh/releases) (or compile your own via python scripts/build_executable.py), unzip, and run BolSamajh.exe directly!
 
-### ⚡ Developer / CLI Quickstart
+### ⚡ Developer Quickstart (Under 5 Commands)
 
-**Prerequisites:** Python 3.11 or 3.12 only (see [![CI](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml/badge.svg)](https://github.com/P1Manav/BolSamajh/actions/workflows/ci.yml) for build status on Ubuntu & Windows).
+**Prerequisites:** Windows 10/11 x64, Python 3.11 or 3.12, NVIDIA GPU (or CPU fallback).
 
 ```powershell
-git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh && python -m venv venv && .\venv\Scripts\activate && pip install -r requirements.lock.txt && python -m bolsamajh
+# 1. Clone and enter repo
+git clone https://github.com/P1Manav/BolSamajh.git && cd BolSamajh
+
+# 2. Create & activate virtual environment
+python -m venv venv && .\venv\Scripts\activate
+
+# 3. Install dependencies (GPU runtime wheels auto-detected)
+pip install -r requirements-gpu.txt
+
+# 4. Start local LLM in separate terminal (or set GOOGLE_AI_API_KEY in .env)
+ollama run gemma3:4b
+
+# 5. Launch BolSamajh (auto port fallback + health check)
+python -m bolsamajh
 ```
 
 ---
