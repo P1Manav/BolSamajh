@@ -61,7 +61,6 @@ logs/
 .coverage
 htmlcov/
 
-# Node & Video build artifacts
+# Video studio
+video/
 node_modules/
-video/node_modules/
-video/out/

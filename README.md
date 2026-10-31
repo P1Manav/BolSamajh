@@ -13,7 +13,7 @@ BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by defa
 
 <div align="center">
 
-[![Watch 90s Demo Video](https://img.shields.io/badge/🎬_Watch_Demo-90s_Launch_Film-ef4444?style=for-the-badge&logo=youtube&logoColor=white)](demo.mp4)
+[![Watch 90s Demo Video](https://img.shields.io/badge/🎬_Watch_Demo-90s_Launch_Film-ef4444?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/P1Manav/BolSamajh/blob/master/demo.mp4)
 [![Download Windows Portable](https://img.shields.io/badge/📦_Download-Windows_Portable_(ZIP)-2563eb?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
 [![Download Windows Installer](https://img.shields.io/badge/🚀_Download-Windows_Setup_(EXE)-16a34a?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
 [![Android Companion](https://img.shields.io/badge/📱_Android-Companion_App-7c3aed?style=for-the-badge&logo=android&logoColor=white)](https://github.com/P1Manav/BolSamajh/releases/tag/v1.1.0)
@@ -21,7 +21,13 @@ BolSamajh is an open-source voice AI companion (local STT/RAG; cloud TTS by defa
 <br/>
 <br/>
 
-<img src="assets/app_screenshot_desktop.png" alt="BolSamajh Studio Dashboard" width="900" style="border-radius: 8px; border: 1px solid #334155;" />
+<a href="https://github.com/P1Manav/BolSamajh/blob/master/demo.mp4" title="Click to watch the 90-second launch film">
+  <img src="assets/app_screenshot_desktop.png" alt="BolSamajh Studio Dashboard — Click to Play 90-Second Demo Film" width="900" style="border-radius: 8px; border: 1px solid #334155;" />
+</a>
+
+<p>
+  <strong><a href="https://github.com/P1Manav/BolSamajh/blob/master/demo.mp4">▶️ Click here or on the image above to play the 90-Second Product Demo (demo.mp4)</a></strong>
+</p>
 
 </div>
 
